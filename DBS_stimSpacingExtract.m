@@ -34,7 +34,7 @@ if (strcmp(sid, 'bb908'))
     dbsElectrodes = DBSs.data;
     dbs_fs = DBSs.info.SamplingRateHz;
 
-    ECOG = ECOG.data;
+    ECOGelectrodes = ECOG.data;
     ECOG_fs = ECOG.info.SamplingRateHz; 
     
     stimBox = Stim.data;
@@ -94,7 +94,7 @@ stims = squeeze(getEpochSignal(Sing1,(bursts(2,:)-1),(bursts(3,:))+1));
 t = (0:size(stims,1)-1)/stim_fs;
 t = t*1e3;
 figure
-plot(t,stims)
+plot(t,stims(:,2:end))
 xlabel('Time (ms)');
 ylabel('Voltage to be delivered')
 title('Voltage to be delivered')
@@ -119,7 +119,7 @@ plot(t,stims)
 
 % get the delay in stim times
 
-delay = round(0.1434*stim_fs/1e3);
+delay = floor(0.1434*stim_fs/1e3);
 
 % plot the appropriately delayed signal
 figure
@@ -144,8 +144,8 @@ title('Stim voltage monitoring with delay added in')
 stimTimes = bursts(2,:)-1+delay;
 
 % DJC 7-7-2016, changed presamps and post samps to 1 second
-presamps = round(1 * stim_fs); % pre time in sec
-postsamps = round(1 * stim_fs); % post time in sec, % modified DJC to look at up to 300 ms after
+presamps = floor(1 * stim_fs); % pre time in sec
+postsamps = floor(1 * stim_fs); % post time in sec, % modified DJC to look at up to 300 ms after
 
 
 %% Interpolation from miah's code - NOT NOW
