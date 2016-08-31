@@ -7,23 +7,20 @@ close all; clear all; clc
 % add path for scripts to work with data tanks
 addpath('./scripts')
 
-% set path
-Z_ConstantsDBS
+SIDS = {'bb908'};
 
 % subject directory, change as needed
 % for David
-SUB_DIR = fullfile(myGetenv('subject_dir'));
 
 %% load in subject
 
-% this is from my z_constants
 
 sid = SIDS{1};
 
 % load in tank
 if (strcmp(sid, 'bb908'))
     
-    structureData = promptForTDTrecording;
+    structureData = uiimport('-file');
     Sing = structureData.Sing;
     Stim = structureData.Stim;
     Valu = structureData.Valu;
