@@ -55,10 +55,11 @@ end
 % ui box for input
 prompt = {'Plot stimulation monitor and current to be delivered (time series?) y or n ',...
     'Plot time series of DBS and ECoG electrodes? y or n','Plot Specific channels or conditions of interest? y or n'...
-    'Plot histogram of DBS and ECoG electrodes? y or n'};
+    'Find stim delivery peaks & Plot histogram of DBS and ECoG electrodes? y or n'...
+    'Plot CCEPs'};
 dlg_title = 'Channel of Interest';
 num_lines = 1;
-defaultans = {'n','n','y','y'};
+defaultans = {'n','n','y','y','y'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 
 plotStim = answer{1};
@@ -171,7 +172,7 @@ end
 stimTimes = bursts(2,:)-1+delay;
 
 
-prompt = {'time to look before stimulation (seconds) (If wanting to do stimulation pulse analysis, set to 0)','Time to look after stimulation signal (seconds) (If wanting to do stimulation pulse analysis, set to 0.495) '};
+prompt = {'time to look before stimulation (seconds) (If wanting to do stimulation pulse analysis, set to 0) (If wanting to do CCEP, -0.495)','Time to look after stimulation signal (seconds) (If wanting to do stimulation pulse analysis, set to 0.495) (If wanting to do CCEP, 0.795) '};
 dlg_title = 'How much to analyze';
 num_lines = 1;
 defaultans = {'0.1','2'};
@@ -319,49 +320,77 @@ if strcmp(plotCond,'y')
 end
 
 %% get average peaks of waveform
+% right now this is particular for looking at the DBS voltage peaks
+% delivered
 
-DBS_peak_pos = {};
-ECoG_peak_pos = {};
+if strcmp(plotHist,'y')
+    
+    DBS_peak_pos = {};
+    ECoG_peak_pos = {};
+    
+    DBS_peak_neg = {};
+    ECoG_peak_neg = {};
+    
+    factor = -1;
+    ECoG_neg = cellfun(@(x) x*factor,ECoG_sep,'un',0);
+    DBS_neg = cellfun(@(x) x*factor,DBS_sep,'un',0);
+    
+    % ccep
+    
+    % empircally found
+    numPeaks = 92;
+    numConds = 15;
+    
+    
+    preCCEP = floor(0 * stim_fs); % pre time in sec
+    postCCEP = floor(6e-3 * stim_fs); % post time in sec, % modified DJC to look at up to 300 ms after
+    
+    ECoG_sepCCEPinternal = {};
+    DBS_sepCCEPinternal = {};
 
-DBS_peak_neg = {};
-ECoG_peak_neg = {};
-
-factor = -1;
-ECoG_neg = cellfun(@(x) x*factor,ECoG_sep,'un',0);
-DBS_neg = cellfun(@(x) x*factor,DBS_sep,'un',0);
-
-for i = 1:length(ucondition)
     
-    dbs_condP = DBS_sep{i};
-    dbs_condN = DBS_neg{i};
-    ECoG_condP = ECoG_sep{i};
-    ECoG_condN = ECoG_neg{i};
-    
-    
-    for j = 1:size(dbs_condP,2)
-        dbs_stackP = squeeze(dbs_condP(:,j,:));
-        dbs_stackP = dbs_stackP(:);
-        [DBS_peakFind_pos,~] = findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.005);
-        DBS_peak_pos{i}{j} = DBS_peakFind_pos;
+    for i = 1:length(ucondition)
         
-        dbs_stackN = squeeze(dbs_condN(:,j,:));
-        dbs_stackN = dbs_stackN(:);
-        [DBS_peakFind_neg,~] = findpeaks(dbs_stackN,dbs_fs,'MinPeakDistance',0.005);
-        DBS_peak_neg{i}{j} = DBS_peakFind_neg;
+        dbs_condP = DBS_sep{i};
+        dbs_condN = DBS_neg{i};
+        ECoG_condP = ECoG_sep{i};
+        ECoG_condN = ECoG_neg{i};
         
-    end
-    
-    for j = 1:size(ECoG_condP,2)
         
-        ECoG_stackP = squeeze(ECoG_condP(:,j,:));
-        ECoG_stackP = ECoG_stackP(:);
-        [ECoG_peakFind_pos,~] = findpeaks(ECoG_stackP,dbs_fs,'MinPeakDistance',0.005);
-        ECoG_peak_pos{i}{j} = ECoG_peakFind_pos;
+        for j = 1:size(dbs_condP,2)
+            dbs_stackP = squeeze(dbs_condP(:,j,:));
+            dbs_stackP = dbs_stackP(:);
+            [DBS_peakFind_pos,locs] = findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.005,'NPeaks',numConds*numPeaks);
+            DBS_peak_pos{i}{j} = DBS_peakFind_pos;
+            
+            % use locations from this to find CCEP peaks
+            
+            dbs_stackN = squeeze(dbs_condN(:,j,:));
+            dbs_stackN = dbs_stackN(:);
+            [DBS_peakFind_neg,~] = findpeaks(dbs_stackN,dbs_fs,'MinPeakDistance',0.005);
+            DBS_peak_neg{i}{j} = DBS_peakFind_neg;
+           
+            locs = floor(locs *stim_fs);
+            DBS_sepCCEPinternal{i} = getEpochSignal(dbs_stackP,locs-preCCEP,locs+postCCEP);
+           
+            
+        end
         
-        ECoG_stackN = squeeze(ECoG_condN(:,j,:));
-        ECoG_stackN = ECoG_stackN(:);
-        [ECoG_peakFind_neg,~] = findpeaks(ECoG_stackN,dbs_fs,'MinPeakDistance',0.005);
-        ECoG_peak_neg{i}{j} = ECoG_peakFind_neg;
+        for j = 1:size(ECoG_condP,2)
+            
+            ECoG_stackP = squeeze(ECoG_condP(:,j,:));
+            ECoG_stackP = ECoG_stackP(:);
+            [ECoG_peakFind_pos,~] = findpeaks(ECoG_stackP,dbs_fs,'MinPeakDistance',0.005);
+            ECoG_peak_pos{i}{j} = ECoG_peakFind_pos;
+            
+            ECoG_stackN = squeeze(ECoG_condN(:,j,:));
+            ECoG_stackN = ECoG_stackN(:);
+            [ECoG_peakFind_neg,~] = findpeaks(ECoG_stackN,dbs_fs,'MinPeakDistance',0.005);
+            ECoG_peak_neg{i}{j} = ECoG_peakFind_neg;
+            
+            ECoG_sepCCEPinternal{i} = getEpochSignal(ECoG_stackP,locs-preCCEP,locs+postCCEP);
+        end
+        
     end
     
 end
@@ -468,4 +497,53 @@ if strcmp(plotHist,'y')
     
 end
 
+%% look at cceps inside of stimulation window
 
+% neeed ucondition and condition
+
+ECoG_sepCCEPinternal = {};
+DBS_sepCCEPinternal = {};
+
+ecoEachStim = {};
+dbsEachStim = {};
+
+preCCEP = floor(0 * stim_fs); % pre time in sec
+postCCEP = floor(6e-3 * stim_fs); % post time in sec, % modified DJC to look at up to 300 ms after
+
+
+
+for i = 1:length(ucondition)
+    % stack it one after the other
+    
+    ecoTemp = dataEpochedECOG(:,:,condition(stimTimes)==ucondition(i));
+    dbsTemp  = dataEpochedDBS(:,:,condition(stimTimes)==ucondition(i));
+    
+    numTrials = size(ecoTemp,3);
+    numPeaks = size(ecoTemp,
+    
+    
+    ECoG_sepCCEPinternal{i} = squeeze(reshape((permute(ecoTemp,[1 3 2])),[],1,16));
+    DBS_sepCCEPinternal{i} = squeeze(reshape((permute(dbsTemp,[1 3 2])),[],1,8));
+    
+    % need to pick DBS channel with clear peaks
+    dbsFind = DBS_sepCCEPinternal{i};
+    [~,timesFromDBS] = findpeaks(dbsFind(:,5),'MinPeakDistance',244,'NPeaks);
+    
+    dataEpochedECoGccep = squeeze(getEpochSignal(ECoG_sepCCEPinternal{i},timesFromDBS-preCCEP,timesFromDBS+postCCEP));
+    dataEpochedDBSccep = squeeze(getEpochSignal(DBS_sepCCEPinternal{i},timesFromDBS-preCCEP,timesFromDBS+postCCEP));
+    
+    
+    ecoEachStim{i} = dataEpochedECoGccep;
+    dbsEachStim{i} = dataEpochedDBSccep;
+    
+    
+end
+
+
+
+
+
+%% look at CCEPs aoutside of stimulation window
+if strcmp(ccepFind,'y')
+    
+end
