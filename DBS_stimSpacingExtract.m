@@ -341,13 +341,37 @@ if strcmp(plotHist,'y')
     numPeaks = 92;
     numConds = 15;
     
+    numTotal = numPeaks*numConds;
     
-    preCCEP = floor(0 * stim_fs); % pre time in sec
-    postCCEP = floor(6e-3 * stim_fs); % post time in sec, % modified DJC to look at up to 300 ms after
+    
+    preCCEP = floor(3e-3 * stim_fs); % pre time in sec
+    postCCEP = floor(6e-3 * stim_fs); % post time in sec
     
     ECoG_sepCCEPinternal = {};
     DBS_sepCCEPinternal = {};
-
+    
+    
+    % find locations of stimulations using condiiton 4, pick channel of
+    % interest
+    
+    dbs_condP = DBS_sep{4};
+    dbs_stackP = squeeze(dbs_condP(:,8,:));
+    dbs_stackP = dbs_stackP(:);
+    [DBS_peakFind_pos,locs] = findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.005,'NPeaks',numTotal,'MinPeakHeight',5e-3);
+    findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.005,'NPeaks',numTotal,'MinPeakHeight',5e-3)
+    locs = floor(locs *stim_fs);
+    
+    ECoG_sepCCEPinternal = {};
+    DBS_sepCCEPinternal = {};
+    
+    % look at CCEPs inside of stimulation window
+    
+    presampsCCEP =  floor(0.003*dbs_fs);
+    postsampsCCEP = floor(0.005*dbs_fs);
+    % set the time vector to be set by the pre and post samps
+    tCCEP = (-presampsCCEP:postsampsCCEP-1)*1e3/ECOG_fs;
+    
+    %%
     
     for i = 1:length(ucondition)
         
@@ -360,7 +384,7 @@ if strcmp(plotHist,'y')
         for j = 1:size(dbs_condP,2)
             dbs_stackP = squeeze(dbs_condP(:,j,:));
             dbs_stackP = dbs_stackP(:);
-            [DBS_peakFind_pos,locs] = findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.005,'NPeaks',numConds*numPeaks);
+            [DBS_peakFind_pos] = findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.005,'NPeaks',numTotal);
             DBS_peak_pos{i}{j} = DBS_peakFind_pos;
             
             % use locations from this to find CCEP peaks
@@ -369,10 +393,15 @@ if strcmp(plotHist,'y')
             dbs_stackN = dbs_stackN(:);
             [DBS_peakFind_neg,~] = findpeaks(dbs_stackN,dbs_fs,'MinPeakDistance',0.005);
             DBS_peak_neg{i}{j} = DBS_peakFind_neg;
-           
-            locs = floor(locs *stim_fs);
-            DBS_sepCCEPinternal{i} = getEpochSignal(dbs_stackP,locs-preCCEP,locs+postCCEP);
-           
+            
+            dbs_temp = squeeze(getEpochSignal(dbs_stackP,locs-preCCEP,locs+postCCEP));
+            
+            dbs_epoch_ave = mean(dbs_temp((tCCEP<0),:),1);
+            
+            dbs_temp = dbs_temp - repmat(dbs_epoch_ave,size(dbs_temp,1),1,1);
+            
+            DBS_sepCCEPinternal{i}(:,:,j) = dbs_temp;
+            
             
         end
         
@@ -388,12 +417,68 @@ if strcmp(plotHist,'y')
             [ECoG_peakFind_neg,~] = findpeaks(ECoG_stackN,dbs_fs,'MinPeakDistance',0.005);
             ECoG_peak_neg{i}{j} = ECoG_peakFind_neg;
             
-            ECoG_sepCCEPinternal{i} = getEpochSignal(ECoG_stackP,locs-preCCEP,locs+postCCEP);
+            eco_temp = squeeze(getEpochSignal(ECoG_stackP,locs-preCCEP,locs+postCCEP));
+            
+            eco_epoch_ave = mean(eco_temp((tCCEP<0),:),1);
+            
+            eco_temp = eco_temp - repmat(eco_epoch_ave,size(eco_temp,1),1,1);
+            
+            
+            ECoG_sepCCEPinternal{i}(:,:,j) = eco_temp;
         end
         
     end
     
 end
+
+
+
+%% average
+
+figure
+for j = 1:16
+    subplot(4,4,j)
+    plot(tCCEP,mean(squeeze(ECoG_sepCCEPinternal{4}(1:length(tCCEP),:,j)),2))
+    xlabel('time (ms)')
+    ylabel('Voltage (V)')
+    title(['Channel ',num2str(j)])
+    
+end
+
+figure
+for j = 1:8
+    subplot(2,4,j)
+    plot(tCCEP,mean(squeeze(DBS_sepCCEPinternal{4}(1:length(tCCEP),:,j)),2))
+    xlabel('time (ms)')
+    ylabel('Voltage (V)')
+    title(['Channel ',num2str(j)])
+    
+end
+
+%% not average
+
+figure
+for j = 1:16
+    subplot(4,4,j)
+    plot(tCCEP,squeeze(ECoG_sepCCEPinternal{4}(1:length(tCCEP),:,j)))
+    xlabel('time (ms)')
+    ylabel('Voltage (V)')
+    title(['Channel ',num2str(j)])
+    
+end
+
+figure
+for j = 1:8
+    subplot(2,4,j)
+    plot(tCCEP,squeeze(DBS_sepCCEPinternal{4}(1:length(tCCEP),:,j)))
+    xlabel('time (ms)')
+    ylabel('Voltage (V)')
+    title(['Channel ',num2str(j)])
+    
+end
+
+
+
 
 %% Plot it
 
@@ -519,7 +604,7 @@ for i = 1:length(ucondition)
     dbsTemp  = dataEpochedDBS(:,:,condition(stimTimes)==ucondition(i));
     
     numTrials = size(ecoTemp,3);
-    numPeaks = size(ecoTemp,
+    numPeaks = 92;
     
     
     ECoG_sepCCEPinternal{i} = squeeze(reshape((permute(ecoTemp,[1 3 2])),[],1,16));
@@ -527,7 +612,7 @@ for i = 1:length(ucondition)
     
     % need to pick DBS channel with clear peaks
     dbsFind = DBS_sepCCEPinternal{i};
-    [~,timesFromDBS] = findpeaks(dbsFind(:,5),'MinPeakDistance',244,'NPeaks);
+    [~,timesFromDBS] = findpeaks(dbsFind(:,5),'MinPeakDistance',244,'NPeaks',92);
     
     dataEpochedECoGccep = squeeze(getEpochSignal(ECoG_sepCCEPinternal{i},timesFromDBS-preCCEP,timesFromDBS+postCCEP));
     dataEpochedDBSccep = squeeze(getEpochSignal(DBS_sepCCEPinternal{i},timesFromDBS-preCCEP,timesFromDBS+postCCEP));
