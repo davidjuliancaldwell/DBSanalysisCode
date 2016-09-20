@@ -56,16 +56,17 @@ end
 prompt = {'Plot stimulation monitor and current to be delivered (time series?) y or n ',...
     'Plot time series of DBS and ECoG electrodes? y or n','Plot Specific channels or conditions of interest? y or n'...
     'Find stim delivery peaks & Plot histogram of DBS and ECoG electrodes? y or n'...
-    'Plot CCEPs'};
+    'Plot CCEPs','Save output file'};
 dlg_title = 'Channel of Interest';
 num_lines = 1;
-defaultans = {'n','n','y','y','y'};
+defaultans = {'n','n','y','y','y','y'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 
 plotStim = answer{1};
 plotTime = answer{2};
 plotCond = answer{3};
 plotHist = answer{4};
+saveOutput = answer{5};
 %% plot stim
 %
 if strcmp(plotStim,'y')
@@ -218,6 +219,26 @@ for i = 1:length(ucondition)
     
 end
 
+%%
+if strcmp(saveOutput,'y')
+prompt = {'Which side was stimulated? L or R ',...
+    'Were both DBS leads in? single or both ','1st DBS stim channel (active) '...
+    '2nd DBS stim channel (ground) '};
+dlg_title = 'Channel of Interest';
+num_lines = 1;
+defaultans = {'R','both','1','2'};
+answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
+
+side = answer{1};
+numLeads = answer{2};
+stim_chan1 = answer{3};
+stim_chan2 = answer{4};
+
+save(fullfile(OUTPUT_DIR, ['stim_',side,'_',numLeads,'DBS_' num2str(stim_chan1),'_',num2str(stim_chan2)]),...
+    'ucondition','ECOG_fs','dbs_fs','DBS_sep','ECoG_sep','t','presamps','postsamps','pre','post');
+return
+
+end
 
 %% plot ECoG Electrodes
 
