@@ -5,7 +5,7 @@
 % clear workspace - be in the directory with all scripts necessary
 close all; clear all; clc
 % add path for scripts to work with data tanks
-addpath('./scripts')
+addpath('.\scripts')
 
 % set path
 Z_ConstantsDBS
@@ -56,10 +56,10 @@ end
 prompt = {'Plot stimulation monitor and current to be delivered (time series?) y or n ',...
     'Plot time series of DBS and ECoG electrodes? y or n','Plot Specific channels or conditions of interest? y or n'...
     'Find stim delivery peaks & Plot histogram of DBS and ECoG electrodes? y or n'...
-    'Plot CCEPs','Save output file'};
+    'Plot CCEPs','Save output file','Save internal CCEPs'};
 dlg_title = 'Channel of Interest';
 num_lines = 1;
-defaultans = {'n','n','n','n','y','n'};
+defaultans = {'n','n','n','n','n','n','y'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 
 plotStim = answer{1};
@@ -68,6 +68,7 @@ plotCond = answer{3};
 plotHist = answer{4};
 plotCCEP = answer{5};
 saveOutput = answer{6};
+saveOutputInternal = answer{7};
 %% plot stim
 %
 if strcmp(plotStim,'y')
@@ -427,7 +428,7 @@ for i = 1:length(ucondition)
         [DBS_peakFind_neg,~] = findpeaks(dbs_stackN,dbs_fs,'MinPeakDistance',0.005);
         DBS_peak_neg{i}{j} = DBS_peakFind_neg;
         
-        dbs_temp = squeeze(getEpochSignal(dbs_stackP,locs-preCCEP,locs+postCCEP));
+        dbs_temp = squeeze(getEpochSignal(dbs_stackP,locs-presampsCCEP,locs+postsampsCCEP));
         
         dbs_epoch_ave = mean(dbs_temp((tCCEP<0),:),1);
         
@@ -450,7 +451,7 @@ for i = 1:length(ucondition)
         [ECoG_peakFind_neg,~] = findpeaks(ECoG_stackN,dbs_fs,'MinPeakDistance',0.005);
         ECoG_peak_neg{i}{j} = ECoG_peakFind_neg;
         
-        eco_temp = squeeze(getEpochSignal(ECoG_stackP,locs-preCCEP,locs+postCCEP));
+        eco_temp = squeeze(getEpochSignal(ECoG_stackP,locs-presampsCCEP,locs+postsampsCCEP));
         
         eco_epoch_ave = mean(eco_temp((tCCEP<0),:),1);
         
@@ -463,57 +464,74 @@ for i = 1:length(ucondition)
 end
 
 
-
+if strcmp(saveOutputInternal,'y')
+    prompt = {'Which side was stimulated? L or R ',...
+        'Were both DBS leads in? single or both ','1st DBS stim channel (active) '...
+        '2nd DBS stim channel (ground) '};
+    dlg_title = 'Channel of Interest';
+    num_lines = 1;
+    defaultans = {'R','both','1','2'};
+    answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
+    
+    side = answer{1};
+    numLeads = answer{2};
+    stim_chan1 = answer{3};
+    stim_chan2 = answer{4};
+    
+    save(fullfile(OUTPUT_DIR, ['stimInternal_',side,'_',numLeads,'DBS_' num2str(stim_chan1),'_',num2str(stim_chan2)]),...
+        'ucondition','ECOG_fs','dbs_fs','DBS_sepCCEPinternal','ECoG_sepCCEPinternal','tCCEP','presamps','postsamps','pre','post');
+    
+end
 
 
 %% average plots of internal CCEP
 if strcmp(plotCCEP,'y')
     
-    prompt = {'What is the condition of interest?'};
-    dlg_title = 'Condition of interest ';
-    num_lines = 1;
-    defaultans = {'4'};
-    answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
-    
-    condOfInt = str2num(answer{1});
-    
-    figure
-    for j = 1:16
-        subplot(4,4,j)
-        mu = mean(squeeze(ECoG_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),2);
-        stdError = std(squeeze(ECoG_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),[],2)/sqrt(size(squeeze(ECoG_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),1));
-        plot(tCCEP,mu)
-        hold on
-        plot(tCCEP, mu+stdError, ':');
-        hold on;
-        plot(tCCEP, mu-stdError, ':');
-        ylabel('Voltage (V)')
-        xlabel('time (ms)')
-        
-        title(['Channel ',num2str(j)])
-        
-    end
-    subtitle(['ECoG CCEP responses within train for condition = ' num2str(condOfInt)])
-    
-    figure
-    for j = 1:8
-        subplot(2,4,j)
-        mu = mean(squeeze(DBS_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),2);
-        stdError = std(squeeze(DBS_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),[],2)/sqrt(size(squeeze(DBS_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),1));
-        
-        plot(tCCEP,mu)
-        hold on
-        plot(tCCEP, mu+stdError, ':');
-        hold on;
-        plot(tCCEP, mu-stdError, ':');
-        ylabel('Voltage (V)')
-        xlabel('time (ms)')
-        
-        title(['Channel ',num2str(j)])
-    end
-    subtitle(['DBS CCEP responses within train for condition = ' num2str(condOfInt)])
-    
-    return
+        prompt = {'What is the condition of interest?'};
+        dlg_title = 'Condition of interest ';
+        num_lines = 1;
+        defaultans = {'4'};
+        answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
+
+        condOfInt = str2num(answer{1});
+
+        figure
+        for j = 1:16
+            subplot(4,4,j)
+            mu = mean(squeeze(ECoG_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),2);
+            stdError = std(squeeze(ECoG_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),[],2)/sqrt(size(squeeze(ECoG_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),1));
+            plot(tCCEP,mu)
+            hold on
+            plot(tCCEP, mu+stdError, ':');
+            hold on;
+            plot(tCCEP, mu-stdError, ':');
+            ylabel('Voltage (V)')
+            xlabel('time (ms)')
+
+            title(['Channel ',num2str(j)])
+
+        end
+        subtitle(['ECoG CCEP responses within train for condition = ' num2str(condOfInt)])
+
+        figure
+        for j = 1:8
+            subplot(2,4,j)
+            mu = mean(squeeze(DBS_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),2);
+            stdError = std(squeeze(DBS_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),[],2)/sqrt(size(squeeze(DBS_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),1));
+
+            plot(tCCEP,mu)
+            hold on
+            plot(tCCEP, mu+stdError, ':');
+            hold on;
+            plot(tCCEP, mu-stdError, ':');
+            ylabel('Voltage (V)')
+            xlabel('time (ms)')
+
+            title(['Channel ',num2str(j)])
+        end
+        subtitle(['DBS CCEP responses within train for condition = ' num2str(condOfInt)])
+
+        return
     
 end
 %% not average
