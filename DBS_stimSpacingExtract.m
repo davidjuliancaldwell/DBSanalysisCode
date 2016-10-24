@@ -179,7 +179,7 @@ prompt = {'time to look before stimulation (seconds) (If wanting to do stimulati
     ,'Time to look after stimulation signal (seconds) (If wanting to do stimulation pulse analysis, set to 0.495) (If wanting to look at internal CCEPs, set to 0.5) (If wanting to do external to train CCEP, 0.795) '};
 dlg_title = 'How much to analyze';
 num_lines = 1;
-defaultans = {'0.1','0.5'};
+defaultans = {'-0.485','2.745'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 
 pre = str2num(answer{1});
@@ -197,12 +197,14 @@ dataEpochedDBS = squeeze(getEpochSignal(dbsElectrodes,stimTimes-presamps,stimTim
 
 % mean subtract
 
-ECoG_ave = mean(dataEpochedECOG,1);
-DBS_ave = mean(dataEpochedDBS,1);
-
-dataEpochedECOG = dataEpochedECOG - repmat(ECoG_ave,size(dataEpochedECOG,1),1,1);
-dataEpochedDBS = dataEpochedDBS - repmat(DBS_ave,size(dataEpochedECOG,1),1,1);
-
+if strcmp(sid,'bb908')
+    
+    ECoG_ave = mean(dataEpochedECOG,1);
+    DBS_ave = mean(dataEpochedDBS,1);
+    
+    dataEpochedECOG = dataEpochedECOG - repmat(ECoG_ave,size(dataEpochedECOG,1),1,1);
+    dataEpochedDBS = dataEpochedDBS - repmat(DBS_ave,size(dataEpochedECOG,1),1,1);
+end
 
 % set the time vector to be set by the pre and post samps
 t = (-presamps:postsamps-1)*1e3/ECOG_fs;
@@ -229,7 +231,7 @@ if strcmp(saveOutput,'y')
         '2nd DBS stim channel (ground) '};
     dlg_title = 'Channel of Interest';
     num_lines = 1;
-    defaultans = {'R','both','1','2'};
+    defaultans = {'R','both','1','2
     answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
     
     side = answer{1};
@@ -487,51 +489,51 @@ end
 %% average plots of internal CCEP
 if strcmp(plotCCEP,'y')
     
-        prompt = {'What is the condition of interest?'};
-        dlg_title = 'Condition of interest ';
-        num_lines = 1;
-        defaultans = {'4'};
-        answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
-
-        condOfInt = str2num(answer{1});
-
-        figure
-        for j = 1:16
-            subplot(4,4,j)
-            mu = mean(squeeze(ECoG_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),2);
-            stdError = std(squeeze(ECoG_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),[],2)/sqrt(size(squeeze(ECoG_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),1));
-            plot(tCCEP,mu)
-            hold on
-            plot(tCCEP, mu+stdError, ':');
-            hold on;
-            plot(tCCEP, mu-stdError, ':');
-            ylabel('Voltage (V)')
-            xlabel('time (ms)')
-
-            title(['Channel ',num2str(j)])
-
-        end
-        subtitle(['ECoG CCEP responses within train for condition = ' num2str(condOfInt)])
-
-        figure
-        for j = 1:8
-            subplot(2,4,j)
-            mu = mean(squeeze(DBS_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),2);
-            stdError = std(squeeze(DBS_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),[],2)/sqrt(size(squeeze(DBS_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),1));
-
-            plot(tCCEP,mu)
-            hold on
-            plot(tCCEP, mu+stdError, ':');
-            hold on;
-            plot(tCCEP, mu-stdError, ':');
-            ylabel('Voltage (V)')
-            xlabel('time (ms)')
-
-            title(['Channel ',num2str(j)])
-        end
-        subtitle(['DBS CCEP responses within train for condition = ' num2str(condOfInt)])
-
-        return
+    prompt = {'What is the condition of interest?'};
+    dlg_title = 'Condition of interest ';
+    num_lines = 1;
+    defaultans = {'4'};
+    answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
+    
+    condOfInt = str2num(answer{1});
+    
+    figure
+    for j = 1:16
+        subplot(4,4,j)
+        mu = mean(squeeze(ECoG_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),2);
+        stdError = std(squeeze(ECoG_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),[],2)/sqrt(size(squeeze(ECoG_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),1));
+        plot(tCCEP,mu)
+        hold on
+        plot(tCCEP, mu+stdError, ':');
+        hold on;
+        plot(tCCEP, mu-stdError, ':');
+        ylabel('Voltage (V)')
+        xlabel('time (ms)')
+        
+        title(['Channel ',num2str(j)])
+        
+    end
+    subtitle(['ECoG CCEP responses within train for condition = ' num2str(condOfInt)])
+    
+    figure
+    for j = 1:8
+        subplot(2,4,j)
+        mu = mean(squeeze(DBS_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),2);
+        stdError = std(squeeze(DBS_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),[],2)/sqrt(size(squeeze(DBS_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),1));
+        
+        plot(tCCEP,mu)
+        hold on
+        plot(tCCEP, mu+stdError, ':');
+        hold on;
+        plot(tCCEP, mu-stdError, ':');
+        ylabel('Voltage (V)')
+        xlabel('time (ms)')
+        
+        title(['Channel ',num2str(j)])
+    end
+    subtitle(['DBS CCEP responses within train for condition = ' num2str(condOfInt)])
+    
+    return
     
 end
 %% not average
