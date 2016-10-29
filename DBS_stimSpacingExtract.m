@@ -225,19 +225,24 @@ for i = 1:length(ucondition)
 end
 
 %%
+
+
+prompt = {'Which side was stimulated? L or R ',...
+    'Were both DBS leads in? single or both ','1st DBS stim channel (active) '...
+    '2nd DBS stim channel (ground) '};
+dlg_title = 'Channel of Interest';
+num_lines = 1;
+defaultans = {'R','both','1','2'};
+answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
+
+side = answer{1};
+numLeads = answer{2};
+stim_chan1 = answer{3};
+stim_chan2 = answer{4};
+stimChans = [stim_chan1 stim_chan2];
+
 if strcmp(saveOutput,'y')
-    prompt = {'Which side was stimulated? L or R ',...
-        'Were both DBS leads in? single or both ','1st DBS stim channel (active) '...
-        '2nd DBS stim channel (ground) '};
-    dlg_title = 'Channel of Interest';
-    num_lines = 1;
-    defaultans = {'R','both','1','2
-    answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
     
-    side = answer{1};
-    numLeads = answer{2};
-    stim_chan1 = answer{3};
-    stim_chan2 = answer{4};
     
     save(fullfile(OUTPUT_DIR, ['stim_',side,'_',numLeads,'DBS_' num2str(stim_chan1),'_',num2str(stim_chan2)]),...
         'ucondition','ECOG_fs','dbs_fs','DBS_sep','ECoG_sep','t','presamps','postsamps','pre','post');
@@ -349,6 +354,8 @@ end
 % right now this is particular for looking at the DBS voltage peaks
 % delivered
 
+stimFreq = input('what was the stim frequency . e.g. 185  \n','s');
+
 
 DBS_peak_pos = {};
 ECoG_peak_pos = {};
@@ -362,15 +369,28 @@ DBS_neg = cellfun(@(x) x*factor,DBS_sep,'un',0);
 
 % ccep
 
-% empircally found
-numPeaks = 92;
+
+if strcmp(stimFreq,'185')
+numPeaks = 92; % empircally found - if 185 Hz 
+
+elseif strcmp(stimFreq,'20')
+    numPeaks = 9;
+end 
 numConds = 15;
 
 numTotal = numPeaks*numConds;
 
 
 preCCEP = floor(3e-3 * stim_fs); % pre time in sec
+
+if strcmp(stimFreq,'185')
+
 postCCEP = floor(6e-3 * stim_fs); % post time in sec
+
+elseif strcmp(stimFreq,'20')
+    
+postCCEP = floor(51e-3*stim-fs);
+end
 
 ECoG_sepCCEPinternal = {};
 DBS_sepCCEPinternal = {};
@@ -393,6 +413,8 @@ chanExtract = str2num(answer{1});
 dbs_condP = DBS_sep{4};
 dbs_stackP = squeeze(dbs_condP(:,chanExtract,:));
 dbs_stackP = dbs_stackP(:);
+
+if strcmop 
 [DBS_peakFind_pos,locs] = findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.005,'NPeaks',numTotal,'MinPeakHeight',5e-3);
 findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.005,'NPeaks',numTotal,'MinPeakHeight',5e-3)
 locs = floor(locs *stim_fs);
@@ -529,7 +551,19 @@ if strcmp(plotCCEP,'y')
         ylabel('Voltage (V)')
         xlabel('time (ms)')
         
-        title(['Channel ',num2str(j)])
+        % put a box around the stimulation channels of interest if need be
+        if ismember(j,stimChans)
+            ax = gca;
+            ax.Box = 'on';
+            ax.XColor = 'red';
+            ax.YColor = 'red';
+            ax.LineWidth = 2;
+            title(['Channel ',num2str(j)],'color','red');
+            
+        else
+            title(['Channel ',num2str(j)]);
+        end
+        
     end
     subtitle(['DBS CCEP responses within train for condition = ' num2str(condOfInt)])
     
@@ -554,7 +588,18 @@ for j = 1:8
     plot(tCCEP,squeeze(DBS_sepCCEPinternal{4}(1:length(tCCEP),:,j)))
     xlabel('time (ms)')
     ylabel('Voltage (V)')
-    title(['Channel ',num2str(j)])
+    % put a box around the stimulation channels of interest if need be
+    if ismember(j,stimChans)
+        ax = gca;
+        ax.Box = 'on';
+        ax.XColor = 'red';
+        ax.YColor = 'red';
+        ax.LineWidth = 2;
+        title(['Channel ',num2str(j)],'color','red');
+        
+    else
+        title(['Channel ',num2str(j)]);
+    end
     
 end
 
@@ -667,6 +712,8 @@ end
 
 % neeed ucondition and condition
 
+
+
 ECoG_sepCCEPinternal = {};
 DBS_sepCCEPinternal = {};
 
@@ -674,7 +721,13 @@ ecoEachStim = {};
 dbsEachStim = {};
 
 preCCEP = floor(0 * stim_fs); % pre time in sec
-postCCEP = floor(6e-3 * stim_fs); % post time in sec, % modified DJC to look at up to 300 ms after
+
+% 6
+if strcmp(stimFreq,'185')
+postCCEP = floor(6e-3 * stim_fs); % post time in sec, % modified DJC to look at up to 50 ms after
+elseif strcmp(stimFreq,'20')
+postCCEP = floor(51e-3 * stim_fs); % post time in sec, % modified DJC to look at up to 50 ms after
+end
 
 
 
@@ -685,8 +738,15 @@ for i = 1:length(ucondition)
     dbsTemp  = dataEpochedDBS(:,:,condition(stimTimes)==ucondition(i));
     
     numTrials = size(ecoTemp,3);
-    numPeaks = 92;
     
+    % this is for 185 Hz condition 
+    if strcmp(stimFreq,'185')
+
+    numPeaks = 92;
+    elseif strcmp(stimFreq,'20')
+    numPeaks = 9;
+
+    end
     
     ECoG_sepCCEPinternal{i} = squeeze(reshape((permute(ecoTemp,[1 3 2])),[],1,16));
     DBS_sepCCEPinternal{i} = squeeze(reshape((permute(dbsTemp,[1 3 2])),[],1,8));

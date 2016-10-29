@@ -160,6 +160,64 @@ stim1Epoched = squeeze(getEpochSignal(stim1stChan,(bursts(2,:)-1),(bursts(3,:))+
 t = (0:size(stim1Epoched,1)-1)/fs_stim;
 t = t*1e3;
 
+%% DJC - 10-28-2016 - normalize to baseline
+
+labels = max(singEpoched);
+
+uniqueLabels = unique(labels);
+
+figure
+
+if strcmp(plotIt,'y')
+    for i = uniqueLabels
+        stimInterest = stim1Epoched(:,labels==i);
+        baseline = mean(stim1Epoched(1:5,:));
+        baselineRepped = repmat(baseline,[size(stim1Epoched,1), 1]);
+        stimNorm = stimInterest-baselineRepped(:,labels==i);
+        plot(t,stimNorm);
+        hold on
+    end
+    xlabel('Time (ms)');
+    ylabel('Voltage (V)');
+    title('Individual Stim Currents overlaid')
+    
+end
+%%
+% legLabels = {[num2str(uniqueLabels(1))]};
+%
+% k = 2;
+% if length(uniqueLabels>1)
+%     for i = uniqueLabels(2:end)
+%         legLabels{end+1} = [num2str(uniqueLabels(k))];
+%         k = k+1;
+%     end
+% end
+%
+% legend(legLabels);
+
+% plot divide by current 
+
+figure
+
+if strcmp(plotIt,'y')
+    for i = uniqueLabels(uniqueLabels~=1)
+        stimInterest = stim1Epoched(:,labels==i);
+        baseline = mean(stim1Epoched(1:5,:));
+        baselineRepped = repmat(baseline,[size(stim1Epoched,1), 1]);
+        stimNorm = stimInterest-baselineRepped(:,labels==i);
+        stimDivide = stimNorm./(i*1e-6);
+        plot(t,stimDivide);
+        hold on
+    end
+    xlabel('Time (ms)');
+    ylabel('V/I');
+    title('Voltage divided by current')
+    
+end
+
+%%
+
+
 if strcmp(plotIt,'y')
     
     figure
@@ -173,6 +231,7 @@ end
 % get the delay in stim times - looks to be 7 samples or so
 delay = round(0.1434*fs_stim/1e3);
 
+delay = 0; %%%% setting delay = 0 to show better plots
 
 % plot the appropriately delayed signal
 if strcmp(plotIt,'y')
@@ -182,12 +241,16 @@ if strcmp(plotIt,'y')
     t = (0:size(stim1Epoched,1)-1)/fs_stim;
     t = t*1e3;
     figure
-    plot(t,stim1Epoched)
+    plot(t,stim1Epoched(:,:))
     xlabel('Time (ms)');
     ylabel('Voltage (V)');
     title('Stim voltage monitoring with delay added in')
 end
 
+
+% redefine delay for other work - 10-28-2016
+
+delay = round(0.1434*fs_stim/1e3);
 
 
 %% extract data
@@ -216,7 +279,7 @@ sts = round(stimTimes / fac) + delay2;
 
 %% get the data epochs
 
-%%%%%%%%%%%%%%%%%%%%%% for stim param 12 at first pass 
+%%%%%%%%%%%%%%%%%%%%%% for stim param 12 at first pass
 
 %data = data(1:6e6,:);
 %sts = sts(sts<6e6);
