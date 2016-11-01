@@ -4,7 +4,7 @@
 %% initialize output and meta dir
 % clear workspace
 close all; clear all; clc
-
+%%
 
 % load in the datafile of interest!
 % have to have a value assigned to the file to have it wait to finish
@@ -198,7 +198,7 @@ end
 % plot divide by current 
 
 figure
-
+stimDivideTotal = [];
 if strcmp(plotIt,'y')
     for i = uniqueLabels(uniqueLabels~=1)
         stimInterest = stim1Epoched(:,labels==i);
@@ -207,6 +207,7 @@ if strcmp(plotIt,'y')
         stimNorm = stimInterest-baselineRepped(:,labels==i);
         stimDivide = stimNorm./(i*1e-6);
         plot(t,stimDivide);
+        stimDivideTotal = [stimDivideTotal stimDivide];
         hold on
     end
     xlabel('Time (ms)');
