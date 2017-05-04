@@ -1,5 +1,4 @@
-%% DJC - 8-29-2016 - DBS analysis script
-% This is to extract the neural data
+%% 11-2-2016 - script to prepare opposite polarity for OppPolarity Subtract
 
 %% initialize output and meta dir
 % clear workspace - be in the directory with all scripts necessary
@@ -52,7 +51,7 @@ end
 
 if (strcmp(sid, '80301'))
     
-    [structureData,filepath] = promptForTDTrecording;
+    structureData = promptForTDTrecording;
     Sing = structureData.Sing;
     Stim = structureData.Stim;
     Valu = structureData.Valu;
@@ -76,21 +75,6 @@ if (strcmp(sid, '80301'))
     ttlPulse = Cond.data(:,3);
     cond_fs = Cond.info.SamplingRateHz;
     
-    % deal with that chunk in stimParam12 that's bad
-    fileName = filepath(end-16:end);
-    if strcmp(fileName,'paramsweep-12.mat')
-        BadData = ones(size(dbsElectrodes,1),1);
-        BadData(5.983e6:6.84e6) = 0;
-        BadData = logical(BadData);
-        dbsElectrodes = dbsElectrodes(BadData,:);
-        ECOGelectrodes = ECOGelectrodes(BadData,:);
-        stimBox = stimBox(BadData,:);
-        stimProgrammed = stimProgrammed(BadData,:);
-        stimSampDeliver = stimSampDeliver(BadData,:);
-        condition = condition(BadData,:);
-        ttlPulse = ttlPulse(BadData,:);
-    end
-    
     
 end
 
@@ -103,7 +87,7 @@ prompt = {'Plot stimulation monitor and current to be delivered (time series?) y
     'Plot CCEPs','Save output file','Save internal CCEPs'};
 dlg_title = 'Channel of Interest';
 num_lines = 1;
-defaultans = {'n','n','n','y','y','n','n'};
+defaultans = {'n','n','n','n','n','n','y'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 
 plotStim = answer{1};
@@ -224,7 +208,7 @@ prompt = {'time to look before stimulation (seconds) (If wanting to do stimulati
     'What was the stimulation frequency?'};
 dlg_title = 'How much to analyze';
 num_lines = 1;
-defaultans = {'-0.495','0.795','185'};
+defaultans = {'0.1','0.5','185'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 
 pre = str2num(answer{1});
@@ -252,12 +236,12 @@ if strcmp(sid,'bb908')
     dataEpochedECOG = dataEpochedECOG - repmat(ECoG_ave,size(dataEpochedECOG,1),1,1);
     dataEpochedDBS = dataEpochedDBS - repmat(DBS_ave,size(dataEpochedECOG,1),1,1);
 end
-%%%%%%%%%%%%%%%%% 80301 wasnt DC coupled
+%%%%%%%%%%%%%%%%% 80301 wasnt DC coupled 
 % if strcmp(sid,'80301')
-%
+%     
 %     ECoG_ave = mean(dataEpochedECOG,1);
 %     DBS_ave = mean(dataEpochedDBS,1);
-%
+%     
 %     dataEpochedECOG = dataEpochedECOG - repmat(ECoG_ave,size(dataEpochedECOG,1),1,1);
 %     dataEpochedDBS = dataEpochedDBS - repmat(DBS_ave,size(dataEpochedECOG,1),1,1);
 % end
@@ -389,6 +373,9 @@ if strcmp(plotCond,'y')
     
     %% look at averages for condition of interest
     
+    DBS_aveCond  = squeeze(mean(DBS_temp,3));
+    ECoG_aveCond = squeeze(mean(ECoG_temp,3));
+    
     figure
     plot(t,DBS_aveCond);
     xlabel('time (ms)')
@@ -401,45 +388,6 @@ if strcmp(plotCond,'y')
     ylabel('voltage (V)')
     title(['Average ECoG recording across channels for condition ', num2str(cond_int)])
     
-    %% 11-2-2016 - look at subplots of condition of interest - useful for CCEPs after stimulation train ends
-    
-       
-figure
-for j = 1:16
-    subplot(4,4,j)
-    plot(t,ECoG_aveCond(:,j))
-    xlabel('time (ms)')
-    ylabel('Voltage (V)')
-    title(['Channel ',num2str(j)])
-    
-end
-    subtitle(['ECoG EP response outside train for condition = ' num2str(cond_int)])
-
-figure
-for j = 1:8
-    subplot(2,4,j)
-    plot(t,DBS_aveCond(:,j))
-    xlabel('time (ms)')
-    ylabel('Voltage (V)')
-    
-    % put a box around the stimulation channels of interest if need be
-    if ismember(j,stimChans)
-        ax = gca;
-        ax.Box = 'on';
-        ax.XColor = 'red';
-        ax.YColor = 'red';
-        ax.LineWidth = 2;
-        title(['Channel ',num2str(j)],'color','red');
-        
-    else
-        title(['Channel ',num2str(j)]);
-    end
-    
-end
-
-    subtitle(['DBS EP responses outside train  for condition = ' num2str(cond_int)])
-
-
 end
 
 %% get average peaks of waveform
@@ -493,7 +441,7 @@ DBS_sepCCEPinternal = {};
 % dbs_9,12 (:,5,:)
 
 prompt = {'Which DBS electrode to use for extract CCEPs?'};
-dlg_title = 'Electrode to extract (use 8 for dbs_7,8,10,11 or 5/6 for dbs_9,12 ';
+dlg_title = 'Electrode to extract (use 8 for dbs_7,8,10,11 or 5 for dbs_9,12 ';
 num_lines = 1;
 defaultans = {'8'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
@@ -536,29 +484,10 @@ tCCEP = (-presampsCCEP:postsampsCCEP-1)*1e3/ECOG_fs;
 
 for i = 1:length(ucondition)
     
-    % differing numbers of trials
-    if strcmp(fileName,'paramsweep-12.mat')
-        i =4;
-    end
     dbs_condP = DBS_sep{i};
     dbs_condN = DBS_neg{i};
     ECoG_condP = ECoG_sep{i};
     ECoG_condN = ECoG_neg{i};
-    
-    % 11/1/2016 - set min peak height to 2.5e-3 , was 5e-3 before
-    MinPeakH = 2.5e-3;
-    
-    dbs_stackP = squeeze(dbs_condP(:,chanExtract,:));
-    dbs_stackP = dbs_stackP(:);
-    
-    if stimFreq == 185
-        [DBS_peakFind_pos,locs] = findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.005,'NPeaks',numTotal,'MinPeakHeight',MinPeakH);
-        findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.005,'NPeaks',numTotal,'MinPeakHeight',MinPeakH)
-    elseif stimFreq == 20
-        [DBS_peakFind_pos,locs] = findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.05,'NPeaks',numTotal,'MinPeakHeight',MinPeakH);
-        findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.05,'NPeaks',numTotal,'MinPeakHeight',MinPeakH)
-    end
-    locs = floor(locs *stim_fs);
     
     
     for j = 1:size(dbs_condP,2)
@@ -586,7 +515,7 @@ for i = 1:length(ucondition)
         
         dbs_temp = squeeze(getEpochSignal(dbs_stackP,locs-presampsCCEP,locs+postsampsCCEP));
         
-        dbs_epoch_ave = mean(dbs_temp((tCCEP<-0.25),:),1);
+        dbs_epoch_ave = mean(dbs_temp((tCCEP<0),:),1);
         
         dbs_temp = dbs_temp - repmat(dbs_epoch_ave,size(dbs_temp,1),1,1);
         
@@ -618,7 +547,7 @@ for i = 1:length(ucondition)
         
         eco_temp = squeeze(getEpochSignal(ECoG_stackP,locs-presampsCCEP,locs+postsampsCCEP));
         
-        eco_epoch_ave = mean(eco_temp((tCCEP<-0.25),:),1);
+        eco_epoch_ave = mean(eco_temp((tCCEP<0),:),1);
         
         eco_temp = eco_temp - repmat(eco_epoch_ave,size(eco_temp,1),1,1);
         
@@ -631,314 +560,12 @@ end
 
 if strcmp(saveOutputInternal,'y')
     
+    side = answer{1};
+    numLeads = answer{2};
+    stim_chan1 = answer{3};
+    stim_chan2 = answer{4};
+    
     save(fullfile(OUTPUT_DIR, ['stimInternal_',side,'_',numLeads,'DBS_' num2str(stim_chan1),'_',num2str(stim_chan2),'_fs_',num2str(stimFreq)]),...
         'ucondition','ECOG_fs','dbs_fs','DBS_sepCCEPinternal','ECoG_sepCCEPinternal','tCCEP','presamps','postsamps','pre','post');
-    
-end
-
-
-%% average plots of internal CCEP
-if strcmp(plotCCEP,'y')
-    
-    prompt = {'What is the condition of interest?'};
-    dlg_title = 'Condition of interest ';
-    num_lines = 1;
-    defaultans = {'4'};
-    answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
-    
-    condOfInt = str2num(answer{1});
-    
-    % mean subtract
-    
-    figure
-    for j = 1:16
-        subplot(4,4,j)
-        %
-       % tempEco = squeeze(ECoG_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j));
-        %tempEcoBase = mean(tempEco(tCCEP<-0.25,:),1);
-        %tempEcoNormalized = tempEco - repmat(tempEcoBase,[size(tempEco,1),1]);
-        %mu = mean(tempEcoNormalized,2);
-        %stdError = std(tempEcoNormalized,[],2)/sqrt(size(tempEcoNormalized,2));
-        
-        mu = mean(squeeze(ECoG_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),2);
-         stdError = std(squeeze(ECoG_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),[],2)/sqrt(size(squeeze(ECoG_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),2));
-        plot(tCCEP,mu)
-        hold on
-        plot(tCCEP, mu+stdError, ':');
-        hold on;
-        plot(tCCEP, mu-stdError, ':');
-        ylabel('Voltage (V)')
-        xlabel('time (ms)')
-        ylim([-1e-5 1e-5])
-        % xlim([min(tCCEP) 5])
-        
-        title(['Channel ',num2str(j)])
-        
-    end
-    subtitle(['ECoG CCEP responses within train for condition = ' num2str(condOfInt)])
-    
-    figure
-    for j = 1:8
-        
-        subplot(2,4,j)
-        
-       % tempDbs = squeeze(DBS_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j));
-       % tempDbsBase = mean(tempDbs(tCCEP<-0.25,:),1);
-       % tempDbsNormalized = tempDbs - repmat(tempDbsBase,[size(tempEco,1),1]);
-       % mu = mean(tempDbsNormalized,2);
-       % stdError = std(tempDbsNormalized,[],2)/sqrt(size(tempDbsNormalized,2));
-        
-        
-        mu = mean(squeeze(DBS_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),2);
-        stdError = std(squeeze(DBS_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),[],2)/sqrt(size(squeeze(DBS_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),2));
-        
-        plot(tCCEP,mu)
-        hold on
-        plot(tCCEP, mu+stdError, ':');
-        hold on;
-        plot(tCCEP, mu-stdError, ':');
-        ylabel('Voltage (V)')
-        xlabel('time (ms)')
-        ylim([-1e-5 1e-5])
-        %xlim([min(tCCEP) 5])
-        
-        % put a box around the stimulation channels of interest if need be
-        if ismember(j,stimChans)
-            ax = gca;
-            ax.Box = 'on';
-            ax.XColor = 'red';
-            ax.YColor = 'red';
-            ax.LineWidth = 2;
-            title(['Channel ',num2str(j)],'color','red');
-            
-        else
-            title(['Channel ',num2str(j)]);
-        end
-        
-    end
-    subtitle(['DBS CCEP responses within train for condition = ' num2str(condOfInt)])
-    
-    return
-    
-end
-%% not average
-
-figure
-for j = 1:16
-    subplot(4,4,j)
-    plot(tCCEP,squeeze(ECoG_sepCCEPinternal{4}(1:length(tCCEP),:,j)))
-    xlabel('time (ms)')
-    ylabel('Voltage (V)')
-    title(['Channel ',num2str(j)])
-    
-end
-
-figure
-for j = 1:8
-    subplot(2,4,j)
-    plot(tCCEP,squeeze(DBS_sepCCEPinternal{4}(1:length(tCCEP),:,j)))
-    xlabel('time (ms)')
-    ylabel('Voltage (V)')
-    
-    % put a box around the stimulation channels of interest if need be
-    if ismember(j,stimChans)
-        ax = gca;
-        ax.Box = 'on';
-        ax.XColor = 'red';
-        ax.YColor = 'red';
-        ax.LineWidth = 2;
-        title(['Channel ',num2str(j)],'color','red');
-        
-    else
-        title(['Channel ',num2str(j)]);
-    end
-    
-end
-
-
-
-
-%% Plot it
-
-if strcmp(plotHist,'y')
-    for i = 1:length(ucondition)
-        
-        % DBS
-        dbsTotP(i) = figure;
-        hold on
-        dbsIndP(i) = figure;
-        hold on
-        legT = {};
-        legI = {'Positive Peak','Negative Peak'};
-        
-        for j=1:size(dbs_condP,2)
-            figure(dbsIndP(i));
-            subplot(4,2,j)
-            hold on
-            histogram(DBS_peak_pos{i}{j})
-            histogram(DBS_peak_neg{i}{j})
-            
-            
-            title(['Electrode ' num2str(j)])
-            
-            figure(dbsTotP(i));
-            ax1(i) = subplot(2,1,1);
-            hold on
-            histogram(DBS_peak_pos{i}{j})
-            legT{end+1} = ['Electrode ' num2str(j)];
-            xlabel('Voltage (V)')
-            title('Positive Peak')
-            
-            ax2(i) = subplot(2,1,2);
-            hold on
-            histogram(DBS_peak_neg{i}{j})
-            xlabel('Voltage (V)')
-            title('Negative Peak')
-            
-        end
-        
-        figure(dbsIndP(i));
-        legend(legI)
-        xlabel('Voltage (V)')
-        subtitle(['DBS stim pulses for Condition ', num2str(i)])
-        
-        
-        figure(dbsTotP(i));
-        legend(legT)
-        subtitle(['DBS stim pulses for Condition ', num2str(i)])
-        
-        %     linkaxes([ax1(i) ax2(i)],'x')
-        
-        % ECoG
-        
-        ecogTotP(i) = figure;
-        hold on
-        ecogIndP(i) = figure;
-        hold on
-        legT = {};
-        legI = {'Positive Peak','Negative Peak'};
-        
-        for j=1:size(ECoG_condP,2)
-            figure(ecogIndP(i));
-            subplot(4,4,j)
-            hold on
-            histogram(ECoG_peak_pos{i}{j})
-            histogram(ECoG_peak_neg{i}{j})
-            
-            
-            title(['Electrode ' num2str(j)])
-            
-            figure(ecogTotP(i));
-            ax3(i) = subplot(2,1,1);
-            hold on
-            histogram(ECoG_peak_pos{i}{j})
-            legT{end+1} = ['Electrode ' num2str(j)];
-            xlabel('Voltage (V)')
-            title('Positive Peak')
-            
-            ax4(i) = subplot(2,1,2);
-            hold on
-            histogram(ECoG_peak_neg{i}{j})
-            xlabel('Voltage (V)')
-            title('Negative Peak')
-            
-        end
-        
-        figure(ecogIndP(i));
-        legend(legI)
-        xlabel('Voltage (V)')
-        subtitle(['ECoG stim pulses for Condition ', num2str(i)])
-        
-        
-        figure(ecogTotP(i));
-        legend(legT)
-        subtitle(['ECoG stim pulses for Condition ', num2str(i)])
-        
-        %     linkaxes([ax3(i) ax4(i)],'x')
-        
-    end
-    
-end
-
-%% look at cceps inside of stimulation window
-
-% neeed ucondition and condition
-
-
-
-ECoG_sepCCEPinternal = {};
-DBS_sepCCEPinternal = {};
-
-ecoEachStim = {};
-dbsEachStim = {};
-
-preCCEP = floor(0 * stim_fs); % pre time in sec
-
-% 6
-if stimFreq == 185
-    postCCEP = floor(6e-3 * stim_fs); % post time in sec, % modified DJC to look at up to 50 ms after
-elseif stimFreq == 20
-    postCCEP = floor(51e-3 * stim_fs); % post time in sec, % modified DJC to look at up to 50 ms after
-end
-
-
-
-for i = 1:length(ucondition)
-    % stack it one after the other
-    
-    ecoTemp = dataEpochedECOG(:,:,condition(stimTimes)==ucondition(i));
-    dbsTemp  = dataEpochedDBS(:,:,condition(stimTimes)==ucondition(i));
-    
-    numTrials = size(ecoTemp,3);
-    
-    % this is for 185 Hz condition
-    if stimFreq == 185
-        numPeaks = 92;
-    elseif stimFreq == 20
-        numPeaks = 9;
-        
-    end
-    
-    ECoG_sepCCEPinternal{i} = squeeze(reshape((permute(ecoTemp,[1 3 2])),[],1,16));
-    DBS_sepCCEPinternal{i} = squeeze(reshape((permute(dbsTemp,[1 3 2])),[],1,8));
-    
-    % need to pick DBS channel with clear peaks
-    dbsFind = DBS_sepCCEPinternal{i};
-    
-    if stimFreq == 185
-        [~,timesFromDBS] = findpeaks(dbsFind(:,chanExtract),'MinPeakDistance',244,'NPeaks',92);
-    elseif stimFreq == 20
-        [~,timesFromDBS] = findpeaks(dbsFind(:,chanExtract),'MinPeakDistance',2441,'NPeaks',9);
-    end
-    
-    dataEpochedECoGccep = squeeze(getEpochSignal(ECoG_sepCCEPinternal{i},timesFromDBS-preCCEP,timesFromDBS+postCCEP));
-    dataEpochedDBSccep = squeeze(getEpochSignal(DBS_sepCCEPinternal{i},timesFromDBS-preCCEP,timesFromDBS+postCCEP));
-    
-    
-    ecoEachStim{i} = dataEpochedECoGccep;
-    dbsEachStim{i} = dataEpochedDBSccep;
-    
-    
-end
-
-numEco = 16;
-numDBS = 8;
-figure
-for i = 1:numEco
-    subplot(8,2,i)
-    
-    title(['Channel '])
-end
-subtitle('ECoG CCEPs')
-
-figure
-for i = 1:numDBS
-    
-end
-subtitle('DBS CCEPs')
-
-
-%% look at CCEPs aoutside of stimulation window
-if strcmp(ccepFind,'y')
     
 end
