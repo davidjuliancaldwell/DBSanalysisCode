@@ -4,13 +4,15 @@
 %% initialize output and meta dir
 % clear workspace
 close all; clear all; clc
+SIDS = {'bb908','80301','63ce7','05210','be99a','d417e','d4867','180a6','1dd75','c3bd9','c0329'};
+
 %%
 
 % load in the datafile of interest!
 % have to have a value assigned to the file to have it wait to finish
 % loading...mathworks bug
 
-structureData = uiimport('-file');
+[structureData,filepath] = promptForTDTrecording;
 Sing = structureData.Sing;
 Stim = structureData.Stim;
 Valu = structureData.Valu;

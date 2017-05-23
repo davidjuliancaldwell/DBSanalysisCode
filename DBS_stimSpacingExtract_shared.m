@@ -5,39 +5,84 @@
 % clear workspace - be in the directory with all scripts necessary
 close all; clear all; clc
 
-SIDS = {'bb908'};
+SIDS = {'bb908','80301','63ce7','05210','be99a','d417e','d4867','180a6','1dd75','c3bd9','c0329'};
 
 %% load in subject
 
-sid = SIDS{1};
+sid = SIDS{2};
 % load in tank
-if (strcmp(sid, 'bb908'))
-    
-    structureData = uiimport('-file');
-   Sing = structureData.Sing;
-    Stim = structureData.Stim;
-    Valu = structureData.Valu;
-    Cond = structureData.Cond;
-    DBSs = structureData.DBSs;
-    ECOG = structureData.ECOG;
-    
-    dbsElectrodes = DBSs.data;
-    dbs_fs = DBSs.info.SamplingRateHz;
-    
-    ECOGelectrodes = ECOG.data;
-    ECOG_fs = ECOG.info.SamplingRateHz;
-    
-    stimBox = Stim.data;
-    stim_fs = Stim.info.SamplingRateHz;
-    
-    stimProgrammed = Sing.data;
-    
-    stimSampDeliver = Cond.data(:,1);
-    condition = Cond.data(:,2);
-    ttlPulse = Cond.data(:,3);
-    cond_fs = Cond.info.SamplingRateHz;
-    
-    
+switch sid
+    case 'bb908'
+        
+        structureData = promptForTDTrecording;
+        Sing = structureData.Sing;
+        Stim = structureData.Stim;
+        Valu = structureData.Valu;
+        Cond = structureData.Cond;
+        DBSs = structureData.DBSs;
+        ECOG = structureData.ECOG;
+        
+        dbsElectrodes = DBSs.data;
+        dbs_fs = DBSs.info.SamplingRateHz;
+        
+        ECOGelectrodes = ECOG.data;
+        ECOG_fs = ECOG.info.SamplingRateHz;
+        
+        stimBox = Stim.data;
+        stim_fs = Stim.info.SamplingRateHz;
+        
+        stimProgrammed = Sing.data;
+        
+        stimSampDeliver = Cond.data(:,1);
+        condition = Cond.data(:,2);
+        ttlPulse = Cond.data(:,3);
+        cond_fs = Cond.info.SamplingRateHz;
+        
+        
+        
+        
+    case '80301'
+        
+        [structureData,filepath] = promptForTDTrecording;
+        Sing = structureData.Sing;
+        Stim = structureData.Stim;
+        Valu = structureData.Valu;
+        Cond = structureData.Cond;
+        DBSs = structureData.DBSs;
+        ECOG = structureData.ECOG;
+        
+        dbsElectrodes = DBSs.data;
+        dbs_fs = DBSs.info.SamplingRateHz;
+        
+        ECOGelectrodes = ECOG.data;
+        ECOG_fs = ECOG.info.SamplingRateHz;
+        
+        stimBox = Stim.data;
+        stim_fs = Stim.info.SamplingRateHz;
+        
+        stimProgrammed = Sing.data;
+        
+        stimSampDeliver = Cond.data(:,1);
+        condition = Cond.data(:,2);
+        ttlPulse = Cond.data(:,3);
+        cond_fs = Cond.info.SamplingRateHz;
+        
+        % deal with that chunk in stimParam12 that's bad
+        fileName = filepath(end-16:end);
+        if strcmp(fileName,'paramsweep-12.mat')
+            BadData = ones(size(dbsElectrodes,1),1);
+            BadData(5.983e6:6.84e6) = 0;
+            BadData = logical(BadData);
+            dbsElectrodes = dbsElectrodes(BadData,:);
+            ECOGelectrodes = ECOGelectrodes(BadData,:);
+            stimBox = stimBox(BadData,:);
+            stimProgrammed = stimProgrammed(BadData,:);
+            stimSampDeliver = stimSampDeliver(BadData,:);
+            condition = condition(BadData,:);
+            ttlPulse = ttlPulse(BadData,:);
+        end
+        
+        
 end
 
 %% decide what to plot
@@ -305,6 +350,45 @@ if strcmp(plotCond,'y')
     xlabel('time (ms)')
     ylabel('voltage (V)')
     title(['Average ECoG recording across channels for condition ', num2str(cond_int)])
+    
+        %% 11-2-2016 - look at subplots of condition of interest - useful for CCEPs after stimulation train ends
+    
+    
+    figure
+    for j = 1:size(dataEpochedECOG,2)
+        subplot(4,4,j)
+        plot(t,ECoG_aveCond(:,j))
+        xlabel('time (ms)')
+        ylabel('Voltage (V)')
+        title(['Channel ',num2str(j)])
+        
+    end
+    subtitle(['ECoG EP response outside train for condition = ' num2str(cond_int)])
+    
+    figure
+    for j = 1:size(dataEpochedDBS,2)
+        subplot(2,4,j)
+        plot(t,DBS_aveCond(:,j))
+        xlabel('time (ms)')
+        ylabel('Voltage (V)')
+        
+        % put a box around the stimulation channels of interest if need be
+        if ismember(j,stimChans)
+            ax = gca;
+            ax.Box = 'on';
+            ax.XColor = 'red';
+            ax.YColor = 'red';
+            ax.LineWidth = 2;
+            title(['Channel ',num2str(j)],'color','red');
+            
+        else
+            title(['Channel ',num2str(j)]);
+        end
+        
+    end
+    
+    subtitle(['DBS EP responses outside train  for condition = ' num2str(cond_int)])
+    
     
 end
 

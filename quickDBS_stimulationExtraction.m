@@ -4,19 +4,22 @@
 %% initialize output and meta dir
 % clear workspace
 close all; clear all; clc
+SIDS = {'bb908','80301','63ce7','05210','be99a','d417e','d4867','180a6','1dd75','c3bd9','c0329'};
+
 %%
 
 % load in the datafile of interest!
 % have to have a value assigned to the file to have it wait to finish
 % loading...mathworks bug
 
-structureData = uiimport('-file');
+[structureData,filepath] = promptForTDTrecording;
 Sing = structureData.Sing;
 Stim = structureData.Stim;
 Valu = structureData.Valu;
 Cond = structureData.Cond;
 DBSs = structureData.DBSs;
 ECOG = structureData.ECOG;
+
 
 dbsElectrodes = DBSs.data;
 dbs_fs = DBSs.info.SamplingRateHz;
@@ -31,6 +34,14 @@ stimProgrammed = Sing.data;
 
 stimSampDeliver = Cond.data(:,1);
 condition = Cond.data(:,2);
+
+% account for 1dd75 no condition file
+
+is_subj_1dd75 = strfind(filepath,'1dd75');
+if ~isempty(is_subj_1dd75)
+        % samp deliver
+        condition_file = [2,3,4,1,4,3,1,2,1,4,2,3,2,4,1,3,1,2,4,3,1,4,3,2,2,4,3,1,4,3,1,2,4,1,2,3,3,4,2,1,1,3,4,2,1,3,2,4,4,3,1,2,3,1,4,2,3,4,1,2];
+end
 ttlPulse = Cond.data(:,3);
 cond_fs = Cond.info.SamplingRateHz;
 
@@ -64,8 +75,11 @@ stim = Stim.data;
 % current data
 sing = Sing.data;
 
-% recording data
-data = DBSs.data;
+% recording data - 5-23-2017, DJC, add in ECoG
+%data = DBSs.data;
+
+data = [dbsElectrodes, ECOGelectrodes];
+
 
 % DJC - 8-24-2016 - if it's DC coupled, below
 
@@ -232,7 +246,7 @@ end
 % get the delay in stim times - looks to be 7 samples or so
 delay = round(0.1434*fs_stim/1e3);
 
-delay = 0; %%%% setting delay = 0 to show better plots
+%delay = 0; %%%% setting delay = 0 to show better plots
 
 % plot the appropriately delayed signal
 if strcmp(plotIt,'y')
@@ -249,9 +263,9 @@ if strcmp(plotIt,'y')
 end
 
 
-% redefine delay for other work - 10-28-2016
-
-delay = round(0.1434*fs_stim/1e3);
+% % redefine delay for other work - 10-28-2016
+% 
+% delay = round(0.1434*fs_stim/1e3);
 
 
 %% extract data
