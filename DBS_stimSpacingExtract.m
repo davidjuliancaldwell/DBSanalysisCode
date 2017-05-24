@@ -499,7 +499,7 @@ end
 % right now this is particular for looking at the DBS voltage peaks
 % delivered
 
-if strcmp(ccepAnalysis,'y')
+if strcmp(ccepAnalysis,'y') || strcmp(voltageAnalysis,'y')
     
     DBS_peak_pos = {};
     ECoG_peak_pos = {};
