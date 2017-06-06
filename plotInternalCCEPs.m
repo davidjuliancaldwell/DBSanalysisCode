@@ -9,7 +9,7 @@ answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 condOfInt = str2num(answer{1});
 
 figure
-for j = 1:16
+for j = 1:numEco
     subplot(4,4,j)
     mu = mean(squeeze(ECoG_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),2);
     stdError = std(squeeze(ECoG_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),[],2)/sqrt(size(squeeze(ECoG_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),1));
@@ -27,7 +27,7 @@ end
 subtitle(['ECoG CCEP responses within train for condition = ' num2str(condOfInt)])
 
 figure
-for j = 1:8
+for j = 1:numDBS
     subplot(2,4,j)
     mu = mean(squeeze(DBS_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),2);
     stdError = std(squeeze(DBS_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),[],2)/sqrt(size(squeeze(DBS_sepCCEPinternal{condOfInt}(1:length(tCCEP),:,j)),1));

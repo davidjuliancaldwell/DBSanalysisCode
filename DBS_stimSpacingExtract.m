@@ -19,7 +19,8 @@ SUB_DIR = fullfile(myGetenv('subject_dir'));
 % this is from my z_constants
 
 % for param sweep, look at subjects 1,2,9
-sid = SIDS{1}; % MUST SWITCH THIS
+sid = input('what is the sid?\n','s');
+%sid = SIDS{2}; % MUST SWITCH THIS, either 1,2,9
 
 % load in tank
 switch sid
@@ -144,7 +145,7 @@ prompt = {'Plot stimulation monitor and current to be delivered (time series?) y
     'Plot CCEPs','Save output file','Save internal CCEPs'};
 dlg_title = 'Channel of Interest';
 num_lines = 1;
-defaultans = {'n','n','n','y','y','n','n','n','n'};
+defaultans = {'n','y','y','n','n','y','y','n','y'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 
 plotStim = answer{1};
@@ -266,7 +267,7 @@ prompt = {'time to look before stimulation (seconds) (If wanting to do stimulati
     'What was the stimulation frequency?'};
 dlg_title = 'How much to analyze';
 num_lines = 1;
-defaultans = {'-0.495','0.795','185'};
+defaultans = {'0.1','0.5','185'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 
 pre = str2num(answer{1});
@@ -330,6 +331,7 @@ for i = 1:length(ucondition)
     DBS_sep{i} = dataEpochedDBS(:,:,condition(stimTimes)==ucondition(i));
     
 end
+
 
 %%
 
@@ -558,9 +560,10 @@ if strcmp(ccepAnalysis,'y') || strcmp(voltageAnalysis,'y')
     dbs_stackP = squeeze(dbs_condP(:,chanExtract,:));
     dbs_stackP = dbs_stackP(:);
     
-    % 11/1/2016 - set min peak height to 2.5e-3 , was 5e-3 before
-    MinPeakH = 2.5e-3;
-    
+    % 11/1/2016 - set min peak height to 2.5e-3 , was 5e-3 before, try
+    % 5e-4? -6-6-2017
+   % MinPeakH = 2.5e-3;
+    MinPeakH = 2.5e-4;
     if stimFreq == 185
         [DBS_peakFind_pos,locs] = findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.005,'NPeaks',numTotal,'MinPeakHeight',MinPeakH);
         findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.005,'NPeaks',numTotal,'MinPeakHeight',MinPeakH)
@@ -603,8 +606,10 @@ if strcmp(ccepAnalysis,'y') || strcmp(voltageAnalysis,'y')
         ECoG_condP = ECoG_sep{i};
         ECoG_condN = ECoG_neg{i};
         
-        % 11/1/2016 - set min peak height to 2.5e-3 , was 5e-3 before
-        MinPeakH = 2.5e-3;
+    % 11/1/2016 - set min peak height to 2.5e-3 , was 5e-3 before, try
+    % 5e-4? -6-6-2017
+   % MinPeakH = 2.5e-3;
+    MinPeakH = 2.5e-4;
         
         dbs_stackP = squeeze(dbs_condP(:,chanExtract,:));
         dbs_stackP = dbs_stackP(:);
@@ -621,7 +626,8 @@ if strcmp(ccepAnalysis,'y') || strcmp(voltageAnalysis,'y')
         for j = 1:size(dbs_condP,2)
             dbs_stackP = squeeze(dbs_condP(:,j,:));
             dbs_stackP = dbs_stackP(:);
-            
+            dbs_stackN = squeeze(dbs_condN(:,j,:));
+            dbs_stackN = dbs_stackN(:);
             if strcmp(voltageAnalysis,'y')
                 post = 10;
                 pre = 5;
@@ -635,12 +641,8 @@ if strcmp(ccepAnalysis,'y') || strcmp(voltageAnalysis,'y')
                 end
                 %DBS_peak_pos{i}{j} = DBS_peakFind_pos;
                 DBS_peak_pos{i}{j} = max(dbs_temp,[],1);
-            end
-            % use locations from this to find CCEP peaks
-            
-            dbs_stackN = squeeze(dbs_condN(:,j,:));
-            dbs_stackN = dbs_stackN(:);
-            if strcmp(voltageAnalysis,'y')
+                % use locations from this to find CCEP peaks
+                
                 
                 if stimFreq == 185
                     
@@ -673,32 +675,40 @@ if strcmp(ccepAnalysis,'y') || strcmp(voltageAnalysis,'y')
             
             ECoG_stackP = squeeze(ECoG_condP(:,j,:));
             ECoG_stackP = ECoG_stackP(:);
-            if stimFreq == 185
-                %[ECoG_peakFind_pos,~] = findpeaks(ECoG_stackP,dbs_fs,'MinPeakDistance',0.005);
-                eco_temp = squeeze(getEpochSignal(ECoG_stackP,locs-pre,locs+post));
-                
-            elseif stimFreq == 20
-                %[ECoG_peakFind_pos,~] = findpeaks(ECoG_stackP,dbs_fs,'MinPeakDistance',0.05);
-                eco_temp = squeeze(getEpochSignal(ECoG_stackP,locs-preP,locs+post));
-                
-            end
-            
-            %ECoG_peak_pos{i}{j} = ECoG_peakFind_pos;
-            ECoG_peak_pos{i}{j} = max(eco_temp,[],1);
             
             ECoG_stackN = squeeze(ECoG_condN(:,j,:));
             ECoG_stackN = ECoG_stackN(:);
-            if stimFreq == 185
-                %[ECoG_peakFind_neg,~] = findpeaks(ECoG_stackN,dbs_fs,'MinPeakDistance',0.005);
-                eco_temp = squeeze(getEpochSignal(ECoG_stackN,locs-pre,locs+post));
+            
+            if strcmp(voltageAnalysis,'y')
+                post = 10;
+                pre = 5;
                 
-            elseif stimFreq == 20
-                %[ECoG_peakFind_neg,~] = findpeaks(ECoG_stackN,dbs_fs,'MinPeakDistance',0.05);
-                eco_temp = squeeze(getEpochSignal(ECoG_stackN,locs-pre,locs+post));
+                if stimFreq == 185
+                    %[ECoG_peakFind_pos,~] = findpeaks(ECoG_stackP,dbs_fs,'MinPeakDistance',0.005);
+                    eco_temp = squeeze(getEpochSignal(ECoG_stackP,locs-pre,locs+post));
+                    
+                elseif stimFreq == 20
+                    %[ECoG_peakFind_pos,~] = findpeaks(ECoG_stackP,dbs_fs,'MinPeakDistance',0.05);
+                    eco_temp = squeeze(getEpochSignal(ECoG_stackP,locs-pre,locs+post));
+                    
+                end
                 
+                %ECoG_peak_pos{i}{j} = ECoG_peakFind_pos;
+                ECoG_peak_pos{i}{j} = max(eco_temp,[],1);
+                
+                
+                if stimFreq == 185
+                    %[ECoG_peakFind_neg,~] = findpeaks(ECoG_stackN,dbs_fs,'MinPeakDistance',0.005);
+                    eco_temp = squeeze(getEpochSignal(ECoG_stackN,locs-pre,locs+post));
+                    
+                elseif stimFreq == 20
+                    %[ECoG_peakFind_neg,~] = findpeaks(ECoG_stackN,dbs_fs,'MinPeakDistance',0.05);
+                    eco_temp = squeeze(getEpochSignal(ECoG_stackN,locs-pre,locs+post));
+                    
+                end
+                %ECoG_peak_neg{i}{j} = ECoG_peakFind_neg;
+                ECoG_peak_neg{i}{j} = max(eco_temp,[],1);
             end
-            %ECoG_peak_neg{i}{j} = ECoG_peakFind_neg;
-            ECoG_peak_neg{i}{j} = max(eco_temp,[],1);
             
             if strcmp(ccepAnalysis,'y')
                 eco_temp = squeeze(getEpochSignal(ECoG_stackP,locs-presampsCCEP,locs+postsampsCCEP));
@@ -755,7 +765,7 @@ if strcmp(plotCCEP,'y')
         plot(tCCEP, mu-stdError, ':');
         ylabel('Voltage (V)')
         xlabel('time (ms)')
-        ylim([-1e-5 1e-5])
+        ylim([-1e-4 1e-4])
         % xlim([min(tCCEP) 5])
         
         title(['Channel ',num2str(j)])
@@ -785,7 +795,7 @@ if strcmp(plotCCEP,'y')
         plot(tCCEP, mu-stdError, ':');
         ylabel('Voltage (V)')
         xlabel('time (ms)')
-        ylim([-1e-5 1e-5])
+        ylim([-1e-3 1e-3])
         %xlim([min(tCCEP) 5])
         
         % put a box around the stimulation channels of interest if need be
@@ -811,7 +821,7 @@ end
 if strcmp(plotCCEP,'y')
     
     figure
-    for j = 1:16
+    for j = 1:numEco
         subplot(4,4,j)
         plot(tCCEP,squeeze(ECoG_sepCCEPinternal{4}(1:length(tCCEP),:,j)))
         xlabel('time (ms)')
@@ -821,7 +831,7 @@ if strcmp(plotCCEP,'y')
     end
     
     figure
-    for j = 1:8
+    for j = 1:numDBS
         subplot(2,4,j)
         plot(tCCEP,squeeze(DBS_sepCCEPinternal{4}(1:length(tCCEP),:,j)))
         xlabel('time (ms)')
@@ -844,120 +854,151 @@ if strcmp(plotCCEP,'y')
     
 end
 %% look at cceps inside of stimulation window
+% 
+% % neeed ucondition and condition
+% 
+% if strcmp(ccepAnalysis,'y')
+%     
+%     ECoG_sepCCEPinternal = {};
+%     DBS_sepCCEPinternal = {};
+%     
+%     ecoEachStim = {};
+%     dbsEachStim = {};
+%     
+%     preCCEP = floor(0 * stim_fs); % pre time in sec
+%     
+%     % 6
+%     if stimFreq == 185
+%         postCCEP = floor(6e-3 * stim_fs); % post time in sec, % modified DJC to look at up to 50 ms after
+%     elseif stimFreq == 20
+%         postCCEP = floor(51e-3 * stim_fs); % post time in sec, % modified DJC to look at up to 50 ms after
+%     end
+%     
+%     
+%     
+%     for i = 1:length(ucondition)
+%         % stack it one after the other
+%         
+%         ecoTemp = dataEpochedECOG(:,:,condition(stimTimes)==ucondition(i));
+%         dbsTemp  = dataEpochedDBS(:,:,condition(stimTimes)==ucondition(i));
+%         
+%         numTrials = size(ecoTemp,3);
+%         
+%         % this is for 185 Hz condition
+%         if stimFreq == 185
+%             numPeaks = 92;
+%         elseif stimFreq == 20
+%             numPeaks = 9;
+%             
+%         end
+%         
+%         ECoG_sepCCEPinternal{i} = squeeze(reshape((permute(ecoTemp,[1 3 2])),[],1,16));
+%         DBS_sepCCEPinternal{i} = squeeze(reshape((permute(dbsTemp,[1 3 2])),[],1,8));
+%         
+%         % need to pick DBS channel with clear peaks
+%         dbsFind = DBS_sepCCEPinternal{i};
+%         
+%         if stimFreq == 185
+%             [~,timesFromDBS] = findpeaks(dbsFind(:,chanExtract),'MinPeakDistance',244,'NPeaks',92);
+%         elseif stimFreq == 20
+%             [~,timesFromDBS] = findpeaks(dbsFind(:,chanExtract),'MinPeakDistance',2441,'NPeaks',9);
+%         end
+%         
+%         dataEpochedECoGccep = squeeze(getEpochSignal(ECoG_sepCCEPinternal{i},timesFromDBS-preCCEP,timesFromDBS+postCCEP));
+%         dataEpochedDBSccep = squeeze(getEpochSignal(DBS_sepCCEPinternal{i},timesFromDBS-preCCEP,timesFromDBS+postCCEP));
+%         
+%         
+%         ecoEachStim{i} = dataEpochedECoGccep;
+%         dbsEachStim{i} = dataEpochedDBSccep;
+%         
+%         
+%     end
+%     
+%     
+%     figure
+%     for i = 1:numEco
+%         subplot(8,2,i)
+%         
+%         title(['Channel '])
+%     end
+%     subtitle('ECoG CCEPs')
+%     
+%     figure
+%     for i = 1:numDBS
+%         ECoG_neg = cellfun(@(x) x*factor,ECoG_sep,'un',0);
+%         
+%     end
+%     subtitle('DBS CCEPs')
+%     
+% end
 
-% neeed ucondition and condition
+%% ICA analysis
+doICA = 0;
 
-if strcmp(ccepAnalysis,'y')
+if doICA
+    scale_factor = 100;
+    numComponentsSearch = 10;
     
     
     
-    ECoG_sepCCEPinternal = {};
-    DBS_sepCCEPinternal = {};
+    %      scale_factor = 1000;
+    %      numComponentsSearch = 20;
     
-    ecoEachStim = {};
-    dbsEachStim = {};
+    plotIt = 0;
+    stimChans = [9 17 50 58 ];
+    meanSub = 1;
+    %
+    % [subtracted_sig_matrixS_I, subtracted_sig_cellS_I,recon_artifact_matrix,recon_artifact,t] = ...
+    %     ica_artifact_remove_train(t_epoch,epochedCortEco,stimChans,eco_fs,scale_factor,numComponentsSearch,plotIt,chanInt,meanSub);
     
-    preCCEP = floor(0 * stim_fs); % pre time in sec
-    
-    % 6
-    if stimFreq == 185
-        postCCEP = floor(6e-3 * stim_fs); % post time in sec, % modified DJC to look at up to 50 ms after
-    elseif stimFreq == 20
-        postCCEP = floor(51e-3 * stim_fs); % post time in sec, % modified DJC to look at up to 50 ms after
-    end
+    % 4-23-2017 - changed orderPoly from 6 to 3
+    orderPoly = 6;
     
     
-    
-    for i = 1:length(ucondition)
-        % stack it one after the other
-        
-        ecoTemp = dataEpochedECOG(:,:,condition(stimTimes)==ucondition(i));
-        dbsTemp  = dataEpochedDBS(:,:,condition(stimTimes)==ucondition(i));
-        
-        numTrials = size(ecoTemp,3);
-        
-        % this is for 185 Hz condition
-        if stimFreq == 185
-            numPeaks = 92;
-        elseif stimFreq == 20
-            numPeaks = 9;
-            
-        end
-        
-        ECoG_sepCCEPinternal{i} = squeeze(reshape((permute(ecoTemp,[1 3 2])),[],1,16));
-        DBS_sepCCEPinternal{i} = squeeze(reshape((permute(dbsTemp,[1 3 2])),[],1,8));
-        
-        % need to pick DBS channel with clear peaks
-        dbsFind = DBS_sepCCEPinternal{i};
-        
-        if stimFreq == 185
-            [~,timesFromDBS] = findpeaks(dbsFind(:,chanExtract),'MinPeakDistance',244,'NPeaks',92);
-        elseif stimFreq == 20
-            [~,timesFromDBS] = findpeaks(dbsFind(:,chanExtract),'MinPeakDistance',2441,'NPeaks',9);
-        end
-        
-        dataEpochedECoGccep = squeeze(getEpochSignal(ECoG_sepCCEPinternal{i},timesFromDBS-preCCEP,timesFromDBS+postCCEP));
-        dataEpochedDBSccep = squeeze(getEpochSignal(DBS_sepCCEPinternal{i},timesFromDBS-preCCEP,timesFromDBS+postCCEP));
-        
-        
-        ecoEachStim{i} = dataEpochedECoGccep;
-        dbsEachStim{i} = dataEpochedDBSccep;
-        
-        
-    end
-    
-    
-    figure
-    for i = 1:numEco
-        subplot(8,2,i)
-        
-        title(['Channel '])
-    end
-    subtitle('ECoG CCEPs')
-    
-    figure
-    for i = 1:numDBS
-        ECoG_neg = cellfun(@(x) x*factor,ECoG_sep,'un',0);
-        
-    end
-    subtitle('DBS CCEPs')
+    % %
+    %         [processedSig,~,~,~,t] = ...
+    %             ica_artifact_remove_train(t_epoch,epochedCortEco,stimChans,eco_fs,scale_factor,numComponentsSearch,plotIt,chanInt,meanSub,orderPoly);
+    %
+    [processedSig,~,~,~,t] = ...
+        ica_train(t_epoch,epochedCortEco,stimChans,eco_fs,scale_factor,numComponentsSearch,plotIt,chanInt,meanSub,orderPoly);
     
 end
+
 %% look at CCEPs aoutside of stimulation window
 if strcmp(ccepAnalysis,'y')
     
 end
 
-%% Voltage analysis - depracted - DJC - 5-23-2017 
-% 
+%% Voltage analysis - depracted - DJC - 5-23-2017
+%
 % if strcmp(voltageAnalysis,'y')
-%     
+%
 %     % get average peaks of waveform
-%     
+%
 %     DBS_peak_pos = {};
 %     ECoG_peak_pos = {};
-%     
+%
 %     DBS_peak_neg = {};
 %     ECoG_peak_neg = {};
-%     
+%
 %     factor = -1;
 %     ECoG_neg = cellfun(@(x) x*factor,ECoG_sep,'un',0);
 %     DBS_neg = cellfun(@(x) x*factor,DBS_sep,'un',0);
 %     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %     % 11/1/2016 - set min peak height to 2.5e-3 , was 5e-3 before
-%     
+%
 %     prompt = {'Which DBS electrode to use for extract CCEPs?'};
 %     dlg_title = 'Electrode to extract (for bb908 use 8 for dbs_7,8,10,11 or 5/6 for dbs_9,12 ';
 %     num_lines = 1;
 %     defaultans = {'8'};
 %     answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
-%     
+%
 %     chanExtract = str2num(answer{1});
 %     MinPeakH = 2.5e-3;
-%     
+%
 %     dbs_stackP = squeeze(dbs_condP(:,chanExtract,:));
 %     dbs_stackP = dbs_stackP(:);
-%     
+%
 %     if stimFreq == 185
 %         [DBS_peakFind_pos,locs] = findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.005,'NPeaks',numTotal,'MinPeakHeight',MinPeakH);
 %         findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.005,'NPeaks',numTotal,'MinPeakHeight',MinPeakH)
@@ -966,47 +1007,47 @@ end
 %         findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.05,'NPeaks',numTotal,'MinPeakHeight',MinPeakH)
 %     end
 %     locs = floor(locs *stim_fs);
-%     
+%
 %     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %     for i = 1:length(ucondition)
-%         
+%
 %         dbs_condP = DBS_sep{i};
 %         dbs_condN = DBS_neg{i};
 %         ECoG_condP = ECoG_sep{i};
 %         ECoG_condN = ECoG_neg{i};
-%         
-%         
+%
+%
 %         for j = 1:size(dbs_condP,2)
 %             dbs_stackP = squeeze(dbs_condP(:,j,:));
 %             dbs_stackP = dbs_stackP(:);
 %             %[DBS_peakFind_pos,~] =
 %             %findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.005);
 %             findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.005)
-%             
+%
 %             DBS_peak_pos{i}{j} = DBS_peakFind_pos;
-%             
+%
 %             dbs_stackN = squeeze(dbs_condN(:,j,:));
 %             dbs_stackN = dbs_stackN(:);
 %             [DBS_peakFind_neg,~] = findpeaks(dbs_stackN,dbs_fs,'MinPeakDistance',0.005);
 %             DBS_peak_neg{i}{j} = DBS_peakFind_neg;
-%             
+%
 %         end
-%         
+%
 %         for j = 1:size(ECoG_condP,2)
-%             
+%
 %             ECoG_stackP = squeeze(ECoG_condP(:,j,:));
 %             ECoG_stackP = ECoG_stackP(:);
 %             [ECoG_peakFind_pos,~] = findpeaks(ECoG_stackP,dbs_fs,'MinPeakDistance',0.005);
 %             ECoG_peak_pos{i}{j} = ECoG_peakFind_pos;
-%             
+%
 %             ECoG_stackN = squeeze(ECoG_condN(:,j,:));
 %             ECoG_stackN = ECoG_stackN(:);
 %             [ECoG_peakFind_neg,~] = findpeaks(ECoG_stackN,dbs_fs,'MinPeakDistance',0.005);
 %             ECoG_peak_neg{i}{j} = ECoG_peakFind_neg;
 %         end
-%         
+%
 %     end
-%     
+%
 % end
 
 %% Plot Hist
