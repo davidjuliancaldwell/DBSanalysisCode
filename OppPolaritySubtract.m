@@ -1,18 +1,18 @@
 %% DJC 11-2-2016 - updated 6-6-2017
 % Script to subtract opposite stimulation waveform pairs
-close all;clear all;clc
+%close all;clear all;clc
 Z_ConstantsDBS
 
 
-%load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_3_4_fs_185.mat'));
-load(fullfile(OUTPUT_DIR,'stimInternal_R_bothDBS_6_5_fs_185.mat'));
+load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_2_3_fs_185.mat'));
+%load(fullfile(OUTPUT_DIR,'stimInternal_R_bothDBS_7_8_fs_185.mat'));
 
 ECoG_sepCCEPinternal1 = ECoG_sepCCEPinternal;
 DBS_sepCCEPinternal1 = DBS_sepCCEPinternal;
 
 
-%load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_4_3_fs_185.mat'));
-load(fullfile(OUTPUT_DIR,'stimInternal_R_bothDBS_5_6_fs_185.mat'));
+load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_3_2_fs_185.mat'));
+%load(fullfile(OUTPUT_DIR,'stimInternal_R_bothDBS_8_7_fs_185.mat'));
 
 ECoG_sepCCEPinternal2 = ECoG_sepCCEPinternal;
 DBS_sepCCEPinternal2 = DBS_sepCCEPinternal;
@@ -155,8 +155,8 @@ for j = 1:numEco
             plot(mu,'k','linewidth',2)
     end
     
-    ylim([-5e-6 5e-6])
-    xlim([0 5])
+    ylim([-1e-6 1e-6])
+    xlim([0 3])
     
     %xlim([min(tCCEP) 5])
     
@@ -223,7 +223,7 @@ for j = 1:numDBS
             hold on
             plot(mu,'k','linewidth',2)
     end
-    ylim([-6e-6 6e-6])
+    %ylim([-6e-6 6e-6])
     xlim([0 5])
     % put a box around the stimulation channels of interest if need be
     if ismember(j,stimChans)
@@ -370,7 +370,7 @@ for j = 1:numDBS
             plot(mu,'k','linewidth',2)
     end
             xlim([-1 3])
-    ylim([-10e-6 10e-6])
+    %ylim([-10e-6 10e-6])
 
     % put a box around the stimulation channels of interest if need be
     if ismember(j,stimChans)

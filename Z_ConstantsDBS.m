@@ -1,6 +1,6 @@
 SIDS = {'bb908','80301','63ce7','05210','be99a','d417e','d4867','180a6','1dd75','c3bd9','c0329','50ad9'};
 
-OUTPUT_DIR = fullfile(myGetenv('OUTPUT_DIR'), 'DBS', 'bb908');
+OUTPUT_DIR = fullfile(myGetenv('OUTPUT_DIR'), 'DBS', '50ad9');
 TouchDir(OUTPUT_DIR);
 META_DIR = fullfile(myGetenv('OUTPUT_DIR'), 'DBS', 'meta5_23_2017');
 TouchDir(META_DIR);
