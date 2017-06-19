@@ -21,7 +21,7 @@ SUB_DIR = fullfile(myGetenv('subject_dir'));
 % for param sweep, look at subjects 1,2,9
 %sid = input('what is the sid?\n','s');
 %sid = SIDS{2}; % MUST SWITCH THIS, either 1,2,9
-sid = '1dd75'
+sid = '50ad9'
 % load in tank
 switch sid
     case 'bb908'
@@ -587,7 +587,7 @@ if strcmp(ccepAnalysis,'y') || strcmp(voltageAnalysis,'y')
     
     chanExtract = str2num(answer{1});
     
-    dbs_condP = DBS_sep{1};
+    dbs_condP = DBS_sep{cond_int};
     dbs_stackP = squeeze(dbs_condP(:,chanExtract,:));
     dbs_stackP = dbs_stackP(:);
     %%%%%%%%%%%%%%%%%%%% have to tune peak height to extract
@@ -638,13 +638,23 @@ if strcmp(ccepAnalysis,'y') || strcmp(voltageAnalysis,'y')
         ECoG_condN = ECoG_neg{i};
         %%%%%%%%%%%%%%%%%%%% have to tune peak height to extract
         
-        dbs_stackP = squeeze(dbs_condP(:,chanExtract,:));
-        dbs_stackP = dbs_stackP(:);
-        MinPeakH_P = 0.45 * max(dbs_stackP);
+        % trials to exclude? - trial 14 for 50ad9 condition 3 paramsweep-6
+        if i == 3 && strcmp('50ad9',sid)
+        trialsExclude = [14];
+        mask = ones(size(dbs_condP,3),1);
+        mask(trialsExclude) = 0;
+        mask = logical(mask);
+        else
+            mask = ones(size(dbs_condP,3),1);
+        end
         
-        dbs_stackN = squeeze(dbs_condN(:,chanExtract,:));
+        dbs_stackP = squeeze(dbs_condP(:,chanExtract,mask));
+        dbs_stackP = dbs_stackP(:);
+        MinPeakH_P = 0.8 * max(dbs_stackP);
+        
+        dbs_stackN = squeeze(dbs_condN(:,chanExtract,mask));
         dbs_stackN = dbs_stackN(:);
-        MinPeakH_N = 0.45 * max(dbs_stackN);
+        MinPeakH_N = 0.8 * max(dbs_stackN);
         
         if stimFreq == 185
             [DBS_peakFind_pos,locs_P] = findpeaks(dbs_stackP,dbs_fs,'MinPeakDistance',0.0048,'NPeaks',numTotal,'MinPeakHeight',MinPeakH_P);
@@ -913,7 +923,7 @@ if strcmp(plotCCEP,'y')
     figure
     for j = 1:numEco
         subplot(4,4,j)
-        plot(tCCEP,squeeze(ECoG_sepCCEPinternal{4}(1:length(tCCEP),:,j)))
+        plot(tCCEP,squeeze(ECoG_sepCCEPinternal{cond_int}(1:length(tCCEP),:,j)))
         xlabel('time (ms)')
         ylabel('Voltage (V)')
         title(['Channel ',num2str(j)])
@@ -923,7 +933,7 @@ if strcmp(plotCCEP,'y')
     figure
     for j = 1:numDBS
         subplot(2,4,j)
-        plot(tCCEP,squeeze(DBS_sepCCEPinternal{4}(1:length(tCCEP),:,j)))
+        plot(tCCEP,squeeze(DBS_sepCCEPinternal{cond_int}(1:length(tCCEP),:,j)))
         xlabel('time (ms)')
         ylabel('Voltage (V)')
         

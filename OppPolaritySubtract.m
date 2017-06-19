@@ -1,17 +1,17 @@
 %% DJC 11-2-2016 - updated 6-6-2017
 % Script to subtract opposite stimulation waveform pairs
-%close all;clear all;clc
+close all;clear all;clc
 Z_ConstantsDBS
 
 
-load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_2_3_fs_185.mat'));
+load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_3_4_fs_185.mat'));
 %load(fullfile(OUTPUT_DIR,'stimInternal_R_bothDBS_7_8_fs_185.mat'));
 
 ECoG_sepCCEPinternal1 = ECoG_sepCCEPinternal;
 DBS_sepCCEPinternal1 = DBS_sepCCEPinternal;
 
 
-load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_3_2_fs_185.mat'));
+load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_4_3_fs_185.mat'));
 %load(fullfile(OUTPUT_DIR,'stimInternal_R_bothDBS_8_7_fs_185.mat'));
 
 ECoG_sepCCEPinternal2 = ECoG_sepCCEPinternal;
@@ -19,7 +19,7 @@ DBS_sepCCEPinternal2 = DBS_sepCCEPinternal;
 %%
 
 prompt = {'What is the condition of interest e.g. 4 ?','what are the stim channels? e.g. [1 2]',...
-    'what are the channels to exclude from rerereferencing e.g [1 2 3]','"median", "mean", or "n" rereference for ECoG','"median", "mean", or "n" rereference for DBS'};
+    'what are the channels to exclude from rerereferencing e.g [1 2 3]','"median", "mean","singleChan","bipolar", or "n" rereference for ECoG','"median", "mean", "singleChan","bipolar", or "n" rereference for DBS'};
 dlg_title = 'Condition of interest ';
 num_lines = 1;
 defaultans = {'4','[1 2]','[9 10 11 12]','mean','n'};
@@ -59,7 +59,24 @@ switch rrEco
         tempEco2 = squeeze(ECoG_sepCCEPinternal2{condOfInt}(1:length(tCCEP),:,:));
         tempEcoNormalized = rereference_CAR_median(tempEco2,rrEco,badChans,[1 3 2]);
         ECoG_sepCCEPinternal2{condOfInt}(1:length(tCCEP),:,:) = tempEcoNormalized;
-        
+    case 'singleChan'
+                %%%%%%%%%%%%%%%%%%%%%%%
+        tempEco1 = squeeze(ECoG_sepCCEPinternal1{condOfInt}(1:length(tCCEP),:,:));
+        tempEcoNormalized = rereference_CAR_median(tempEco1,rrEco,badChans,[1 3 2],1);
+        ECoG_sepCCEPinternal1{condOfInt}(1:length(tCCEP),:,:) = tempEcoNormalized;
+        %%%%%%%%%%%%%%%%%%%%%%%
+        tempEco2 = squeeze(ECoG_sepCCEPinternal2{condOfInt}(1:length(tCCEP),:,:));
+        tempEcoNormalized = rereference_CAR_median(tempEco2,rrEco,badChans,[1 3 2],1);
+        ECoG_sepCCEPinternal2{condOfInt}(1:length(tCCEP),:,:) = tempEcoNormalized;
+    case 'bipolar'
+                %%%%%%%%%%%%%%%%%%%%%%%
+        tempEco1 = squeeze(ECoG_sepCCEPinternal1{condOfInt}(1:length(tCCEP),:,:));
+        tempEcoNormalized = rereference_CAR_median(tempEco1,rrEco,badChans,[1 3 2]);
+        ECoG_sepCCEPinternal1{condOfInt}(1:length(tCCEP),:,:) = tempEcoNormalized;
+        %%%%%%%%%%%%%%%%%%%%%%%
+        tempEco2 = squeeze(ECoG_sepCCEPinternal2{condOfInt}(1:length(tCCEP),:,:));
+        tempEcoNormalized = rereference_CAR_median(tempEco2,rrEco,badChans,[1 3 2]);
+        ECoG_sepCCEPinternal2{condOfInt}(1:length(tCCEP),:,:) = tempEcoNormalized;
         
 end
 
@@ -88,7 +105,24 @@ switch rrDbs
         tempDbs2 = squeeze(DBS_sepCCEPinternal2{condOfInt}(1:length(tCCEP),:,:));
         tempDbsNormalized = rereference_CAR_median(tempDbs2,rrDbs,stimChans,[1 3 2]);
         DBS_sepCCEPinternal2{condOfInt}(1:length(tCCEP),:,:) = tempDbsNormalized;
-        
+    case 'singleChan'
+                %%%%%%%%%%%%%%%%%%%%%%%
+        tempDbs1 = squeeze(DBS_sepCCEPinternal1{condOfInt}(1:length(tCCEP),:,:));
+        tempDbsNormalized = rereference_CAR_median(tempDbs1,rrDbs,stimChans,[1 3 2],1);
+        DBS_sepCCEPinternal1{condOfInt}(1:length(tCCEP),:,:) = tempDbsNormalized;
+        %%%%%%%%%%%%%%%%%%%%%%%
+        tempDbs2 = squeeze(DBS_sepCCEPinternal2{condOfInt}(1:length(tCCEP),:,:));
+        tempDbsNormalized = rereference_CAR_median(tempDbs2,rrDbs,stimChans,[1 3 2],1);
+        DBS_sepCCEPinternal2{condOfInt}(1:length(tCCEP),:,:) = tempDbsNormalized;
+    case 'bipolar'
+                    %%%%%%%%%%%%%%%%%%%%%%%
+            tempDbs1 = squeeze(DBS_sepCCEPinternal1{condOfInt}(1:length(tCCEP),:,:));
+            tempDbsNormalized = rereference_CAR_median(tempDbs1,rrDbs,stimChans,[1 3 2]);
+            DBS_sepCCEPinternal1{condOfInt}(1:length(tCCEP),:,:) = tempDbsNormalized;
+            %%%%%%%%%%%%%%%%%%%%%%%
+            tempDbs2 = squeeze(DBS_sepCCEPinternal2{condOfInt}(1:length(tCCEP),:,:));
+            tempDbsNormalized = rereference_CAR_median(tempDbs2,rrDbs,stimChans,[1 3 2]);
+            DBS_sepCCEPinternal2{condOfInt}(1:length(tCCEP),:,:) = tempDbsNormalized;
 end
 %%
 % line vs. shaded
@@ -155,8 +189,8 @@ for j = 1:numEco
             plot(mu,'k','linewidth',2)
     end
     
-    ylim([-1e-6 1e-6])
-    xlim([0 3])
+    ylim([-5e-6 5e-6])
+    xlim([0 5])
     
     %xlim([min(tCCEP) 5])
     
