@@ -4,17 +4,19 @@ close all;clear all;clc
 Z_ConstantsDBS
 
 
-load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_3_4_fs_185.mat'));
+%load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_3_4_fs_185.mat'));
 %load(fullfile(OUTPUT_DIR,'stimInternal_R_bothDBS_5_6_fs_185.mat'));
+load(fullfile(OUTPUT_DIR,'stimInternal_R_singleDBS_1_2_fs_185.mat'));
 
 ECoG_sepCCEPinternal1Raw = ECoG_sepCCEPinternal;
 DBS_sepCCEPinternal1Raw = DBS_sepCCEPinternal;
 
 
-load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_4_3_fs_185.mat'));
+%load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_4_3_fs_185.mat'));
 %load(fullfile(OUTPUT_DIR,'stimInternal_R_bothDBS_6_5_fs_185.mat'));
+load(fullfile(OUTPUT_DIR,'stimInternal_R_singleDBS_2_1_fs_185.mat'));
 
-sid = '50ad9';
+sid = '695e1';
 OUTPUT_DIR = ['C:\Users\djcald.CSENETID\GoogleDrive\GRIDLabDavidShared\DBS\David_ParamSweep_Figures\' sid];
 
 
@@ -26,7 +28,7 @@ prompt = {'what are the stim channels? e.g. [1 2]',...
     'what are the channels to exclude from rerereferencing e.g [1 2 3]','"median", "mean","singleChan","bipolar", or "n" rereference for ECoG','"median", "mean", "singleChan","bipolar", or "n" rereference for DBS'};
 dlg_title = 'Condition of interest ';
 num_lines = 1;
-defaultans = {'[1 2]','[9 10 11 12]','mean','n'};
+defaultans = {'[1 2]','[9:16]','mean','n'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 
 stimChans = str2num(answer{1});
@@ -41,8 +43,8 @@ numDBS = 4;
 numConds = length(ECoG_sepCCEPinternal);
 
 % cell of conditions
-%cellConds = {'median','mean','singleChan','bipolar','bipolarPair','none'};
-cellConds = {'none'};
+cellConds = {'median','mean','singleChan','bipolar','bipolarPair','none'};
+%cellConds = {'bipolar'};
 %% rereference
 
 for specificCond = cellConds

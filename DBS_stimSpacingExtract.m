@@ -21,7 +21,7 @@ SUB_DIR = fullfile(myGetenv('subject_dir'));
 % for param sweep, look at subjects 1,2,9
 %sid = input('what is the sid?\n','s');
 %sid = SIDS{2}; % MUST SWITCH THIS, either 1,2,9
-sid = '50ad9'
+sid = '695e1';
 % load in tank
 switch sid
     case 'bb908'
@@ -174,6 +174,8 @@ switch sid
         ECOG = structureData.ECOG;
         
         dbsElectrodes = DBSs.data;
+        % we have to reverse the order of the DBS electrodes 
+        dbsElectrodes = fliplr(dbsElectrodes(:,1:4));
         dbs_fs = DBSs.info.SamplingRateHz;
         
         ECOGelectrodes = ECOG.data;
