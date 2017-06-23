@@ -37,7 +37,6 @@ numDBS = size(DBS_sepCCEPinternal{1},3);
 %% rereference
 switch rrEco
     case 'median'
-        for i = 1:length(ECoG_sepCCEPinternal)
             
             %%%%%%%%%%%%%%%%%%%%%%%
             tempEco1 = squeeze(ECoG_sepCCEPinternal1{condOfInt}(1:length(tCCEP),:,:));
@@ -48,7 +47,6 @@ switch rrEco
             tempEcoNormalized = rereference_CAR_median(tempEco2,rrEco,badChans,[1 3 2]);
             ECoG_sepCCEPinternal2{condOfInt}(1:length(tCCEP),:,:) = tempEcoNormalized;
             
-        end
     case 'mean'
         
         %%%%%%%%%%%%%%%%%%%%%%%
@@ -82,7 +80,6 @@ end
 
 switch rrDbs
     case 'median'
-        for i = 1:length(ECoG_sepCCEPinternal)
             
             
             %%%%%%%%%%%%%%%%%%%%%%%
@@ -94,7 +91,6 @@ switch rrDbs
             tempDbsNormalized = rereference_CAR_median(tempDbs2,rrDbs,stimChans,[1 3 2]);
             DBS_sepCCEPinternal2{condOfInt}(1:length(tCCEP),:,:) = tempDbsNormalized;
             
-        end
     case 'mean'
         
         %%%%%%%%%%%%%%%%%%%%%%%

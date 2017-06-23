@@ -160,6 +160,34 @@ switch sid
         condition = Stim.data(:,2); % note - this is changed from the other previous subjects
         ttlPulse = Cond.data(:,3);
         cond_fs = Cond.info.SamplingRateHz;
+    case '695e1'
+        
+        [structureData,filepath] = promptForTDTrecording;
+        split_path = split(filepath,"\");
+        fileName = split_path{end};
+        
+        Sing = structureData.Sing;
+        Stim = structureData.Stim;
+        Valu = structureData.Valu;
+        Cond = structureData.Cond;
+        DBSs = structureData.DBSs;
+        ECOG = structureData.ECOG;
+        
+        dbsElectrodes = DBSs.data;
+        dbs_fs = DBSs.info.SamplingRateHz;
+        
+        ECOGelectrodes = ECOG.data;
+        ECOG_fs = ECOG.info.SamplingRateHz;
+        
+        stimBox = Stim.data;
+        stim_fs = Stim.info.SamplingRateHz;
+        
+        stimProgrammed = Sing.data;
+        
+        stimSampDeliver = Cond.data(:,1);
+        condition = Stim.data(:,2); % note - this is changed from the other previous subjects
+        ttlPulse = Cond.data(:,3);
+        cond_fs = Cond.info.SamplingRateHz;
         
 end
 
