@@ -3,8 +3,7 @@
 close all;clear all;clc
 Z_ConstantsDBS
 
-
-%load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_3_4_fs_185.mat'));
+%load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_1_2_fs_180.mat'));
 %load(fullfile(OUTPUT_DIR,'stimInternal_R_bothDBS_5_6_fs_185.mat'));
 load(fullfile(OUTPUT_DIR,'stimInternal_R_singleDBS_1_2_fs_185.mat'));
 
@@ -12,7 +11,7 @@ ECoG_sepCCEPinternal1Raw = ECoG_sepCCEPinternal;
 DBS_sepCCEPinternal1Raw = DBS_sepCCEPinternal;
 
 
-%load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_4_3_fs_185.mat'));
+%load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_2_1_fs_180.mat'));
 %load(fullfile(OUTPUT_DIR,'stimInternal_R_bothDBS_6_5_fs_185.mat'));
 load(fullfile(OUTPUT_DIR,'stimInternal_R_singleDBS_2_1_fs_185.mat'));
 

@@ -9,7 +9,7 @@ SIDS = {'bb908','80301','63ce7','05210','be99a','d417e','d4867','180a6','1dd75',
 
 %% load in subject
 
-sid = SIDS{2};
+sid = SIDS{9};
 % load in tank
 switch sid
     case 'bb908'
@@ -227,11 +227,11 @@ dataEpochedDBS = squeeze(getEpochSignal(dbsElectrodes,stimTimes-presamps,stimTim
 
 % mean subtract
 
-ECoG_ave = mean(dataEpochedECOG,1);
-DBS_ave = mean(dataEpochedDBS,1);
-
-dataEpochedECOG = dataEpochedECOG - repmat(ECoG_ave,size(dataEpochedECOG,1),1,1);
-dataEpochedDBS = dataEpochedDBS - repmat(DBS_ave,size(dataEpochedECOG,1),1,1);
+% ECoG_ave = mean(dataEpochedECOG,1);
+% DBS_ave = mean(dataEpochedDBS,1);
+% 
+% dataEpochedECOG = dataEpochedECOG - repmat(ECoG_ave,size(dataEpochedECOG,1),1,1);
+% dataEpochedDBS = dataEpochedDBS - repmat(DBS_ave,size(dataEpochedECOG,1),1,1);
 
 
 % set the time vector to be set by the pre and post samps
