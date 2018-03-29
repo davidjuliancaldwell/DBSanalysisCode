@@ -203,8 +203,6 @@ switch sid
         ECOG = structureData.ECOG;
         
         dbsElectrodes = DBSs.data;
-        % we have to reverse the order of the DBS electrodes
-        dbsElectrodes = fliplr(dbsElectrodes(:,1:4));
         dbs_fs = DBSs.info.SamplingRateHz;
         
         ECOGelectrodes = ECOG.data;

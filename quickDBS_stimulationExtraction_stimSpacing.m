@@ -4,7 +4,7 @@
 %% initialize output and meta dir
 % clear workspace
 close all; clear all; clc
-SIDS = {'5e0cf'};
+SIDS = {'5e0cf','b26b7','80301'};
 OUTPUT_DIR = pwd;
 
 %%
@@ -12,7 +12,7 @@ OUTPUT_DIR = pwd;
 % load in the datafile of interest!
 % have to have a value assigned to the file to have it wait to finish
 % loading...mathworks bug
-sid = SIDS{1};
+sid = SIDS{2};
 [structureData,filepath] = promptForTDTrecording;
 Sing = structureData.Sing;
 Stim = structureData.Stim;
@@ -24,16 +24,19 @@ fileName_mat = strsplit(filenameCell{end},'.');
 fileName = fileName_mat{1};
 
 dbsElectrodes = DBSs.data;
-if strcmp(sid,'5e0cf')
-    dbsElectrodes = dbsElectrodes(:,1:4);
-end
-dbs_fs = DBSs.info.SamplingRateHz;
-
 ECOGelectrodes = ECOG.data;
-if strcmp(sid,'5e0cf')
-    ECOGelectrodes = ECOGelectrodes(:,1:8);
+
+switch sid
+    case '5e0cf'
+    dbsElectrodes = dbsElectrodes(:,1:4);
+        ECOGelectrodes = ECOGelectrodes(:,1:8);
+    case 'b26b7'
+           dbsElectrodes = dbsElectrodes(:,1:8);
+        ECOGelectrodes = ECOGelectrodes(:,1:8); 
 end
+
 ECOG_fs = ECOG.info.SamplingRateHz;
+dbs_fs = DBSs.info.SamplingRateHz;
 
 stimBox = Stim.data;
 stim_fs = Stim.info.SamplingRateHz;
@@ -45,7 +48,7 @@ stimProgrammed = Sing.data;
 prompt = {'how many channels did we record from? e.g 8 ', 'what were the stimulation channels? e.g 7 8 ', 'how long before each stimulation do you want to look? in ms e.g. 1', 'how long after each stimulation do you want to look? in ms e.g 5','process data to remove z>3 outliers?','subtract mean if DC coupled?','bad channels?','save plots?'};
 dlg_title = 'StimChans';
 num_lines = 1;
-defaultans = {'12','2 3','1','5','n','n','9','y'};
+defaultans = {'16','5 6','1','5','n','n','','y'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 numChans = str2num(answer{1});
 chans = str2num(answer{2});
@@ -159,7 +162,7 @@ end
 stim1stChan = stim(:,1);
 stim1Epoched = squeeze(getEpochSignal(stim1stChan,(bursts(2,:)-1),(bursts(3,:))+120));
 
-% put around 0 
+% put around 0
 stim1Epoched = stim1Epoched - repmat(stim1Epoched(1,:),size(stim1Epoched,1),1);
 t = (0:size(stim1Epoched,1)-1)/fs_stim;
 t = t*1e3;
@@ -171,9 +174,9 @@ t = t*1e3;
 labels = max(singEpoched);
 
 uniqueLabels = unique(labels);
-% 
+%
 % figure
-% 
+%
 % if strcmp(plotIt,'y')
 %     for i = uniqueLabels
 %         stimInterest = stim1Epoched(:,labels==i);
@@ -186,7 +189,7 @@ uniqueLabels = unique(labels);
 %     xlabel('Time (ms)');
 %     ylabel('Voltage (V)');
 %     title('Individual Stim Currents overlaid')
-%     
+%
 % end
 %%
 % legLabels = {[num2str(uniqueLabels(1))]};
@@ -202,7 +205,7 @@ uniqueLabels = unique(labels);
 % legend(legLabels);
 
 % plot divide by current
-% 
+%
 % figure
 % stimDivideTotal = [];
 % if strcmp(plotIt,'y')
@@ -219,7 +222,7 @@ uniqueLabels = unique(labels);
 %     xlabel('Time (ms)');
 %     ylabel('V/I');
 %     title('Voltage divided by current')
-%     
+%
 % end
 
 %%
@@ -243,7 +246,7 @@ delay = 0; %%%% setting delay = 0 to show better plots
 if strcmp(plotIt,'y')
     stimTimesBegin = bursts(2,:)-1+delay;
     stimTimesEnd = bursts(3,:)-1+delay+120;
-   % stim1Epoched = squeeze(getEpochSignal(stim1stChan,stimTimesBegin,stimTimesEnd));
+    % stim1Epoched = squeeze(getEpochSignal(stim1stChan,stimTimesBegin,stimTimesEnd));
     t = (0:size(stim1Epoched,1)-1)/fs_stim;
     t = t*1e3;
     figure
@@ -296,12 +299,12 @@ sts = round(stimTimes / fac) + delay2;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-dataEpoched = 1e6*squeeze(getEpochSignal(data,sts-presamps,sts+postsamps+1));
+dataEpoched = squeeze(getEpochSignal(data,sts-presamps,sts+postsamps+1));
 
 % set the time vector to be set by the pre and post samps
 t = (-presamps:postsamps)*1e3/fs_data;
 
-% get rid of bad channels 
+% get rid of bad channels
 chansVec_goods = ones(numChans,1);
 chansVec_goods(badChans) = 0;
 dataEpoched(:,~chansVec_goods,:) = nan;
@@ -316,6 +319,7 @@ num_lines = 1;
 defaultans = {'n'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 scaling = answer{1};
+
 
 if strcmp(scaling,'y')
     maxVal = max(dataEpoched(:));
@@ -381,14 +385,11 @@ for i=uniqueLabels
     % subtitle(['Individual traces - Voltage set to ',num2str(uniqueLabels(k)),' V']);
     
     % get cell of raw values, can use this to analyze later
-    dataRaw{k} = dataInterest;
+    dataEpochedCell{k} = dataInterest;
     
     % get averages to plot against each for later
     % cell function, can use this to analyze later
     dataAvgs{k} = mean(dataInterest,3);
-    
-    
-    
     %increment counter
     k = k + 1;
     
@@ -485,5 +486,9 @@ if savePlot
 end
 
 %% save it - djc 2/8/2018
-OUTPUT_DIR = pwd;
-save(sprintf(['stimSpacingDBS-%s-stim_%d-%d'], sid, stimChans(1),stimChans(2)),'dataEpoched','stimChans','t','singEpoched','stim1Epoched','middlePts_1st','middlePts_2nd');
+saveData = 1;
+if saveData
+    OUTPUT_DIR = pwd;
+    fs = fs_data;
+    save(sprintf(['stimSpacingDBS-%s-stim_%d-%d'], sid, stimChans(1),stimChans(2)),'dataEpoched','dataEpochedCell','stimChans','t','singEpoched','stim1Epoched','middlePts_1st','middlePts_2nd','fs');
+end
