@@ -4,7 +4,7 @@
 
 %% initialize output and meta dir
 % clear workspace - be in the directory with all scripts necessary
-close all; clear all; clc
+%close all; clear all; clc
 
 % set path, set
 Z_ConstantsDBS_externalEPs
@@ -15,12 +15,11 @@ SUB_DIR = fullfile(myGetenv('subject_dir'));
 
 %% load in subject
 
-% this is from my z_constants
+% here are subjects that we have acquired MEP data on
+%SIDS = {'80301','63ce7','1dd75','56a68','b305e','329c6','c1c8c','b26b7'};
 
-% for param sweep, look at subjects 1,2,9
-%sid = input('what is the sid?\n','s');
-%sid = SIDS{2}; % MUST SWITCH THIS, either 1,2,9
-sid = 'b26b7';
+
+sid = '50ad9';
 % load in tank
 switch sid
     case 'bb908'

@@ -3,13 +3,13 @@ function plot_EPs(ucondition,DBSSep,ECoGSep,t,stimChans,windowInt)
 %   Detailed explanation goes here
 % plot ECoG Electrodes
 
-
 for i = 1:length(ucondition)
     figure
     ECoGTemp = ECoGSep{i};
     numEco = size(ECoGTemp,2);
+    [pEco,n] = numSubplots(numEco);
     for j = 1:numEco
-        subplot(4,4,j);
+        subplot(pEco(1),pEco(2),j);
         plot(t(t>=windowInt(1) & t<=windowInt(2)),squeeze(ECoGTemp(t>=windowInt(1) & t<=windowInt(2),j,:)));
         title(['ECoG Channel ' num2str(j)]);
     end
@@ -25,16 +25,17 @@ for i = 1:length(ucondition)
     figure
     DBSTemp = DBSSep{i};
     numDBS = size(DBSTemp,2);
+    [pDbs,n] = numSubplots(numDBS);
     
     for j = 1:numDBS
-        subplot(4,2,j);
+        subplot(pDbs(1),pDbs(2),j);
         plot(t(t>=windowInt(1) & t<=windowInt(2)),squeeze(DBSTemp(t>=windowInt(1) & t<=windowInt(2),j,:)));
         title(['DBS Channel ' num2str(j)]);
     end
     
     xlabel('time (ms)')
     ylabel('voltage (V)')
-  %  subtitle(['DBS Electrodes, Condition ' num2str(i)]);
+    %  subtitle(['DBS Electrodes, Condition ' num2str(i)]);
     
 end
 
@@ -86,7 +87,7 @@ title(['Average ECoG recording across channels for condition ', num2str(condInt)
 % look at condition of interest
 figure
 for j = 1:numEco
-    subplot(4,4,j)
+    subplot(pEco(1),pEco(2),j)
     plot(t(t>=windowInt(1) & t<=windowInt(2)),ECoGAveCond(t>=windowInt(1) & t<=windowInt(2),j))
     
     title(['ECoG Channel ',num2str(j)])
@@ -98,7 +99,7 @@ ylabel('Voltage (V)')
 
 figure
 for j = 1:numDBS
-    subplot(2,4,j)
+    subplot(pDbs(1),pDbs(2),j)
     plot(t(t>=windowInt(1) & t<=windowInt(2)),DBSAveCond(t>=windowInt(1) & t<=windowInt(2),j))
     xlabel('time (ms)')
     ylabel('Voltage (V)')
