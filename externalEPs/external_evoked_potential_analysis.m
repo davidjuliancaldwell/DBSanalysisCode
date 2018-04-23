@@ -2,8 +2,14 @@
 %close all;clear all;clc
 Z_ConstantsDBS_externalEPs
 
-sid = '50ad9';
-file = 3;
+% subjects with good response -
+%1dd75
+%63ce7
+%80301
+%B305e
+
+sid = '80301';
+file = 1;
 plotIt = 1;
 switch sid
     case '80301'
@@ -52,6 +58,7 @@ switch sid
         end
 end
 %%
+
 windowInt = [500 1250];
 plot_EPs(ucondition,DBS_sep,ECoG_sep,t,stimChans,windowInt);
 %%
@@ -69,3 +76,16 @@ end
 legend({'1','2','3','4'});
 xlabel('electrodes')
 ylabel('peak to peak')
+
+%% look at fft of DBS electrodes as confirmation
+[f,p1] = fft_compute(dbs_fs,DBS_sep{1}(t>500,:,:));
+
+p1Avg = mean(p1,3);
+
+figure
+for chan = 1:8
+    subplot(8,1,chan)
+    plot(f,p1Avg(:,chan))
+    xlim([0 200])
+    ylim([0 5e-6])
+end
