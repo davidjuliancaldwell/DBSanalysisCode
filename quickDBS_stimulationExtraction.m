@@ -93,7 +93,6 @@ if strcmp(zScoreThresh,'y')
     data = dataTemp;
     clear dataTemp;
     
-    
 end
 
 if strcmp(meanSubtract,'y')
