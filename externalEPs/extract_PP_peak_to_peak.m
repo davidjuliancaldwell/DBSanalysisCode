@@ -1,4 +1,4 @@
-function [signalPP] =  extract_PP_peak_to_peak(ucondition,signalSep,t,badChans,tBegin,tEnd,rerefMode,channelReref,smooth)
+function [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak(ucondition,signalSep,t,badChans,tBegin,tEnd,rerefMode,channelReref,smooth)
 % extract_PP_peak_to_peak
 % extract peak to peak values in a signal
 
@@ -6,6 +6,9 @@ function [signalPP] =  extract_PP_peak_to_peak(ucondition,signalSep,t,badChans,t
 % 6.19.2018
 
 signalPP = zeros(size(signalSep{1},2),length(ucondition));
+pkLocs = zeros(size(signalSep{1},2),length(ucondition));
+trLocs = zeros(size(signalSep{1},2),length(ucondition));
+
 
 goodChans = ones(size(signalSep{1},2),1);
 goodChans(badChans) = 0;
@@ -36,14 +39,32 @@ for i = 1:length(ucondition)
             %  ECoGTempSignal = sgolayfilt(ECoGTempSignal,order,framelen);
         end
         [amp,pk_loc,tr_loc]=peak_to_peak(tempSignalExtract);
+        
+        
         if isempty(amp)
             amp = nan;
+            pk_loc = nan;
+            tr_loc = nan;
         end
+        
+%         plotIt = 0;
+%         
+%         if plotIt
+%             figure
+%             plot(tempSignalExtract)
+%             vline(pk_loc)
+%             vline(tr_loc)
+%         end
+        
         signalPP(j,i) = amp;
+        pkLocs(j,i) = pk_loc;
+        trLocs(j,i) = tr_loc;
     end
     
 end
 
 signalPP(~goodChans) = nan;
+pkLocs(~goodChans) = nan;
+trLocs(~goodChans) = nan;
 
 end

@@ -4,7 +4,7 @@
 
 %% initialize output and meta dir
 % clear workspace - be in the directory with all scripts necessary
-%close all; clear all; clc
+close all; clear all; clc
 
 % set path, set
 Z_ConstantsDBS_externalEPs
@@ -19,10 +19,10 @@ SUB_DIR = fullfile(myGetenv('subject_dir'));
 %SIDS = {'80301','63ce7','1dd75','56a68','b305e','329c6','c1c8c','b26b7'};
 
 
-sid = '50ad9';
+sid = 'b305e';
 % load in tank
 switch sid
-    case 'bb908'
+    case 'bb908' % Gpi pateitn
         
         [structureData,filepath] = promptForTDTrecording;
         split_path = split(filepath,"\");
@@ -245,6 +245,35 @@ switch sid
         % no paramsweep
     case '329c6'
         % no paramsweep
+    case 'b305e'
+                % paramsweep one side
+        [structureData,filepath] = promptForTDTrecording;
+        split_path = split(filepath,"\");
+        fileName = split_path{end};
+        
+        Sing = structureData.Sing;
+        Stim = structureData.Stim;
+        Valu = structureData.Valu;
+        Cond = structureData.Cond;
+        DBSs = structureData.DBSs;
+        ECOG = structureData.ECOG;
+        
+        dbsElectrodes = DBSs.data;
+        % we have to reverse the order of the DBS electrodes
+        dbs_fs = DBSs.info.SamplingRateHz;
+        
+        ECOGelectrodes = ECOG.data;
+        ECOG_fs = ECOG.info.SamplingRateHz;
+        
+        stimBox = Stim.data;
+        stim_fs = Stim.info.SamplingRateHz;
+        
+        stimProgrammed = Sing.data;
+        
+        stimSampDeliver = Cond.data(:,1);
+        condition = Stim.data(:,2); % note - this is changed from the other previous subjects
+        ttlPulse = Cond.data(:,3);
+        cond_fs = Cond.info.SamplingRateHz;
     case 'b26b7'
         % paramsweep one side
         [structureData,filepath] = promptForTDTrecording;
