@@ -1,3 +1,7 @@
 *.png
 *.mat
 *.asv
+*.zip
+*.fig
+*.svg
+*.eps

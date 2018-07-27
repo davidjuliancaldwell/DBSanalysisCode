@@ -1,10 +1,12 @@
 %% 10-24-2016 - Quick DBS stim extraction - David Caldwell - script to look at stim spacing
 % requires getEpochSignal.m , subtitle.m , numSubplots.m , vline.m
 % djc - 2/8/2018 for 5e0cf
+% 7.12.2018
+% David.J.Caldwell
 %% initialize output and meta dir
 % clear workspace
 close all; clear all; clc
-SIDS = {'5e0cf','b26b7','80301'};
+SIDS = {'5e0cf','b26b7','80301','46c2'};
 OUTPUT_DIR = pwd;
 
 %%
@@ -12,7 +14,7 @@ OUTPUT_DIR = pwd;
 % load in the datafile of interest!
 % have to have a value assigned to the file to have it wait to finish
 % loading...mathworks bug
-sid = SIDS{2};
+sid = SIDS{4};
 [structureData,filepath] = promptForTDTrecording;
 Sing = structureData.Sing;
 Stim = structureData.Stim;
@@ -32,6 +34,9 @@ switch sid
         ECOGelectrodes = ECOGelectrodes(:,1:8);
     case 'b26b7'
            dbsElectrodes = dbsElectrodes(:,1:8);
+        ECOGelectrodes = ECOGelectrodes(:,1:8); 
+    case '46c2a'
+                   dbsElectrodes = [];
         ECOGelectrodes = ECOGelectrodes(:,1:8); 
 end
 
@@ -81,6 +86,8 @@ sing = Sing.data;
 %data = DBSs.data;
 
 data = [ECOGelectrodes,dbsElectrodes, ];
+
+data = data(:,1:8);
 
 % DJC - 8-24-2016 - if it's DC coupled, below
 
@@ -476,7 +483,7 @@ errorbar(elec_vec,mean_2nd,std_2nd,'o')
 xlabel('Electrode')
 ylabel('\muV')
 title(['Mean and std for middle of recorded pulses - stim chans ' num2str(stimChans(1)) ' _ ' num2str(stimChans(2))])
-vline(9,'k')
+%vline(9,'k')
 vline(stimChans(1),'g')
 vline(stimChans(2),'b')
 legend('1st phase','2nd phase','DBS/ECoG','- chan','+ chan')

@@ -9,9 +9,10 @@ sid = '46c2a';
 
 sid
 
-block = 1;
-
-for block = 1:4
+blocks = [1,3];
+blockCount = 1;
+for block = blocks
+    
     % load in tank
     switch sid
         
@@ -77,10 +78,10 @@ for block = 1:4
     
     %%
     epochsEP = {};
-    epochsEPpeakToPeak = [];
     count = 1;
     preSamps = round(50*ECoGfs/1e3);
     postSamps = round(500*ECoGfs/1e3);
+    postSamps = round(1500*ECoGfs/1e3);
     tEpoch = [-preSamps:postSamps-1]/ECoGfs*1e3;
     
     goodVec = logical(ones(size(ECoG,2),1));
@@ -105,15 +106,43 @@ for block = 1:4
         
     end
     
-    % get peak to peak values 
-    tBegin = 2.5; % ms 
+    epochsEPblock{blockCount} = epochsEP;
+    
+    
+    % get peak to peak values
+    tBegin = 2.5; % ms
     tEnd = 50; % ms
     rerefMode = 'none';
     smooth = 1;
     
     [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak(stimLevelUniq,epochsEP,tEpoch,stimChans,tBegin,tEnd,rerefMode,[],smooth);
     
+    signalPPblock{blockCount} = signalPP;
+    pkLocsBlock{blockCount} = pkLocs;
+    trLocsBlock{blockCount} = trLocs;
     
+    blockCount = blockCount + 1;
     
     
 end
+
+%% now compare
+
+condInt = 4;
+chanInt = 6;
+type = 'CI';
+figure
+plotBTLError(tEpoch, 1e6*squeeze(epochsEPblock{1}{condInt}(:,chanInt,:)),type,'r')
+plotBTLError(tEpoch, 1e6*squeeze(epochsEPblock{2}{condInt}(:,chanInt,:)),type,'b')
+xlim([-10 50])
+ylim([-50 50])
+ylabel('Voltage (\muV)')
+xlabel('time (ms)')
+%legend('pre','','post','')
+h = findobj(gca,'Type','line');
+
+legend([h(2),h(1)],{'pre','post'})
+title(['Pre vs. Post EP, Channel = ' num2str(chanInt)])
+set(gca,'fontsize',14)
+
+[~,p] = ttest2(signalPPblock{1}(chanInt,condInt),signalPPblock{2}(chanInt,condInt))
