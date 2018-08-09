@@ -26,7 +26,7 @@ for i = 1:length(ucondition)
     % original was above before 7/27/2018
     
     order = 3;
-    framelen = 15;
+    framelen = 25;
     
     cellMode = {'median','bipolar','mean','bipolarPair','singleChan'};
     
@@ -52,15 +52,15 @@ for i = 1:length(ucondition)
             tr_loc = nan;
         end
         
-%         plotIt = 1;
-%         
-%         if plotIt && j == 6 && i == 4
-%             figure
-%             plot(tempSignalExtract)
-%             vline(pk_loc)
-%             vline(tr_loc)
-%         end
-%         
+        plotIt = 0;
+        
+        if plotIt && j == 6 && i == 4
+            figure
+            plot(tempSignalExtract)
+            vline(pk_loc)
+            vline(tr_loc)
+        end
+        
         signalPP(j,i) = amp;
         pkLocs(j,i) = pk_loc;
         trLocs(j,i) = tr_loc;

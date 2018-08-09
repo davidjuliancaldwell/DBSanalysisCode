@@ -1,8 +1,8 @@
 function [filtered] = sgolayfilt_complete(signal,order,framelen)
 
-% 
-% order = 3;
-% framelen = 113;
+
+%order = 3;
+%framelen = 113;
 
 
 lx = length(signal);

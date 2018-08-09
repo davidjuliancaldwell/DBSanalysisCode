@@ -11,6 +11,9 @@ block = 2;
 
 sid
 
+matlab_dir = 'MATLAB_Converted';
+experiment = 'EP_Screen';
+
 for block = 1:6
     
     % load in tank
@@ -21,38 +24,38 @@ for block = 1:6
         case '3809e'
             switch block
                 case 1 
-                    load(fullfile(SUB_DIR,sid,'Matlab_conversions\EP_Screen\EP_Screen-1.mat'));
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-1.mat'));
                     stimChans = [8 7];
                 case 2        
-                    load(fullfile(SUB_DIR,sid,'Matlab_conversions\EP_Screen\EP_Screen-2.mat'));
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-2.mat'));
                     stimChans = [8 7];
                 case 3
-                    load(fullfile(SUB_DIR,sid,'Matlab_conversions\EP_Screen\EP_Screen-3.mat'));
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-3.mat'));
                     stimChans = [7 6];
                 case 4
-                    load(fullfile(SUB_DIR,sid,'Matlab_conversions\EP_Screen\EP_Screen-4.mat')); % most promising one
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-4.mat')); % most promising one
                     stimChans = [6 5];
             end
         case '46c2a'
             switch block
                 case 1
-                    load(fullfile(SUB_DIR,sid,'Matlab Conversions\EP Screen\EP_Screen-1.mat'));
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-1.mat'));
                     stimChans = [6 7];
                 case 2
                     
-                    load(fullfile(SUB_DIR,sid,'Matlab Conversions\EP Screen\EP_Screen-3.mat'));
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-3.mat'));
                     stimChans = [4 5];
                 case 3
-                    load(fullfile(SUB_DIR,sid,'Matlab Conversions\EP Screen\EP_Screen-3.mat'));
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-3.mat'));
                     stimChans = [4 5];
                 case 4
-                    load(fullfile(SUB_DIR,sid,'Matlab Conversions\EP Screen\EP_Screen-4.mat')); % most promising one
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-4.mat')); % most promising one
                     stimChans = [7 8];
                 case 5
-                    load(fullfile(SUB_DIR,sid,'Matlab Conversions\EP Screen\EP_Screen-3.mat'));
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-3.mat'));
                     stimChans = [8 7];
                 case 6
-                    load(fullfile(SUB_DIR,sid,'Matlab Conversions\EP Screen\EP_Screen-4.mat')); % most promising one
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-4.mat')); % most promising one
                     stimChans = [6 5];
             end
     end
@@ -89,9 +92,10 @@ for block = 1:6
     chansList = [1:8];
     chans = chansList(goodVec);
     blckedData(:,stimChans,:) = 0;
+    xlims = [-10 30];
     
     for i = uniquePulseWidthLabels
-        smallMultiples(blckedData(:,:,labels==i(1) & pulseWidths == i(2)),tBlck/1e3,'type2',stimChans);
+        smallMultiples_DBS(blckedData(:,:,labels==i(1) & pulseWidths == i(2)),tBlck/1e3,'type2',stimChans,'xlims',xlims);
         subtitle(['stim chans = ' num2str(stimChans) ' current level = ' num2str(i(1)) ' \muA pulse width = ' num2str(i(2)) ' \mus'])
     end
     

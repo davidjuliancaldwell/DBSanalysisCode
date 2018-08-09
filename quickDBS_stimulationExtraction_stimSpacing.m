@@ -6,7 +6,7 @@
 %% initialize output and meta dir
 % clear workspace
 close all; clear all; clc
-SIDS = {'5e0cf','b26b7','80301','46c2'};
+SIDS = {'5e0cf','b26b7','80301','3972f','46c2'};
 OUTPUT_DIR = pwd;
 
 %%
@@ -35,6 +35,10 @@ switch sid
     case 'b26b7'
            dbsElectrodes = dbsElectrodes(:,1:8);
         ECOGelectrodes = ECOGelectrodes(:,1:8); 
+    case '80301'
+    case '3972f'
+                           dbsElectrodes = [];
+        ECOGelectrodes = ECOGelectrodes(:,1:8); 
     case '46c2a'
                    dbsElectrodes = [];
         ECOGelectrodes = ECOGelectrodes(:,1:8); 
@@ -53,7 +57,7 @@ stimProgrammed = Sing.data;
 prompt = {'how many channels did we record from? e.g 8 ', 'what were the stimulation channels? e.g 7 8 ', 'how long before each stimulation do you want to look? in ms e.g. 1', 'how long after each stimulation do you want to look? in ms e.g 5','process data to remove z>3 outliers?','subtract mean if DC coupled?','bad channels?','save plots?'};
 dlg_title = 'StimChans';
 num_lines = 1;
-defaultans = {'16','5 6','1','5','n','n','','y'};
+defaultans = {'8','5 6','1','5','n','n','','y'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 numChans = str2num(answer{1});
 chans = str2num(answer{2});

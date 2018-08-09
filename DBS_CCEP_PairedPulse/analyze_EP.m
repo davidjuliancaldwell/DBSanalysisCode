@@ -6,6 +6,7 @@ Z_ConstantsDBS_PairedPulse;
 
 sid = '3809e';
 sid = '46c2a';
+savePlot = 0;
 
 sid
 
@@ -35,17 +36,17 @@ for block = 1:4
         case '46c2a'
             switch block
                 case 1
-                    load(fullfile(SUB_DIR,sid,'Matlab Conversions\EP_Measurement\EP_Measure-1.mat'));
+                    load(fullfile(SUB_DIR,sid,'Matlab_Conversions\EP_Measurement\EP_Measure-1.mat'));
                     stimChans = [7 8];
                 case 2
-                    load(fullfile(SUB_DIR,sid,'Matlab Conversions\EP_Measurement\EP_Measure-2.mat'));
+                    load(fullfile(SUB_DIR,sid,'Matlab_Conversions\EP_Measurement\EP_Measure-2.mat'));
                     stimChans = [6 5];
                     % post
                 case 3
-                    load(fullfile(SUB_DIR,sid,'Matlab Conversions\EP_Measurement\EP_Measure-3.mat'));
+                    load(fullfile(SUB_DIR,sid,'Matlab_Conversions\EP_Measurement\EP_Measure-3.mat'));
                     stimChans = [7 8];
                 case 4
-                    load(fullfile(SUB_DIR,sid,'Matlab Conversions\EP_Measurement\EP_Measure-4.mat'));
+                    load(fullfile(SUB_DIR,sid,'Matlab_Conversions\EP_Measurement\EP_Measure-4.mat'));
                     stimChans = [6 5];
             end
     end
@@ -99,14 +100,19 @@ for block = 1:4
         epochsEP{count} = epochNormed;
         
         
-        smallMultiples(epochsEP{count},tEpoch/1e3,'type2',stimChans);
+        smallMultiples_DBS(epochsEP{count},tEpoch/1e3,'type2',stimChans);
         count = count + 1;
         title(['stim pair = '  num2str(stimChans) ' Stim Level ' num2str(i)])
         
+        
+        if savePlot
+            SaveFig(OUTPUT_DIR, [sid '_EP_block_' num2str(block) '_stimChans_' num2str(stimChans(1)) '_' num2str(stimChans(2)) '_stimLev_' num2str(i)], 'png', '-r600');
+        end
+        
     end
     
-    % get peak to peak values 
-    tBegin = 2.5; % ms 
+    % get peak to peak values
+    tBegin = 2.5; % ms
     tEnd = 50; % ms
     rerefMode = 'none';
     smooth = 1;
