@@ -37,6 +37,8 @@ for block = blocks
                     stimChans = [8 7];
             end
         case '46c2a'
+            tBegin = 1.2;
+            tEnd = 35;
             switch block
                 case 1
                     stimChans = [7 8];
@@ -51,9 +53,9 @@ for block = blocks
             end
         case 'c963f'
             
-                tBegin = 3.3; % ms was 2.5 for 42
-    tEnd = 25; % ms % was 35 for 426
-    
+            tBegin = 2.1; % ms
+            tEnd = 25; % ms
+            
             switch block
                 % pre first time
                 case 1
@@ -82,8 +84,8 @@ for block = blocks
             end
         case '2e114'
             
-                tBegin = 3.3; % ms was 2.5 for 42
-    tEnd = 35; % ms % was 35 for 426
+            tBegin = 2.1; % ms was 2.5 for 42
+            tEnd = 35; % ms % was 35 for 426
             
             switch block
                 % 1st baseline
@@ -174,8 +176,12 @@ for block = blocks
     count = 1;
     
     fac = ECoGfs/tactFs;
+    
+    % seems to be 29 sample delay between stim command and when the ECoG
+    % data starts to move
+    % and measured peak
     for i = stimLevelUniq
-        stimLevelCell{count} = round(stimCommandTimes(stimLevelCommandTimes == i)*fac);
+        stimLevelCell{count} = round((29+stimCommandTimes(stimLevelCommandTimes == i))*fac);
         count = count + 1;
     end
     
@@ -263,19 +269,19 @@ for condInt = 1:4
     text(10,180,['p value = ' num2str(p)],'fontsize',14)
     
     set(gca,'fontsize',14)
-%     
-%     figure
-% plot(tEpoch, 1e6*mean(squeeze(epochsEPblock{1}{condInt}(:,chanInt,:)),2),'r','linewidth',2)
-% hold on
-% plot(tEpoch, 1e6*mean(squeeze(epochsEPblock{2}{condInt}(:,chanInt,:)),2),'b','linewidth',2)
-% xlim([-10 50])
-% ylim([-250 250])
-% ylabel('Voltage (\muV)')
-% xlabel('time (ms)')
-%     title(['50 ms vs 25 ms paired pulse delay, Channel = ' num2str(chanInt) ' , test voltage = ' num2str(stimLevelUniq(condInt)) ' \muA'])
-% 
-%     set(gca,'fontsize',14)
-%     legend('baseline','test')
+    %
+    %     figure
+    % plot(tEpoch, 1e6*mean(squeeze(epochsEPblock{1}{condInt}(:,chanInt,:)),2),'r','linewidth',2)
+    % hold on
+    % plot(tEpoch, 1e6*mean(squeeze(epochsEPblock{2}{condInt}(:,chanInt,:)),2),'b','linewidth',2)
+    % xlim([-10 50])
+    % ylim([-250 250])
+    % ylabel('Voltage (\muV)')
+    % xlabel('time (ms)')
+    %     title(['50 ms vs 25 ms paired pulse delay, Channel = ' num2str(chanInt) ' , test voltage = ' num2str(stimLevelUniq(condInt)) ' \muA'])
+    %
+    %     set(gca,'fontsize',14)
+    %     legend('baseline','test')
 end
 %%
 

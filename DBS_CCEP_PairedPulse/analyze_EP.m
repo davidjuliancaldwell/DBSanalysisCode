@@ -110,8 +110,13 @@ for block = 1:4
     count = 1;
     
     fac = ECoGfs/tactFs;
+    
+        
+    % seems to be 29 sample delay between stim command and when the ECoG
+    % data starts to move
+    % and measured peak
     for i = stimLevelUniq
-        stimLevelCell{count} = round(stimCommandTimes(stimLevelCommandTimes == i)*fac);
+        stimLevelCell{count} = round((29+stimCommandTimes(stimLevelCommandTimes == i))*fac);
         count = count + 1;
     end
     
