@@ -12,42 +12,81 @@ sid
 
 block = 1;
 
+matlab_dir = 'MATLAB_Converted';
+experiment = 'EP_Measurement';
+
 for block = 1:4
     % load in tank
     switch sid
         
-        case '3809e'
+             case '3809e'
             switch block
                 % pre
                 case 1
-                    load(fullfile(SUB_DIR,sid,'Matlab_conversions\EP_Measurement\EP_Measure-1.mat'));
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Measure-1.mat'));
                     stimChans = [6 5];
                 case 2
-                    load(fullfile(SUB_DIR,sid,'Matlab_conversions\EP_Measurement\EP_Measure-2.mat'));
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Measure-2.mat'));
                     stimChans = [8 7];
                     % post
                 case 3
-                    load(fullfile(SUB_DIR,sid,'Matlab_conversions\EP_Measurement\EP_Measure-3.mat'));
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Measure-3.mat'));
                     stimChans = [6 5];
                 case 4
-                    load(fullfile(SUB_DIR,sid,'Matlab_conversions\EP_Measurement\EP_Measure-4.mat'));
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Measure-4.mat'));
                     stimChans = [8 7];
             end
         case '46c2a'
             switch block
                 case 1
-                    load(fullfile(SUB_DIR,sid,'Matlab_Conversions\EP_Measurement\EP_Measure-1.mat'));
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Measure-1.mat'));
                     stimChans = [7 8];
                 case 2
-                    load(fullfile(SUB_DIR,sid,'Matlab_Conversions\EP_Measurement\EP_Measure-2.mat'));
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Measure-2.mat'));
                     stimChans = [6 5];
+                    
                     % post
                 case 3
-                    load(fullfile(SUB_DIR,sid,'Matlab_Conversions\EP_Measurement\EP_Measure-3.mat'));
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Measure-3.mat'));
                     stimChans = [7 8];
                 case 4
-                    load(fullfile(SUB_DIR,sid,'Matlab_Conversions\EP_Measurement\EP_Measure-4.mat'));
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Measure-4.mat'));
                     stimChans = [6 5];
+            end
+        case 'c963f'
+            switch block
+                % pre first time
+                case 1
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Measure-1.mat'));
+                    stimChans = [6 5];
+                case 2
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Measure-2.mat'));
+                    stimChans = [7 8];
+                    badTrials = 1;
+                    badTrialLocations = [1:16];
+                    % post first time
+                case 3
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Measure-3.mat'));
+                    stimChans = [6 5];
+                case 4
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Measure-4.mat'));
+                    stimChans = [7 8];
+                    % pre second time
+                    
+                case 5
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Measure-5.mat'));
+                    stimChans = [6 5];
+                case 6
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Measure-6.mat'));
+                    stimChans = [7 8];
+                    % post second time
+                case 7
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Measure-7.mat'));
+                    stimChans = [6 5];
+                case 8
+                    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Measure-8.mat'));
+                    stimChans = [7 8];
+                    
             end
     end
     
