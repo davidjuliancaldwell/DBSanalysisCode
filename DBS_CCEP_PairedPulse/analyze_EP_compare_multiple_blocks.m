@@ -9,7 +9,7 @@ Z_ConstantsDBS_PairedPulse;
 %sid = 'c963f';
 %sid = '2e114';
 sid = '3d413';
-savePlot = 0;
+savePlot = 1;
 
 sid
 
@@ -17,7 +17,9 @@ sid
 matlab_dir = 'MATLAB_Converted';
 experiment = 'EP_Measurement';
 
-blocks = [1 3];
+blocks = [1 3 5 7 9];
+%blocks = [2 4 6 8 10];
+
 blockCount = 1;
 for block = blocks
     
@@ -155,41 +157,41 @@ for block = blocks
                 % 1st baseline - patient was under/waking up
                 case 1
                     stimChans = [7 8];
-                   
-                % 1st baseline - patient was under/waking up
+                    
+                    % 1st baseline - patient was under/waking up
                 case 2
                     stimChans = [6 5];
                     
-% 2nd baseline, patient awake
+                    % 2nd baseline, patient awake
                 case 3
                     stimChans = [7 8];
                     
-% 2nd baseline, patient awake
-% pain meds added
+                    % 2nd baseline, patient awake
+                    % pain meds added
                 case 4
                     stimChans = [6 5];
                     
-% 3nd baseline, patient awake, during CT scan 
+                    % 3nd baseline, patient awake, during CT scan
                 case 5
                     stimChans = [7 8];
                     
-% 3nd baseline, patient awake
+                    % 3nd baseline, patient awake
                 case 6
                     stimChans = [6 5];
                     
-%4th baseline, going under          
+                    %4th baseline, going under
                 case 7
                     stimChans = [7 8];
                     
-%4th baseline, going under          
+                    %4th baseline, going under
                 case 8
                     stimChans = [6 5];
                     
-%5th baseline, under          
+                    %5th baseline, under
                 case 9
                     stimChans = [7 8];
                     
-%5th baseline, under          
+                    %5th baseline, under
                 case 10
                     stimChans = [6 5];
                     
@@ -232,14 +234,14 @@ for block = blocks
     % get rid of any that are empty
     for i = stimLevelUniqAll
         if sum(stimCommandTimes(stimLevelCommandTimes == i)) == 0
-        stimLevelUniq(count) = nan;
+            stimLevelUniq(count) = nan;
         end
-                count = count + 1;
-
+        count = count + 1;
+        
     end
     
     stimLevelUniq = stimLevelUniq(~isnan(stimLevelUniq));
-        
+    
     % seems to be 29 sample delay between stim command and when the ECoG
     % data starts to move
     % and measured peak
@@ -274,10 +276,10 @@ for block = blocks
         count = count + 1;
         title(['stim pair = '  num2str(stimChans) ' Stim Level ' num2str(i)])
         
-        if savePlot
-            SaveFig(OUTPUT_DIR, [sid '_EP_block_' num2str(block) '_stimChans_' num2str(stimChans(1)) '_' num2str(stimChans(2)) '_stimLev_' num2str(i)], 'png', '-r600');
-        end
-        
+        %         if savePlot
+        %             SaveFig(OUTPUT_DIR, [sid '_EP_block_' num2str(block) '_stimChans_' num2str(stimChans(1)) '_' num2str(stimChans(2)) '_stimLev_' num2str(i)], 'png', '-r600');
+        %         end
+        %
         
     end
     
@@ -308,45 +310,61 @@ for block = blocks
     
 end
 
+
 %% now compare
 
-for condInt = 1:4
-    %condInt = 2;
-    chanInt = 6;
-    type = 'CI';
-    figure
-    plotBTLError(tEpoch, 1e6*squeeze(epochsEPblock{1}{condInt}(:,chanInt,:)),type,'r')
-    plotBTLError(tEpoch, 1e6*squeeze(epochsEPblock{2}{condInt}(:,chanInt,:)),type,'b')
-    xlim([-10 50])
-    ylim([-300 300])
-    ylabel('Voltage (\muV)')
-    xlabel('time (ms)')
-    %legend('pre','','post','')
-    h = findobj(gca,'Type','line');
-    
-    legend([h(2),h(1)],{'second baseline','third baseline'})
-    title(['second baseline vs third baseline, Channel = ' num2str(chanInt) ' , test voltage = ' num2str(stimLevelUniq(condInt)) ' \muA'])
-    
-    percentChange = 100*(signalPPblock{2}(chanInt,condInt) - signalPPblock{1}(chanInt,condInt))/signalPPblock{1}(chanInt,condInt);
-    text(10,120,{['percent change in peak to peak'], ['amplitude = ' num2str(percentChange) ' %']},'fontsize',14)
-    
-    [~,p] = ttest2(signalPPblockST{1}{condInt}(chanInt,:),signalPPblockST{2}{condInt}(chanInt,:));
-    text(10,180,['p value = ' num2str(p)],'fontsize',14)
-    
-    set(gca,'fontsize',14)
-    %
-    %     figure
-    % plot(tEpoch, 1e6*mean(squeeze(epochsEPblock{1}{condInt}(:,chanInt,:)),2),'r','linewidth',2)
-    % hold on
-    % plot(tEpoch, 1e6*mean(squeeze(epochsEPblock{2}{condInt}(:,chanInt,:)),2),'b','linewidth',2)
-    % xlim([-10 50])
-    % ylim([-250 250])
-    % ylabel('Voltage (\muV)')
-    % xlabel('time (ms)')
-    %     title(['50 ms vs 25 ms paired pulse delay, Channel = ' num2str(chanInt) ' , test voltage = ' num2str(stimLevelUniq(condInt)) ' \muA'])
-    %
-    %     set(gca,'fontsize',14)
-    %     legend('baseline','test')
-end
-%%
+% select channel of interest
+chanIntList =  [3,4,7];
+chanIntList = [6];
 
+% set colormap
+cmap = cbrewer('qual','Dark2',length(blocks));
+for chanInt = chanIntList
+    for condInt = 1:4
+        % confidence interval
+        type = 'CI';
+        figure
+        set(gcf,'position',[1.4277e+03 556.3333 786.6667 678.6667])
+        for i = 1:length(blocks)
+            plotBTLError(tEpoch, 1e6*squeeze(epochsEPblock{i}{condInt}(:,chanInt,:)),type,cmap(i,:)')
+        end
+        xlim([-10 50])
+        ylim([-350 350])
+        ylabel('Voltage (\muV)')
+        xlabel('time (ms)')
+        h = findobj(gca,'Type','line');
+        legend([h(5),h(4),h(3),h(2),h(1)],{'under anesthesia','awake','awake','under anesthesia','under anesthesia'})
+        title(['baseline variability, Channel = ' num2str(chanInt) ' , test voltage = ' num2str(stimLevelUniq(condInt)) ' \muA'])
+        set(gca,'fontsize',14)
+        
+        
+        if savePlot
+            SaveFig(OUTPUT_DIR, [sid '_confInt_EP_chanRecord' num2str(chanInt) '_stimChans_' num2str(stimChans(1)) '_' num2str(stimChans(2)) '_stimLev_' num2str(stimLevelUniq(condInt))], 'png', '-r600');
+        end
+        %%
+        % mean
+        figure
+        set(gcf,'position',[1.4277e+03 556.3333 786.6667 678.6667])
+        
+        for i = 1:length(blocks)
+            plot(tEpoch, 1e6*mean(squeeze(epochsEPblock{i}{condInt}(:,chanInt,:)),2),'linewidth',2,'color',cmap(i,:)')
+            hold on
+        end
+        xlim([-10 50])
+        ylim([-350 350])
+        ylabel('Voltage (\muV)')
+        xlabel('time (ms)')
+        %legend('pre','','post','')
+        h = findobj(gca,'Type','line');
+        legend([h(5),h(4),h(3),h(2),h(1)],{'under anesthesia','awake','awake','under anesthesia','under anesthesia'})
+        title(['baseline variability, Channel = ' num2str(chanInt) ' , test voltage = ' num2str(stimLevelUniq(condInt)) ' \muA'])
+        set(gca,'fontsize',14)
+        
+        
+        if savePlot
+            SaveFig(OUTPUT_DIR, [sid '_avg_EP_chanRecord' num2str(chanInt) '_stimChans_' num2str(stimChans(1)) '_' num2str(stimChans(2)) '_stimLev_' num2str(stimLevelUniq(condInt))], 'png', '-r600');
+        end
+        
+        
+    end
+end

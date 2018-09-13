@@ -1,4 +1,4 @@
-SIDS = {'3972f','3809e','46c2a','c963f'};
+SIDS = {'3972f','3809e','46c2a','c963f','2e114','3d413'};
 
 SUB_DIR = fullfile(myGetenv('dbs_subject_dir'));
 OUTPUT_DIR = fullfile(myGetenv('OUTPUT_DIR'), 'DBS', 'pairedPulse');
