@@ -30,6 +30,12 @@ for i = 1:length(ucondition)
     order = 3;
     framelen = 25;
     
+    % above before 9/20, single trial seems to do better with more
+    % smoothing
+    
+    order = 3;
+    framelen = 71;
+    
     cellMode = {'median','bipolar','mean','bipolarPair','singleChan'};
     
     if sum(strcmp(rerefMode,cellMode))
@@ -64,11 +70,13 @@ for i = 1:length(ucondition)
             pkLocs{i}(~goodChans) = nan;
             trLocs{i}(~goodChans) = nan;
             
-%             figure
-%             plot(tempSignalExtract)
-%             vline(pk_loc)
-%             vline(tr_loc)
-%             
+%             if ii == 6 && i == 4
+%                 figure
+%                 plot(tempSignalExtract)
+%                 vline(pk_loc)
+%                 vline(tr_loc)
+%             end
+            %
         end
     end
     
