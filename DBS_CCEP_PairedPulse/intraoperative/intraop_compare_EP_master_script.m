@@ -29,7 +29,7 @@ tEnd = 35; % ms %
 blockCount = 1; % where to start counting (should be 1)
 blocks = [1 4]; % which of the converted blocks to do
 stimChansVec = [5 6; 5 6]; % stimChans for each block
-
+chanIntList = [6]% which channels to look at
 plotCondAvg = 0; % plot average of each condition as we go, true/false
 savePlot = 0; % true/false save plot
 legendText = {'pre conditioning' ,'post 25 ms conditioning 1'}; % what is the legend text
