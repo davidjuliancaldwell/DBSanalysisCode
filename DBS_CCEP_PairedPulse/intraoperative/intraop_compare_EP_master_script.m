@@ -11,7 +11,7 @@ needToConvert = 1; % if needing to run conversion script
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if needToConvert
-    ConvertTDTRecordingToMAT_v2_loop
+    ConvertTDTRecordingToMat_v2_loop
 end
 
 %% set variables
