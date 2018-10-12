@@ -216,12 +216,144 @@ for block = blocks
                 case 9
                     stimChans = [7 8];
                     
+            end
+            
+        case 'e6f3c'
+            tBegin = 2.1;
+            tEnd = 50; %
+            
+            switch block
+                % first baseline - hitting rails
+                case 1
+                    stimChans = [8 7];
+                    
+                    % first baseline - hitting rails
+                case 2
+                    stimChans = [8 7];
+                    
+                    % first baseline - pre stim - 1.5 2 2.5 0.3 mA whoops
+                case 3
+                    stimChans = [6 5];
+                    
+                    % first baseline - pre stim - 1.5 2 2.5 0.3 mA whoops
+                case 4
+                    stimChans = [6 5];
+                    
+                    % first baseline - look at this for 6/5 - first one
+                    % 1.5 2 2.5 3 mA
+                case 5
+                    stimChans = [6 5];
+                    
+                    % first baseline - look at this for 8/7 - first one
+                case 6
+                    stimChans = [8 7];
+                    
+                    % first baseline - second one
+                case 7
+                    stimChans = [8 7];
+                    
+                    % first baseline - second one
+                case 8
+                    stimChans = [6 5];
+                    
+                    % post 200 ms conditioning
+                case 9
+                    stimChans = [8 7];
+                    
+                    % post 200 ms conditioning
+                case 10
+                    stimChans = [6 5];
+                    
+                    
+                    % second baseline
+                case 11
+                    stimChans = [8 7];
+                    
+                    % second baseline
+                case 12
+                    stimChans = [6 5];
+                    
+                    % post A/A 25 ms conditioning
+                case 13
+                    stimChans = [8 7];
+                    
+                    % post A/A 25 ms conditioning
+                case 14
+                    stimChans = [6 5];
+                    
+                    % post A/B 25 ms conditioning
+                case 15
+                    stimChans = [8 7];
+                    
+                    % post A/B 25 ms conditioning -noisy
+                case 16
+                    stimChans = [6 5];
+                    
+                    % post A/B 25 ms conditioning - less noise we hope
+                case 17
+                    stimChans = [6 5];
                     
             end
             
-            load(fullfile(SUB_DIR,sid,matlab_dir,experiment,['EP_Measure-' num2str(block) '.mat']));
+        case '9f852'
+            tBegin = 3;
+            tEnd = 25;
+            switch block
+                % baseline pre stim 1
+                case 1
+                    stimChans = [5 6];
+                    
+                    % baseline pre stim 2
+                case 2
+                    stimChans = [5 6];
+                    
+                    % baseline post 25 ms A/B - 1
+                case 3
+                    stimChans = [5 6];
+                    
+                    % baseline post 25 ms A/B - 2
+                case 4
+                    stimChans = [5 6];
+                    
+                    % baseline post 25 ms A/A - 1
+                case 5
+                    stimChans = [5 6];
+                    
+                    % baseline post 25 ms A/A - 2
+                case 6
+                    stimChans = [5 6];
+                    
+                    % baseline post 200 ms A/B - 1
+                case 7
+                    stimChans = [5 6];
+                    
+                    % baseline post 200 ms A/B - 2
+                case 8
+                    stimChans = [5 6];
+                    
+                    % baseline post 200 ms A/B - 3
+                case 9
+                    stimChans = [5 6];
+                    % baseline post 200 ms A/B - 4
+                case 10
+                    stimChans = [5 6];
+                    
+                    % baseline post 25 ms A/B - 1 - second time
+                case 11
+                    stimChans = [5 6];
+                    
+                    % baseline post 25 ms A/B - 2 - second time
+                case 12
+                    stimChans = [5 6];
+                    
+            end
             
+            
+            
+        otherwise
+            error('unknown sid')
     end
+    load(fullfile(SUB_DIR,sid,matlab_dir,experiment,['EP_Measure-' num2str(block) '.mat']));
     
     %%
     ECoG = 4*ECO1.data(:,1:8);

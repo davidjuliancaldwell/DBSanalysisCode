@@ -1,6 +1,4 @@
 %% script to plot data following prepare_EP_blocks for multiple conditions at once
-% select channel of interest
-chanIntList = [6];
 
 % set colormap
 cmap = cbrewer('qual','Dark2',length(blocks));
