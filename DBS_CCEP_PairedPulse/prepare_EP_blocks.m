@@ -1,4 +1,7 @@
 %% iterate through blocks
+
+blockCount = 1; % do not change, counter variable
+blockLabel = {};
 for block = blocks
     
     % load in tank
@@ -18,7 +21,7 @@ for block = blocks
                     stimChans = [8 7];
             end
         case '46c2a'
-            tBegin = 1.2;
+            tBegin = 2;
             tEnd = 35;
             switch block
                 case 1
@@ -126,6 +129,11 @@ for block = blocks
                     stimChans = [4 3];
                     
             end
+            
+        case '9eec7'
+            
+            error('no measurements for this subject')
+            
             
         case '3d413'
             tBegin = 2.1; % ms was 2.5 for 42
@@ -348,12 +356,98 @@ for block = blocks
                     
             end
             
+        case '71c6c'
+            error('no measurements for this subject')
             
+        case '8e907'
+            tBegin = 1.8; % ms was 2.5 for 42
+            tEnd = 25; % ms % was 35 for 426
+            
+            switch block
+                % baseline pre stim 1
+                
+                case 1
+                    stimChans = [6 7];
+                    
+                    % baseline pre stim 2, much more drilling
+                case 2
+                    stimChans = [6 7];
+                    
+                    % baseline post 200 ms A/B, 500 us pulse width ignore
+                case 3
+                    stimChans = [6 7];
+                    
+                    % baseline post 200 ms A/B, 500 us pulse width ignore
+                case 4
+                    stimChans = [6 7];
+                    
+                    % baseline post 200 ms A/B, 200 us pulse width
+                case 5
+                    stimChans = [6 7];
+                    
+                    % baseline post 200 ms A/B, 200 us pulse width , after
+                    % waiting two minutes
+                case 6
+                    stimChans = [6 7];
+                    
+                    % baseline post 200 ms A/B, 200 us pulse width, final
+                    % one
+                case 7
+                    stimChans = [6 7];
+                    
+            end
+            
+        case '08b13'
+            
+            tBegin = 1.8; % ms was 2.5 for 42
+            tEnd = 50; % ms % was 35 for 426
+            switch block
+                % baseline pre stim 1
+                case 1
+                    stimChans = [7 8];
+                    
+                    % baseline pre stim 1
+                case 2
+                    stimChans = [5 6];
+                    
+                    % baseline pre stim 2
+                case 3
+                    stimChans = [7 8];
+                    
+                    % baseline pre stim 2 - patient starting to go to sleep
+                case 4
+                    stimChans = [5 6];
+                    
+                    % baseline post 200 ms A/B 200 ms delay
+                case 5
+                    stimChans = [7 8];
+                    
+                    % second baseline post 200 ms A/B , second baseline to compare
+                    % against for the following A/A tests
+                    
+                case 6
+                    stimChans = [7 8];
+                    
+                    % post 200 ms A/A
+                case 7
+                    stimChans = [7 8];
+                    
+                    % post 200 ms A/A - second one
+                case 8
+                    stimChans = [7 8];
+            end
             
         otherwise
             error('unknown sid')
     end
     load(fullfile(SUB_DIR,sid,matlab_dir,experiment,['EP_Measure-' num2str(block) '.mat']));
+    
+    % default values for t begin
+    if ~exist('tBegin','var')
+        tBegin = 1.8; % ms was 2.5 for 42
+        tEnd = 35; % ms % was 35 for 426
+        
+    end
     
     %%
     ECoG = 4*ECO1.data(:,1:8);
@@ -386,8 +480,8 @@ for block = blocks
     % make a copy
     stimLevelUniqAll = stimLevelUniq;
     % get rid of any that are empty
-    for i = stimLevelUniqAll
-        if sum(stimCommandTimes(stimLevelCommandTimes == i)) == 0
+    for ii = stimLevelUniqAll
+        if sum(stimCommandTimes(stimLevelCommandTimes == ii)) == 0
             stimLevelUniq(count) = nan;
         end
         count = count + 1;
@@ -401,8 +495,8 @@ for block = blocks
     % and measured peak
     count = 1;
     
-    for i = stimLevelUniq
-        stimLevelCell{count} = round((29+stimCommandTimes(stimLevelCommandTimes == i))*fac);
+    for ii = stimLevelUniq
+        stimLevelCell{count} = round((29+stimCommandTimes(stimLevelCommandTimes == ii))*fac);
         count = count + 1;
     end
     
@@ -421,17 +515,17 @@ for block = blocks
     
     count = 1;
     
-    for i = stimLevelUniq
+    for ii = stimLevelUniq
         
         epochUnNormed = getEpochSignal(ECoG,stimLevelCell{count}-preSamps,stimLevelCell{count}+postSamps);
         epochNormed =  epochUnNormed-repmat(mean(epochUnNormed(tEpoch<0,:,:),1), [size(epochUnNormed, 1), 1]);
         epochsEP{count} = epochNormed;
         if plotCondAvg
             smallMultiples_DBS(mean(epochsEP{count},3),tEpoch/1e3,'type2',stimChans);
-            title(['stim pair = '  num2str(stimChans) ' Stim Level ' num2str(i)])
+            title(['stim pair = '  num2str(stimChans) ' Stim Level ' num2str(ii)])
             
             if savePlot
-                SaveFig(OUTPUT_DIR, [sid '_EP_block_' num2str(block) '_stimChans_' num2str(stimChans(1)) '_' num2str(stimChans(2)) '_stimLev_' num2str(i)], 'png', '-r600');
+                SaveFig(OUTPUT_DIR, [sid '_EP_block_' num2str(block) '_stimChans_' num2str(stimChans(1)) '_' num2str(stimChans(2)) '_stimLev_' num2str(ii)], 'png', '-r600');
             end
         end
         count = count + 1;
@@ -457,6 +551,12 @@ for block = blocks
     signalPPblockST{blockCount} = signalPP;
     pkLocsBlockST{blockCount} = pkLocs;
     trLocsBlockST{blockCount} = trLocs;
+    
+    
+    % make labels to keep track of each trial
+    for counter = 1:size(signalPP,2)      
+            blockLabel{blockCount}{counter} = repmat(stimLevelUniq(counter),size(signalPP{counter},2),1);
+    end
     
     blockCount = blockCount + 1;
     

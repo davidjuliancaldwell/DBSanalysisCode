@@ -1,0 +1,78 @@
+---
+title: "dose response "
+output: html_notebook
+---
+# https://datascienceplus.com/second-step-with-non-linear-regression-adding-predictors/
+
+set up working directory
+```{r}
+setwd("C:/Users/djcald.CSENETID/SharedCode/DBS_analysis/DBS_CCEP_PairedPulse")
+library('nlme')
+library('ggplot2')
+library('drc')
+library(minpack.lm)
+
+```
+
+load in data
+
+```{r}
+sid = '46c2a'
+chanInt = 6
+dataPP <- read.table(paste0(sid,'_PairedPulseData.csv'),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
+```
+
+```{r}
+dataInt = na.exclude(subset(dataPP,chanVec == chanInt))
+ggplot(dataInt, aes(x=factor(stimLevelVec), y=PPvec,fill=factor(blockVec))) + 
+    geom_violin() 
+#ggsave("foo.png", width=10, height=10, units="in", dpi=600)
+
+
+```
+
+```{r}
+#the formula for the models
+lF<-formula(PPvec~responseMax * responseBase * exp(r*stimLevelVec) / (responseMax + responseBase * (exp(r*stimLevelVec) - 1)))
+dataInt.nlsrc = nlsLM(lF,
+                   data = subset(dataInt,blockVec == 3),start=list(responseMax = max(dataInt$PPvec),responseBase = min(dataInt$PPvec),r=1e-6))
+
+
+#Create a range of doses:
+mm <- data.frame(stimLevels = seq(min(dataInt$stimLevelVec), max(dataInt$stimLevelVec), length.out = 200))
+#Create a new data frame for ggplot using predict and your range of new 
+#doses:
+y=predict(dataInt.nlsrc,newdata=list(stimLevelVec=mm))
+predData=data.frame(y,mm)
+
+#plot
+ggplot(dataInt,aes(x=stimLevelVec,y=PPvec))+
+       geom_point() +geom_line(data=predData)
+
+plot(predData)
+
+```
+
+```{r}
+#fit the model
+m <- nlsList(lF,data=dataInt,start=list(responseMax=max(dataInt$PPvec),responseBase=min(dataInt$PPvec),r=0.5))
+  #derive the predicted lines
+
+```
+
+```{r}
+model <- drm(dataPP)
+```
+
+```{r}
+logF <- function(stimCurrent,responseMax,responseBase,r){
+  d <- responseMax * responseBase * exp(r*stimCurrent) / (responseMax + responseBase * (exp(r*stimCurrent) - 1))
+  return(d)
+}
+```
+
+
+```{r}
+nlme.nlsList {nlme}	
+```
+
