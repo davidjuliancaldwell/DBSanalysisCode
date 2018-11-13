@@ -399,8 +399,8 @@ for block = blocks
             
         case '08b13'
             
-            tBegin = 1.8; % ms was 2.5 for 42
-            tEnd = 50; % ms % was 35 for 426
+            tBegin = 3.5; % ms was 2.5 for 42
+            tEnd =40; % ms % was 35 for 426
             switch block
                 % baseline pre stim 1
                 case 1
