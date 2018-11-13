@@ -13,13 +13,14 @@ experiment = 'EP_Measurement';
 
 
 %sid = '3809e';
-sid = '46c2a';
+%sid = '46c2a';
 %sid = 'c963f';
 %sid = '2e114';
 %sid = '3d413';
 %sid = 'fe7df';
 %sid = 'e6f3c';
 %sid = '8e907';
+sid = '08b13';
 
 switch sid
     case '46c2a'
@@ -33,6 +34,11 @@ switch sid
         chanIntList = [4 5];
         legendText = {'baseline 1' ,'baseline 2','post A/B 200 ms 1 ','post A/B 200 ms 2','post A/B 200 ms 3'};
         
+    case '08b13'
+            blocks = [1 3 5 6 7 8];
+        chanIntList = [5 6];
+        legendText = {'baseline 1' ,'baseline 2','post A/B 200 ms 1 ',...
+            'post A/B 200 ms 2/pre A/A','post A/A 200 ms 1','post A/A 200 ms 2'};
         
 end
 savePlot = 0;
