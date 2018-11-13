@@ -6,7 +6,12 @@ output: html_notebook
 
 set up working directory
 ```{r}
-setwd("C:/Users/djcald.CSENETID/SharedCode/DBS_analysis/DBS_CCEP_PairedPulse")
+
+# for pc
+#setwd("C:/Users/djcald.CSENETID/SharedCode/DBS_analysis/DBS_CCEP_PairedPulse")
+
+# for mac
+setwd("/Users/djcald/DBSanalysisCode")
 library('nlme')
 library('ggplot2')
 library('drc')
@@ -17,7 +22,7 @@ library(minpack.lm)
 load in data
 
 ```{r}
-sid = '46c2a'
+sid = '08b13'
 chanInt = 6
 dataPP <- read.table(paste0(sid,'_PairedPulseData.csv'),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
 ```
