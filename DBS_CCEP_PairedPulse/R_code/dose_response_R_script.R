@@ -31,14 +31,14 @@ for (sid in sidVec){
     
     fitnlme0 <- nlme(1e6*PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),
                      fixed=list(Asym + xmid + scal ~ 1),
-                    random = Asym ~ 1 | blockVec,
+                    random = Asym ~ 1 | stimLevelVec,
                      start=list(fixed=c(Asym=100,xmid=1500,scal=500)),
                      data=dataToFit)
     
     
     fitnlme1 <- nlme(1e6*PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),
                      fixed=list(Asym ~ blockVec, xmid + scal ~ 1),
-                   random = Asym ~ 1 | blockVec,
+                   random = Asym ~ 1 | stimLevelVec,
                      start=list(fixed=c(Asym=c(100,140),xmid=1500,scal=500)),
                      data=dataToFit)
     
