@@ -1,0 +1,128 @@
+---
+title: "dose response "
+output: html_notebook
+---
+
+```{r}
+
+library('here')
+library('nlme')
+library('ggplot2')
+library('drc')
+library('minpack.lm')
+rootDir = here()
+dataDir = here("DBS_CCEP_PairedPulse","R_data")
+codeDir = here("DBS_CCEP_PairedPulse","R_code")
+```
+
+load in data
+
+```{r}
+sid = '08b13'
+source(here("DBS_CCEP_PairedPulse","R_config_files",paste0("subj_",sid,".R")))
+
+dataPP <- read.table(here("DBS_CCEP_PairedPulse","R_data",paste0(sid,'_PairedPulseData.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
+```
+
+```{r fig.width=20, fig.asp=0.5,dpi=600}
+dataInt = na.exclude(subset(dataPP,chanVec == chanInt & blockVec %in% blockIntPlot))
+p <- ggplot(dataInt, aes(x=stimLevelVec, y=1e6*PPvec,colour=stimLevelVec)) + 
+    geom_jitter(width=35) +  geom_smooth(method=lm) + facet_wrap(~blockVec, labeller = as_labeller(blockNames))
+
+p + labs(x = expression(paste("Stimulation current ",mu,"A")),y=expression(paste("Peak to Peak magnitude ",mu,"V"),fill="stimulus level"),title = paste0("Subject ",sid," DBS Paired Pulse EP Measurements")) + 
+  guides(colour=guide_legend("stimulation level")) 
+
+ggsave(paste0(sid,"_chan_",chanInt,"_blocks_",paste0(blocksInt,collapse = "_"),".png"))
+
+
+
+```
+
+
+
+```{r fig.width=30, fig.asp=0.3,dpi=600}
+dataInt = na.exclude(subset(dataPP,chanVec == chanInt))
+p2 <- ggplot(dataInt, aes(x=factor(stimLevelVec), y=PPvec, fill=factor(blockVec))) + 
+    geom_violin() + geom_boxplot(width=0.1) + facet_wrap(~blockVec) 
+p2
+#p + labs(x = c("Stimulation current ",expression(mu),"muA"))
+#ggsave("foo.png", width=10, height=10, units="in", dpi=600)
+
+
+
+```
+```
+
+
+```{r}
+fit.glm    = glm(PPvec ~ as.factor(blockVec)+ stimLevelVec,data=dataPP[dataPP$blockVec %in% blocksInt & dataPP$chanVec==chanInt,])
+summary(fit.glm)
+plot(fit.glm)
+```
+
+```{r}
+fit.lmList = lmList(PPvec ~ stimLevelVec | as.factor(blockVec),data=na.exclude(dataPP[dataPP$blockVec %in% blocksIntLM & dataPP$chanVec==chanInt,]),pool=FALSE)
+summary(fit.lmList)
+(ci <- confint(fit.lmList)) # print and rather *see* :
+plot(ci)                # how widely they vary for the individuals
+```
+
+
+```{r fig.width=30, fig.asp=0.3}
+###  Find reasonable initial values for parameters
+
+fit.lm    = lm(Sodium ~ Calories, data=Data)
+
+a.ini     = fit.lm$coefficients[1]
+b.ini     = fit.lm$coefficients[2]
+clx.ini   = mean(Data$Calories)
+
+
+###  Define quadratic plateau function
+
+quadplat = function(x, a, b, clx) {
+           ifelse(x  < clx, a + b * x   + (-0.5*b/clx) * x   * x, 
+                            a + b * clx + (-0.5*b/clx) * clx * clx)}
+```
+
+```{r fig.width=30, fig.asp=0.3}
+#the formula for the models
+lF<-formula(PPvec~responseMax * responseBase * exp(r*stimLevelVec) / (responseMax + responseBase * (exp(r*stimLevelVec) - 1)))
+dataInt.nlsrc = nlsLM(lF,
+                   data = subset(dataInt,blockVec == 8),start=list(responseMax = max(dataInt$PPvec),responseBase = min(dataInt$PPvec),r=1e-6))
+
+
+#Create a range of doses:
+stimLevelVecNew <- data.frame(stimLevelVec = seq(min(dataInt$stimLevelVec)-500, max(dataInt$stimLevelVec)+500, length.out = 200))
+#Create a new data frame for ggplot using predict and your range of new 
+#doses:
+predData=data.frame(PPvec=predict(dataInt.nlsrc,stimLevelVecNew),stimLevelVecNew)
+
+#ggplot(dataInt,aes(x=factor(stimLevelVec),y=PPvec)) + geom_violin() + geom_line(data=predData,inherit.aes = FALSE,aes(y=PPvec,x=factor(stimLevelVecNew$stimLevelVec),group=1))
+
+
+```
+
+```{r}
+#fit the model
+# m <- nlsList(lF,data=dataInt,start=list(responseMax=max(dataInt$PPvec),responseBase=min(dataInt$PPvec),r=0.5))
+  #derive the predicted lines
+
+```
+
+```{r}
+#model <- drm(dataPP)
+```
+
+```{r}
+# logF <- function(stimCurrent,responseMax,responseBase,r){
+#   d <- responseMax * responseBase * exp(r*stimCurrent) / (responseMax + responseBase * (exp(r*stimCurrent) - 1))
+#   return(d)
+# }
+```
+
+
+```{r}
+#nlme.nlsList {nlme}	
+```
+

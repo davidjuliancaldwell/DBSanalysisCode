@@ -1,0 +1,11 @@
+subjectNum = 11
+chanIntVec = c(4,5)
+blockIntLM = c(1,3)
+blockIntPlot = c(1,2,5,6,7)
+blockNames <- c(
+  `1` = "baseline 1",
+  `2` = "baseline 2",
+  `5` = "post A/B 200 ms 1",
+  `6` = "post A/B 200 ms 2",
+  `7` = "post A/B 200 ms 3"
+)

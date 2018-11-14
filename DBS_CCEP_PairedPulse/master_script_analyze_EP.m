@@ -20,7 +20,7 @@ experiment = 'EP_Measurement';
 %sid = 'fe7df';
 %sid = 'e6f3c';
 %sid = '8e907';
-sid = '08b13';
+sid = '46c2a';
 
 switch sid
     case '46c2a'
@@ -42,7 +42,7 @@ switch sid
         
 end
 savePlot = 0;
-saveData = 1;
+saveData = 0;
 plotCondAvg = 0;
 
 fprintf([sid,'\n'])

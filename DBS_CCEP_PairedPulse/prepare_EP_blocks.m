@@ -540,13 +540,15 @@ for block = blocks
     rerefMode = 'none';
     smooth = 1;
     
-    [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak(stimLevelUniq,epochsEP,tEpoch,stimChans,tBegin,tEnd,rerefMode,[],smooth);
+    [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak(stimLevelUniq,epochsEP,tEpoch,stimChans,...
+        tBegin,tEnd,rerefMode,[],smooth);
     
     signalPPblock{blockCount} = signalPP;
     pkLocsBlock{blockCount} = pkLocs;
     trLocsBlock{blockCount} = trLocs;
     
-    [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak_single_trial(stimLevelUniq,epochsEP,tEpoch,stimChans,tBegin,tEnd,rerefMode,[],smooth);
+    [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak_single_trial(stimLevelUniq,epochsEP,tEpoch,...
+        stimChans,tBegin,tEnd,rerefMode,[],smooth);
     
     signalPPblockST{blockCount} = signalPP;
     pkLocsBlockST{blockCount} = pkLocs;
