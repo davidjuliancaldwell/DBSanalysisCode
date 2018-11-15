@@ -43,46 +43,25 @@ for (sid in sidVec){
     summary(fit.glm)
    # plot(fit.glm)
     
-  #  fitnlme0 <- nlme(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),
-  #                   fixed=list(Asym + xmid + scal ~ 1),
-   #                  random = Asym ~ 1 | blockVec,
-  #                   start=list(fixed=c(Asym=100,xmid=1500,scal=500)),
-   #                  data=dataToFit)
-    
     # get starting values 
+    if (sid ~= '8e907') {
     fit.startnlme0 <- nlsLM(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit)
+    }else {
+      fit.startnlme0 <- nlsLM(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit,start = c(Asym=400,xmid = 500,scal = 500),control = list(maxiter = 500))
+    }
+  
     startVals = summary(fit.startnlme0)$coefficients
+    if (sid == '08b13') {
     fit.nlme0 <- gnls(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit,
-                    start=list(Asym=startVals[1,1]+400,xmid=startVals[2,1],scal=startVals[3,1]))
+                    start=list(Asym=startVals[1,1]+200,xmid=startVals[2,1],scal=startVals[3,1]))
+    }else if (sid=='8e907') {
+      fit.nlme0 <- gnls(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit,
+                        start=list(Asym=startVals[1,1]-4000,xmid=startVals[2,1]-4000,scal=startVals[3,1]),,control = list(maxiter = 500))
+    }else {
+      fit.nlme0 <- gnls(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit,
+                        start=list(Asym=startVals[1,1],xmid=startVals[2,1],scal=startVals[3,1]))
+    }
     
-    # fit.nlme0 <- gnls(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit,
-    #                   start=list(Asym=1116,xmid=3921,scal=1062))
-    # 
-    # 
-    
- 
-    
-#     existData = data.frame(PPvec = predict(fit.nlme0,newData=dataToFit),stimLevelVec = dataToFit$stimLevelVec)
-# 
-#     p2 <- ggplot(dataToFit, aes(x=stimLevelVec, y=PPvec,colour=stimLevelVec)) +
-#       geom_jitter(width=35) +
-#       facet_wrap(~blockVec, labeller = as_labeller(blockNames))+
-#       labs(x = expression(paste("Stimulation current ",mu,"A")),y=expression(paste("Peak to Peak magnitude ",mu,"V"), fill="stimulus level"),title = paste0("Subject ", subjectNum, " ID ", sid," DBS Paired Pulse EP Measurements")) +
-#       guides(colour=guide_legend("stimulation level")) +
-#       geom_line(data=existData,aes(x=stimLevelVec, y=PPvec))
-# print(p2)
-
-
-# p2 <- ggplot(dataInt, aes(x=stimLevelVec, y=1e6*PPvec,colour=stimLevelVec)) + 
-#   geom_jitter(width=35) +  geom_smooth(method="nls",formula=y~Asym/(1+exp((xmid-x)/scal)),method.args=list(start=c(Asym=443,xmid=3990,scal=900)),se=FALSE) +
-#   facet_wrap(~blockVec, labeller = as_labeller(blockNames))+
-#   labs(x = expression(paste("Stimulation current ",mu,"A")),y=expression(paste("Peak to Peak magnitude ",mu,"V"), fill="stimulus level"),title = paste0("Subject ", subjectNum, " ID ", sid," DBS Paired Pulse EP Measurements")) + 
-#   guides(colour=guide_legend("stimulation level"))+ geom_line(data=predData,aes(x=stimLevelVec,y=PPvec))
-# print(p2)
-# 
-
-#ggplot(dataInt,aes(x=factor(stimLevelVec),y=PPvec)) + geom_violin() + geom_line(data=predData,inherit.aes = FALSE,aes(y=PPvec,x=factor(stimLevelVecNew$stimLevelVec),group=1))
-
 #Create a range of doses:
 stimLevelVecNew <- data.frame(stimLevelVec = seq(min(dataToFit$stimLevelVec), max(dataToFit$stimLevelVec), length.out = 200))
 #Create a new data frame for ggplot using predict and your range of new 
