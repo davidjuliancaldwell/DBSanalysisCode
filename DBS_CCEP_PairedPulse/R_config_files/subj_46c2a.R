@@ -1,4 +1,4 @@
-subjectNum = 1
+subjectNum = 2
 chanIntVec = c(6)
 blockIntLM = c(1,3)
 blockIntPlot = c(1,3)

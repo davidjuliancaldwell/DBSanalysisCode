@@ -1,6 +1,6 @@
 subjectNum = 12
 chanIntVec = c(6)
-blockIntLM = c(1,5)
+blockIntLM = c(1,5,6,7)
 blockIntPlot = c(1,3,5,6,7,8)
 blockNames <- c(
   `1` = "baseline 1",

@@ -1,4 +1,4 @@
-function [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak_single_trial(ucondition,signalSep,t,badChans,tBegin,tEnd,rerefMode,channelReref,smooth)
+function [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak_single_trial(ucondition,signalSep,t,badChans,tBegin,tEnd,rerefMode,channelReref,smooth,avgTrials,numAvg)
 % extract_PP_peak_to_peak
 % extract peak to peak values in a signal
 % this works on single trials
@@ -15,10 +15,10 @@ goodChans = ones(size(signalSep{1},2),1);
 goodChans(badChans) = 0;
 goodChans = logical(goodChans);
 
-for i = 1:length(ucondition)
+for jj = 1:length(ucondition)
     
     %%%%%%%%%%%%%%%%%% ECoG
-    tempSignal= signalSep{i};
+    tempSignal= signalSep{jj};
     numChans = size(tempSignal,2);
     numTrials = size(tempSignal,3);
     
@@ -43,11 +43,25 @@ for i = 1:length(ucondition)
         
     end
     
-    %%%%%%%%%%%%%%%%%%  loop through channels
+    if avgTrials
+        tempSignalNew = [];
+        for jjj = 1:size(tempSignal,2)
+            tempSignalChan = squeeze(tempSignal(:,jjj,:));
+            [tempSignalAvg] = avg_every_p_elems(tempSignalChan,numAvg);
+            tempSignalNew(:,jjj,:) = tempSignalAvg;
+
+        end
+        tempSignal = tempSignalNew;
+        numTrials = size(tempSignal,3);
+    end
+    
+    %%%%%%%%%%%%%%%%%%  loop through channels          
+            
     
     for ii = 1:numChans
         for iii = 1:numTrials
             tempSignalExtract = squeeze(tempSignal(t>tBegin & t<tEnd,ii,iii));
+            
             if smooth
                 tempSignalExtract = sgolayfilt_complete(tempSignalExtract,order,framelen);
                 %  ECoGTempSignal = sgolayfilt(ECoGTempSignal,order,framelen);
@@ -61,22 +75,22 @@ for i = 1:length(ucondition)
                 tr_loc = nan;
             end
             
-            signalPP{i}(ii,iii) = amp;
-            pkLocs{i}(ii,iii) = pk_loc;
-            trLocs{i}(ii,iii) = tr_loc;
+            signalPP{jj}(ii,iii) = amp;
+            pkLocs{jj}(ii,iii) = pk_loc;
+            trLocs{jj}(ii,iii) = tr_loc;
             
             
-            signalPP{i}(~goodChans) = nan;
-            pkLocs{i}(~goodChans) = nan;
-            trLocs{i}(~goodChans) = nan;
+            signalPP{jj}(~goodChans) = nan;
+            pkLocs{jj}(~goodChans) = nan;
+            trLocs{jj}(~goodChans) = nan;
             
-%             if ii == 6 && i == 4
+%             if ii == 6 
 %                 figure
 %                 plot(tempSignalExtract)
 %                 vline(pk_loc)
 %                 vline(tr_loc)
 %             end
-            %
+            
         end
     end
     

@@ -22,7 +22,7 @@ for block = blocks
             end
         case '46c2a'
             tBegin = 2;
-            tEnd = 35;
+            tEnd = 30;
             switch block
                 case 1
                     stimChans = [7 8];
@@ -360,7 +360,7 @@ for block = blocks
             error('no measurements for this subject')
             
         case '8e907'
-            tBegin = 1.8; % ms was 2.5 for 42
+            tBegin = 2; % ms was 2.5 for 42
             tEnd = 25; % ms % was 35 for 426
             
             switch block
@@ -399,8 +399,8 @@ for block = blocks
             
         case '08b13'
             
-            tBegin = 3.5; % ms was 2.5 for 42
-            tEnd =40; % ms % was 35 for 426
+            tBegin = 3.5; % ms
+            tEnd =35; % ms 
             switch block
                 % baseline pre stim 1
                 case 1
@@ -546,9 +546,9 @@ for block = blocks
     signalPPblock{blockCount} = signalPP;
     pkLocsBlock{blockCount} = pkLocs;
     trLocsBlock{blockCount} = trLocs;
-    
+   
     [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak_single_trial(stimLevelUniq,epochsEP,tEpoch,...
-        stimChans,tBegin,tEnd,rerefMode,[],smooth);
+        stimChans,tBegin,tEnd,rerefMode,[],smooth,avgTrials,numAvg);
     
     signalPPblockST{blockCount} = signalPP;
     pkLocsBlockST{blockCount} = pkLocs;
