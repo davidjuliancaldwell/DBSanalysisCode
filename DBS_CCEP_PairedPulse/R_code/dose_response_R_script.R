@@ -56,7 +56,7 @@ for (sid in sidVec){
                     start=list(Asym=startVals[1,1]+200,xmid=startVals[2,1],scal=startVals[3,1]))
     }else if (sid=='8e907') {
       fit.nlme0 <- gnls(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit,
-                        start=list(Asym=startVals[1,1]-4000,xmid=startVals[2,1]-4000,scal=startVals[3,1]),,control = list(maxiter = 500))
+                        start=list(Asym=startVals[1,1]-4000,xmid=startVals[2,1]-4000,scal=startVals[3,1]),control = list(maxiter = 500))
     }else {
       fit.nlme0 <- gnls(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit,
                         start=list(Asym=startVals[1,1],xmid=startVals[2,1],scal=startVals[3,1]))
