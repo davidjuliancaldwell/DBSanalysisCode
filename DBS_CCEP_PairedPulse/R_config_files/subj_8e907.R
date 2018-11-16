@@ -1,5 +1,6 @@
 subjectNum = 11
 chanIntVec = c(4,5)
+chanIntVec = c(5)
 blockIntLM = c(1,5)
 blockIntPlot = c(1,2,5,6,7)
 blockNames <- c(

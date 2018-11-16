@@ -84,7 +84,7 @@ for jj = 1:length(ucondition)
             pkLocs{jj}(~goodChans) = nan;
             trLocs{jj}(~goodChans) = nan;
             
-%             if ii == 6 
+%             if ii == 5
 %                 figure
 %                 plot(tempSignalExtract)
 %                 vline(pk_loc)

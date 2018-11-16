@@ -1,6 +1,8 @@
 subjectNum = 9
 chanIntVec = c(4)
 blockIntLM = c(2,3,5,7,11)
+blockIntLM = c(2,3,4,5,6,7,10,11)
+
 blockIntPlot = c(2,3,4,5,6,7,10,11)
 blockNames <- c(
   `2` = "baseline 2 (pre conditioning)",
