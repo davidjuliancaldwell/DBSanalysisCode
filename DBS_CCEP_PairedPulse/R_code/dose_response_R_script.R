@@ -15,14 +15,14 @@ codeDir = here("DBS_CCEP_PairedPulse","R_code")
 
 #sidVec <- c('46c2a','9f852','08b13','8e907')
 #sidVec <- c('8e907')
-#sidVec <- c('46c2a')
-sidVec <- c('08b13')
+sidVec <- c('46c2a')
+#sidVec <- c('08b13')
 #sidVec <- c('9f852')
 
-savePlot = 
-avgMeasVec = c(0,1)
+savePlot = 1
+avgMeasVec = c(0)
 figWidth = 8 
-  figHeight = 6 
+figHeight = 6 
 
 for (avgMeas in avgMeasVec) {
   for (sid in sidVec){
@@ -32,7 +32,6 @@ for (avgMeas in avgMeasVec) {
       dataPP <- read.table(here("DBS_CCEP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_avg.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
     } else{
       dataPP <- read.table(here("DBS_CCEP_PairedPulse","R_data",paste0(sid,'_PairedPulseData.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
-      
     }
     
     # multiply by 1e6
@@ -45,10 +44,10 @@ for (avgMeas in avgMeasVec) {
       
       dataInt <- na.exclude(subset(dataPP,(chanVec == chanInt) & (blockVec %in% blockIntPlot)))
       
-      p <- ggplot(dataInt, aes(x=stimLevelVec, y=PPvec,colour=stimLevelVec)) + 
+      p <- ggplot(dataInt, aes(x=stimLevelVec, y=PPvec,colour=stimLevelVec)) +
         geom_jitter(width=35) +  geom_smooth(method=lm) + facet_wrap(~blockVec, labeller = as_labeller(blockNames))+
         labs(x = expression(paste("Stimulation current ",mu,"A")),y=expression(paste("Peak to Peak magnitude ",mu,"V"), fill="stimulus level"),title = paste0("Subject ", subjectNum, " ID ", sid," DBS Paired Pulse EP Measurements")) +
-        guides(colour=guide_legend("stimulation level"))
+        guides(colour=guide_colorbar("stimulation level"))
       print(p)
       
       if (savePlot && !avgMeas) {
@@ -63,51 +62,51 @@ for (avgMeas in avgMeasVec) {
       summary(fit.glm)
       summary(glht(fit.glm,linfct=mcp(blockVec="Tukey")))
       # plot(fit.glm)
-      
-     # # fit.lmm = lmer(PPvec ~ stimLevelVec + blockVec + (1|stimLevelVec) + (1|blockVec), data=dataToFit)
-     # # summary(fit.lmm)
-     #  #confint(fit.lmm,method="boot")
-     # 
-     #  # get starting values
-     #  if (sid != '8e907') {
-     #    fit.startnlme0 <- nlsLM(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit)
-     #  } else {
-     #    fit.startnlme0 <- nlsLM(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit,start = c(Asym=400,xmid = 500,scal = 500),control = list(maxiter = 500))
-     #  }
-     # 
-     #  startVals = summary(fit.startnlme0)$coefficients
-     # 
-     #  if (sid == '08b13') {
-     #    fit.nlme0 <- gnls(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit,
-     #                      start=list(Asym=startVals[1,1]+200,xmid=startVals[2,1],scal=startVals[3,1]))
-     #  }else if (sid=='8e907') {
-     #    fit.nlme0 <- gnls(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit,
-     #                      start=list(Asym=startVals[1,1]+200,xmid=startVals[2,1],scal=startVals[3,1]),control = list(maxiter = 500))
-     #  }else {
-     #    fit.nlme0 <- gnls(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit,
-     #                      start=list(Asym=startVals[1,1]+200,xmid=startVals[2,1],scal=startVals[3,1]))
-     #  }
-     # 
-     #  #Create a range of doses:
-     #  stimLevelVecNew <- data.frame(stimLevelVec = seq(min(dataToFit$stimLevelVec), max(dataToFit$stimLevelVec), length.out = 200))
-     #  #Create a new data frame for ggplot using predict and your range of new
-     #  #doses:
-     #  predData=data.frame(PPvec=predict(fit.nlme0,newdata=stimLevelVecNew),stimLevelVec=stimLevelVecNew)
-     # 
-     #  p3 <- ggplot(dataToFit, aes(x=stimLevelVec, y=PPvec,colour=stimLevelVec)) +
-     #    geom_jitter(width=35) +
-     #    facet_wrap(~blockVec, labeller = as_labeller(blockNames))+
-     #    labs(x = expression(paste("Stimulation current ",mu,"A")),y=expression(paste("Peak to Peak magnitude ",mu,"V"), fill="stimulus level"),title = paste0("Subject ", subjectNum, " ID ", sid," DBS Paired Pulse EP Measurements")) +
-     #    guides(colour=guide_legend("stimulation level"))+ geom_line(data=predData,aes(x=stimLevelVec,y=PPvec),size=2,colour='black')
-     #  print(p3)
-     # 
-     #  if (savePlot && !avgMeas) {
-     #    ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_sameModel.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-     #  }
-     #  else if (savePlot && avgMeas){
-     #    ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_sameModel_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-     # 
-     #  }
+
+      # fit.lmm = lmer(PPvec ~ stimLevelVec + blockVec + (1|stimLevelVec) + (1|blockVec), data=dataToFit)
+      # summary(fit.lmm)
+       #confint(fit.lmm,method="boot")
+
+       # get starting values
+       if (sid != '8e907') {
+         fit.startnlme0 <- nlsLM(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit)
+       } else {
+         fit.startnlme0 <- nlsLM(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit,start = c(Asym=400,xmid = 500,scal = 500),control = list(maxiter = 500))
+       }
+
+       startVals = summary(fit.startnlme0)$coefficients
+      # 
+      #  if (sid == '08b13') {
+      #    fit.nlme0 <- gnls(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit,
+      #                      start=list(Asym=startVals[1,1]+200,xmid=startVals[2,1],scal=startVals[3,1]))
+      #  }else if (sid=='8e907') {
+      #    fit.nlme0 <- gnls(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit,
+      #                      start=list(Asym=startVals[1,1]+200,xmid=startVals[2,1],scal=startVals[3,1]),control = list(maxiter = 500))
+      #  }else {
+      #    fit.nlme0 <- gnls(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit,
+      #                      start=list(Asym=startVals[1,1]+200,xmid=startVals[2,1],scal=startVals[3,1]))
+      #  }
+      # 
+      #  #Create a range of doses:
+      #  stimLevelVecNew <- data.frame(stimLevelVec = seq(min(dataToFit$stimLevelVec), max(dataToFit$stimLevelVec), length.out = 200))
+      #  #Create a new data frame for ggplot using predict and your range of new
+      #  #doses:
+      #  predData=data.frame(PPvec=predict(fit.nlme0,newdata=stimLevelVecNew),stimLevelVec=stimLevelVecNew)
+      # 
+      #  p3 <- ggplot(dataToFit, aes(x=stimLevelVec, y=PPvec,colour=stimLevelVec)) +
+      #    geom_jitter(width=35) +
+      #    facet_wrap(~blockVec, labeller = as_labeller(blockNames))+
+      #    labs(x = expression(paste("Stimulation current ",mu,"A")),y=expression(paste("Peak to Peak magnitude ",mu,"V"), fill="stimulus level"),title = paste0("Subject ", subjectNum, " ID ", sid," DBS Paired Pulse EP Measurements")) +
+      #    guides(colour=guide_legend("stimulation level"))+ geom_line(data=predData,aes(x=stimLevelVec,y=PPvec),size=2,colour='black')
+      #  print(p3)
+      # 
+      #  if (savePlot && !avgMeas) {
+      #    ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_sameModel.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+      #  }
+      #  else if (savePlot && avgMeas){
+      #    ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_sameModel_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+      # 
+      #  }
       
       fit.nlme1 <- nlme(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),
                         fixed=list(Asym ~ blockVec, xmid + scal ~ 1),
@@ -127,8 +126,9 @@ for (avgMeas in avgMeasVec) {
       p4 <- ggplot(dataToFit, aes(x=stimLevelVec, y=PPvec,colour=stimLevelVec)) + 
         geom_jitter(width=35) +
         facet_wrap(~blockVec, labeller = as_labeller(blockNames))+
-        labs(x = expression(paste("Stimulation current ",mu,"A")),y=expression(paste("Peak to Peak magnitude ",mu,"V"), fill="stimulus level"),title = paste0("Subject ", subjectNum, " ID ", sid," DBS Paired Pulse EP Measurements")) + 
-        guides(colour=guide_legend("stimulation level"))+ 
+      #  labs(x = expression(paste("Stimulation current ",mu,"A")),y=expression(paste("Peak to Peak magnitude ",mu,"V"), fill="stimulus level"),title = paste0("Subject ", subjectNum, " ID ", sid," DBS Paired Pulse EP Measurements")) + 
+         labs(x = expression(paste("Stimulation current ",mu,"A")),y=expression(paste("Peak to Peak magnitude ",mu,"V"), fill="stimulus level"),title = paste0("Baseline and post-conditioning CEP measurements")) + 
+            guides(colour=guide_colorbar("stimulation level"))+ 
         geom_line(data=predDataGroups,aes(x=stimLevelVec,y=PPvec),size=2,colour='black')
       
       print(p4)
@@ -141,13 +141,13 @@ for (avgMeas in avgMeasVec) {
       }
       
       # xtra ss test
-   #   anova(fit.nlme0, fit.nlme1)  
+      #   anova(fit.nlme0, fit.nlme1)  
       # Likelihood ratio test
       
-    #  lrtest(fit.nlme0, fit.nlme1,fit.glm,fit.lmm)  
+      #  lrtest(fit.nlme0, fit.nlme1,fit.glm,fit.lmm)  
       
       # aic
-     # AIC(fit.nlme0, fit.nlme1,fit.glm,fit.lmm)  
+      # AIC(fit.nlme0, fit.nlme1,fit.glm,fit.lmm)  
       
       #BIC(fit.nlme0, fit.nlme1,fit.glm,fit.lmm)
       
