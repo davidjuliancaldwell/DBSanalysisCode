@@ -8,15 +8,14 @@ Z_ConstantsDBS_externalEPs
 %80301
 %B305e
 
-sid = '50ad9';
-%file = 3;
-%SIDS = {'80301','50ad9'};
 SIDS = {'b305e'};
 SIDS = {'80301','50ad9','b26b7','1dd75','b305e'};
 SIDSwithout6 = {'b26b7'};
 SIDS
 plotIt = 1;
-saveIt = 1;
+saveIt = 0;
+
+SIDS = {'b26b7'};
 
 for sid = SIDS
     sid = sid{:};
@@ -248,7 +247,8 @@ for sid = SIDS
             legend({'1','2','3','4'});
             xlabel('time (ms)')
             ylabel('voltage (\muV)')
-            xlim([450 800])
+            % xlim([450 800])
+            xlim([-100 800])
             ylim([-60 60])
             vline(pkLocVec(chanInt,4))
             vline(trLocVec(chanInt,4))
@@ -270,7 +270,8 @@ for sid = SIDS
                     legend({'1','2','3','4'});
                     xlabel('time (ms)')
                     ylabel('voltage (\muV)')
-                    xlim([450 800])
+                    %  xlim([450 800])
+                    xlim([-100 800])
                     ylim([-60 60])
                     vline(pkLocVec(chanInt,4))
                     vline(trLocVec(chanInt,4))
@@ -293,7 +294,8 @@ for sid = SIDS
                     legend({'1','2','3','4'});
                     xlabel('time (ms)')
                     ylabel('voltage (\muV)')
-                    xlim([450 800])
+                    % xlim([450 800])
+                    xlim([-100 800])
                     ylim([-60 60])
                     vline(pkLocVec(chanInt,4))
                     vline(trLocVec(chanInt,4))
