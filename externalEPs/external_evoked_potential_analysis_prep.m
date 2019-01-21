@@ -19,7 +19,7 @@ SUB_DIR = fullfile(myGetenv('subject_dir'));
 %SIDS = {'80301','63ce7','1dd75','56a68','b305e','329c6','c1c8c','b26b7'};
 
 
-sid = 'b305e';
+sid = 'c1c8c';
 % load in tank
 switch sid
     case 'bb908' % Gpi pateitn
@@ -226,7 +226,6 @@ switch sid
         ECOG = structureData.ECOG;
         
         dbsElectrodes = DBSs.data;
-        % we have to reverse the order of the DBS electrodes
         dbs_fs = DBSs.info.SamplingRateHz;
         
         ECOGelectrodes = ECOG.data;
@@ -259,7 +258,6 @@ switch sid
         ECOG = structureData.ECOG;
         
         dbsElectrodes = DBSs.data;
-        % we have to reverse the order of the DBS electrodes
         dbs_fs = DBSs.info.SamplingRateHz;
         
         ECOGelectrodes = ECOG.data;
@@ -288,7 +286,6 @@ switch sid
         ECOG = structureData.ECOG;
         
         dbsElectrodes = DBSs.data;
-        % we have to reverse the order of the DBS electrodes
         dbs_fs = DBSs.info.SamplingRateHz;
         
         ECOGelectrodes = ECOG.data;
@@ -432,7 +429,7 @@ prompt = {'time to look before stimulation (seconds) (If wanting to do stimulati
     'What was the stimulation frequency?'};
 dlg_title = 'How much to analyze';
 num_lines = 1;
-defaultans = {'0.5','2','185'};
+defaultans = {'0.1','0.795','180'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 
 pre = str2num(answer{1});
@@ -506,7 +503,7 @@ prompt = {'Which side was stimulated? L or R ',...
     '2nd DBS stim channel (ground) '};
 dlg_title = 'Channel of Interest';
 num_lines = 1;
-defaultans = {'R','both','1','2'};
+defaultans = {'L','single','1','2'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 
 side = answer{1};

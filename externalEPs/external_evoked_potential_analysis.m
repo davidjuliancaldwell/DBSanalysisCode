@@ -8,15 +8,15 @@ Z_ConstantsDBS_externalEPs
 %80301
 %B305e
 
-SIDS = {'b305e'};
-SIDS = {'80301','50ad9','b26b7','1dd75','b305e'};
+SIDS = {'80301','50ad9','b26b7','1dd75','b305e','c1c8c'};
 SIDSwithout6 = {'b26b7'};
-SIDS
+
 plotIt = 1;
-saveIt = 0;
+saveIt = 1;
 
-SIDS = {'b26b7'};
+SIDS = {'c1c8c'};
 
+SIDS
 for sid = SIDS
     sid = sid{:};
     fprintf(['subject ' sid '\n']);
@@ -104,7 +104,21 @@ for sid = SIDS
                     case 6
                         load(fullfile(OUTPUT_DIR,[sid '_stim_L_singleDBS_1_0.mat']));
                 end
-                
+            case 'c1c8c'
+                switch file
+                    case 1
+                        load(fullfile(OUTPUT_DIR,[sid '_stim_L_singleDBS_0_1.mat']));
+                    case 2
+                        load(fullfile(OUTPUT_DIR,[sid '_stim_L_singleDBS_1_2.mat']));
+                    case 3
+                        load(fullfile(OUTPUT_DIR,[sid '_stim_L_singleDBS_2_3.mat']));
+                    case 4
+                        load(fullfile(OUTPUT_DIR,[sid '_stim_L_singleDBS_3_2.mat']));
+                    case 5
+                        load(fullfile(OUTPUT_DIR,[sid '_stim_L_singleDBS_2_1.mat']));
+                    case 6
+                        load(fullfile(OUTPUT_DIR,[sid '_stim_L_singleDBS_1_0.mat']));
+                end
         end
         %%
         
@@ -308,7 +322,7 @@ for sid = SIDS
         end
         % clear variables except ones required for loop references
         clearvars -except META_DIR OUTPUT_DIR SIDS sid plotIt file maxFile SIDSwithout6 saveIt
-        close all
+        %  close all
     end
 end
 

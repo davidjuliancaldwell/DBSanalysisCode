@@ -101,7 +101,7 @@ for block = blocks
     pkLocsBlock{blockCount} = pkLocs;
     trLocsBlock{blockCount} = trLocs;
     
-    [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak_single_trial(stimLevelUniq,epochsEP,tEpoch,stimChans,tBegin,tEnd,rerefMode,[],smooth);
+    [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak_single_trial(stimLevelUniq,epochsEP,tEpoch,stimChans,tBegin,tEnd,rerefMode,[],smooth,0,[]);
     
     signalPPblockST{blockCount} = signalPP;
     pkLocsBlockST{blockCount} = pkLocs;

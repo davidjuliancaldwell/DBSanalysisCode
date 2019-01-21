@@ -1,9 +1,7 @@
-%% Script to subtract opposite stimulation waveform pairs to look at internal CEPS
+%% DJC 11-2-2016 - updated 6-6-2017
 % Script to subtract opposite stimulation waveform pairs
-% David.J.Caldwell 11-2-2016 - updated 6-6-2017
-% Updated 1.15.19
 close all;clear all;clc
-Z_Constants_internal_EP_DBS
+Z_ConstantsDBS
 
 %load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_1_2_fs_180.mat'));
 %load(fullfile(OUTPUT_DIR,'stimInternal_R_bothDBS_5_6_fs_185.mat'));
@@ -12,12 +10,14 @@ load(fullfile(OUTPUT_DIR,'stimInternal_R_singleDBS_1_2_fs_185.mat'));
 ECoG_sepCCEPinternal1Raw = ECoG_sepCCEPinternal;
 DBS_sepCCEPinternal1Raw = DBS_sepCCEPinternal;
 
+
 %load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_2_1_fs_180.mat'));
 %load(fullfile(OUTPUT_DIR,'stimInternal_R_bothDBS_6_5_fs_185.mat'));
 load(fullfile(OUTPUT_DIR,'stimInternal_R_singleDBS_2_1_fs_185.mat'));
 
 sid = '695e1';
-OUTPUT_DIR = [googgleDrive, sid];
+OUTPUT_DIR = ['C:\Users\djcald.CSENETID\GoogleDrive\GRIDLabDavidShared\DBS\David_ParamSweep_Figures\' sid];
+
 
 ECoG_sepCCEPinternal2Raw = ECoG_sepCCEPinternal;
 DBS_sepCCEPinternal2Raw = DBS_sepCCEPinternal;
@@ -53,7 +53,8 @@ for specificCond = cellConds
     
     ecoFig = figure('units','normalized','outerposition',[0 0 1 1]);
     dbsFig = figure('units','normalized','outerposition',[0 0 1 1]);
-   
+    
+    
     for condOfInt = 1:numConds
         %% rereference
         switch rrEco
