@@ -21,7 +21,7 @@ SUB_DIR = fullfile(myGetenv('subject_dir'));
 % for param sweep, look at subjects 1,2,9
 %sid = input('what is the sid?\n','s');
 %sid = SIDS{2}; % MUST SWITCH THIS, either 1,2,9
-sid = 'b26b7';
+sid = 'b305e';
 % load in tank
 switch sid
     case 'bb908'
@@ -52,9 +52,6 @@ switch sid
         condition = Cond.data(:,2);
         ttlPulse = Cond.data(:,3);
         cond_fs = Cond.info.SamplingRateHz;
-        
-        
-        
         
     case '80301'
         [structureData,filepath] = promptForTDTrecording;
@@ -220,7 +217,7 @@ switch sid
         
     case '5e0cf'
         
-            case 'c1c8c'
+    case 'c1c8c'
         [structureData,filepath] = promptForTDTrecording;
         split_path = split(filepath,"\");
         fileName = split_path{end};
@@ -248,8 +245,8 @@ switch sid
         ttlPulse = Cond.data(:,3);
         cond_fs = Cond.info.SamplingRateHz;
         
-         case 'b305e'
-                % paramsweep one side
+    case 'b305e'
+        % paramsweep one side
         [structureData,filepath] = promptForTDTrecording;
         split_path = split(filepath,"\");
         fileName = split_path{end};
