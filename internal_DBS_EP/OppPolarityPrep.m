@@ -21,7 +21,7 @@ SUB_DIR = fullfile(myGetenv('subject_dir'));
 % for param sweep, look at subjects 1,2,9
 %sid = input('what is the sid?\n','s');
 %sid = SIDS{2}; % MUST SWITCH THIS, either 1,2,9
-sid = '695e1';
+sid = 'b26b7';
 % load in tank
 switch sid
     case 'bb908'
@@ -221,6 +221,63 @@ switch sid
     case '5e0cf'
         
             case 'c1c8c'
+        [structureData,filepath] = promptForTDTrecording;
+        split_path = split(filepath,"\");
+        fileName = split_path{end};
+        
+        Sing = structureData.Sing;
+        Stim = structureData.Stim;
+        Valu = structureData.Valu;
+        Cond = structureData.Cond;
+        DBSs = structureData.DBSs;
+        ECOG = structureData.ECOG;
+        
+        dbsElectrodes = DBSs.data;
+        dbs_fs = DBSs.info.SamplingRateHz;
+        
+        ECOGelectrodes = ECOG.data;
+        ECOG_fs = ECOG.info.SamplingRateHz;
+        
+        stimBox = Stim.data;
+        stim_fs = Stim.info.SamplingRateHz;
+        
+        stimProgrammed = Sing.data;
+        
+        stimSampDeliver = Cond.data(:,1);
+        condition = Stim.data(:,2); % note - this is changed from the other previous subjects
+        ttlPulse = Cond.data(:,3);
+        cond_fs = Cond.info.SamplingRateHz;
+        
+         case 'b305e'
+                % paramsweep one side
+        [structureData,filepath] = promptForTDTrecording;
+        split_path = split(filepath,"\");
+        fileName = split_path{end};
+        
+        Sing = structureData.Sing;
+        Stim = structureData.Stim;
+        Valu = structureData.Valu;
+        Cond = structureData.Cond;
+        DBSs = structureData.DBSs;
+        ECOG = structureData.ECOG;
+        
+        dbsElectrodes = DBSs.data;
+        dbs_fs = DBSs.info.SamplingRateHz;
+        
+        ECOGelectrodes = ECOG.data;
+        ECOG_fs = ECOG.info.SamplingRateHz;
+        
+        stimBox = Stim.data;
+        stim_fs = Stim.info.SamplingRateHz;
+        
+        stimProgrammed = Sing.data;
+        
+        stimSampDeliver = Cond.data(:,1);
+        condition = Stim.data(:,2); % note - this is changed from the other previous subjects
+        ttlPulse = Cond.data(:,3);
+        cond_fs = Cond.info.SamplingRateHz;
+    case 'b26b7'
+        % paramsweep one side
         [structureData,filepath] = promptForTDTrecording;
         split_path = split(filepath,"\");
         fileName = split_path{end};

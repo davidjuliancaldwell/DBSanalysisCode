@@ -5,10 +5,10 @@
 close all;clear all;clc
 Z_Constants_internal_EP_DBS
 
-sid = '50ad9';
+sid = '695e1';
 DATA_DIR = fullfile(DATA_DIR_BASE, sid);
 
-load(fullfile(DATA_DIR,'stimInternal_l_singleDBS_3_4_fs_185.mat'));
+load(fullfile(DATA_DIR,'stimInternal_R_singleDBS_2_3_fs_185.mat'));
 %load(fullfile(OUTPUT_DIR,'stimInternal_R_bothDBS_5_6_fs_185.mat'));
 %load(fullfile(OUTPUT_DIR,'stimInternal_R_singleDBS_1_2_fs_185.mat'));
 
@@ -18,11 +18,9 @@ DBS_sepCCEPinternal = cellfun(@(x) x*4*1e6,DBS_sepCCEPinternal,'un',0);
 ECoG_sepCCEPinternal1Raw = ECoG_sepCCEPinternal;
 DBS_sepCCEPinternal1Raw = DBS_sepCCEPinternal;
 
-load(fullfile(DATA_DIR,'stimInternal_l_singleDBS_4_3_fs_185.mat'));
+load(fullfile(DATA_DIR,'stimInternal_R_singleDBS_3_2_fs_185.mat'));
 %load(fullfile(OUTPUT_DIR,'stimInternal_R_bothDBS_6_5_fs_185.mat'));
 %load(fullfile(OUTPUT_DIR,'stimInternal_R_singleDBS_2_1_fs_185.mat'));
-
-
 
 ECoG_sepCCEPinternal = cellfun(@(x) x*4*1e6,ECoG_sepCCEPinternal,'un',0);
 DBS_sepCCEPinternal = cellfun(@(x) x*4*1e6,DBS_sepCCEPinternal,'un',0);
