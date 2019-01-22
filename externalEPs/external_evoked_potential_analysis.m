@@ -8,13 +8,13 @@ Z_ConstantsDBS_externalEPs
 %80301
 %B305e
 
-SIDS = {'80301','50ad9','b26b7','1dd75','b305e','c1c8c'};
 SIDSwithout6 = {'b26b7'};
 
 plotIt = 1;
 saveIt = 1;
 
 SIDS = {'c1c8c'};
+SIDS = {'80301','50ad9','b26b7','1dd75','b305e','c1c8c'};
 
 SIDS
 for sid = SIDS

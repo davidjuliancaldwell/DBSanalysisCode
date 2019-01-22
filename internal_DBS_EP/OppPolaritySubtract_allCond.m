@@ -5,15 +5,15 @@
 close all;clear all;clc
 Z_Constants_internal_EP_DBS
 
-sid = '1dd75';
+sid = '50ad9';
 DATA_DIR = fullfile(DATA_DIR_BASE, sid);
 
 load(fullfile(DATA_DIR,'stimInternal_l_singleDBS_3_4_fs_185.mat'));
 %load(fullfile(OUTPUT_DIR,'stimInternal_R_bothDBS_5_6_fs_185.mat'));
 %load(fullfile(OUTPUT_DIR,'stimInternal_R_singleDBS_1_2_fs_185.mat'));
 
-ECoG_sepCCEPinternal = cellfun(@(x) x*4,ECoG_sepCCEPinternal,'un',0);
-DBS_sepCCEPinternal = cellfun(@(x) x*4,DBS_sepCCEPinternal,'un',0);
+ECoG_sepCCEPinternal = cellfun(@(x) x*4*1e6,ECoG_sepCCEPinternal,'un',0);
+DBS_sepCCEPinternal = cellfun(@(x) x*4*1e6,DBS_sepCCEPinternal,'un',0);
 
 ECoG_sepCCEPinternal1Raw = ECoG_sepCCEPinternal;
 DBS_sepCCEPinternal1Raw = DBS_sepCCEPinternal;
@@ -24,8 +24,8 @@ load(fullfile(DATA_DIR,'stimInternal_l_singleDBS_4_3_fs_185.mat'));
 
 
 
-ECoG_sepCCEPinternal = cellfun(@(x) x*4,ECoG_sepCCEPinternal,'un',0);
-DBS_sepCCEPinternal = cellfun(@(x) x*4,DBS_sepCCEPinternal,'un',0);
+ECoG_sepCCEPinternal = cellfun(@(x) x*4*1e6,ECoG_sepCCEPinternal,'un',0);
+DBS_sepCCEPinternal = cellfun(@(x) x*4*1e6,DBS_sepCCEPinternal,'un',0);
 
 ECoG_sepCCEPinternal2Raw = ECoG_sepCCEPinternal;
 DBS_sepCCEPinternal2Raw = DBS_sepCCEPinternal;
@@ -242,7 +242,7 @@ for specificCond = cellConds
                     plot(mu,'k','linewidth',2)
             end
             
-            ylim([-12e-6 12e-6])
+            ylim([-12e-6*1e6 12e-6*1e6])
             xlim([0 5])
             
             %xlim([min(tCCEP) 5])
@@ -253,7 +253,7 @@ for specificCond = cellConds
                 
             end
         end
-        ylabel('Voltage (V)')
+        ylabel(['Voltage (\muV)'])
         xlabel('time (ms)')
         figure(dbsFig);
         
@@ -312,7 +312,7 @@ for specificCond = cellConds
                     hold on
                     plot(mu,'k','linewidth',2)
             end
-            ylim([-20e-4 20e-4])
+            ylim([-20e-4*1e6 20e-4*1e6])
             %ylim([-6e-6 6e-6])
             
             xlim([0 5])
@@ -335,7 +335,7 @@ for specificCond = cellConds
             end
             
         end
-        ylabel('Voltage (V)')
+        ylabel(['Voltage (\muV)'])
         xlabel('time (ms)')
         %%
     end
@@ -517,6 +517,6 @@ for condOfInt = 1:numConds
         
         
     end
-    ylabel('Voltage (V)')
+        ylabel(['Voltage (\muV)'])
     xlabel('time (ms)')
 end
