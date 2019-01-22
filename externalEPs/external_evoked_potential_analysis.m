@@ -122,6 +122,10 @@ for sid = SIDS
         end
         %%
         
+        % scale by 4
+        ECoG_sep = cellfun(@(x) x*4,ECoG_sep,'un',0);
+        DBS_sep = cellfun(@(x) x*4,DBS_sep,'un',0);
+        
         windowInt = [500 1250];
         if size(ucondition,2)>size(ucondition,1)
             ucondition = ucondition';
@@ -263,7 +267,7 @@ for sid = SIDS
             ylabel('voltage (\muV)')
             % xlim([450 800])
             xlim([-100 800])
-            ylim([-60 60])
+            ylim([-240 240])
             vline(pkLocVec(chanInt,4))
             vline(trLocVec(chanInt,4))
             set(gca,'fontsize',14)
@@ -286,7 +290,7 @@ for sid = SIDS
                     ylabel('voltage (\muV)')
                     %  xlim([450 800])
                     xlim([-100 800])
-                    ylim([-60 60])
+                    ylim([-240 240])
                     vline(pkLocVec(chanInt,4))
                     vline(trLocVec(chanInt,4))
                     set(gca,'fontsize',14)
@@ -310,7 +314,7 @@ for sid = SIDS
                     ylabel('voltage (\muV)')
                     % xlim([450 800])
                     xlim([-100 800])
-                    ylim([-60 60])
+                    ylim([-240 240])
                     vline(pkLocVec(chanInt,4))
                     vline(trLocVec(chanInt,4))
                     set(gca,'fontsize',14)
@@ -322,7 +326,7 @@ for sid = SIDS
         end
         % clear variables except ones required for loop references
         clearvars -except META_DIR OUTPUT_DIR SIDS sid plotIt file maxFile SIDSwithout6 saveIt
-        %  close all
+        close all
     end
 end
 

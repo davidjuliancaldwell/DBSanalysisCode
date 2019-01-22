@@ -5,10 +5,10 @@
 % clear workspace - be in the directory with all scripts necessary
 close all; clear all; clc
 % add path for scripts to work with data tanks
-addpath('.\scripts')
 
 % set path, set
-Z_ConstantsDBS
+%Z_ConstantsDBS
+Z_Constants_internal_EP_DBS
 
 % subject directory, change as needed
 % for David

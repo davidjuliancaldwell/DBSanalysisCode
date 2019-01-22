@@ -1,23 +1,31 @@
-%% DJC 11-2-2016 - updated 6-6-2017
+%% Script to subtract opposite stimulation waveform pairs to look at internal CEPS
 % Script to subtract opposite stimulation waveform pairs
+% David.J.Caldwell 11-2-2016 - updated 6-6-2017
+% Updated 1.15.19
 close all;clear all;clc
-Z_ConstantsDBS
+Z_Constants_internal_EP_DBS
 
-%load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_1_2_fs_180.mat'));
+sid = '1dd75';
+DATA_DIR = fullfile(DATA_DIR_BASE, sid);
+
+load(fullfile(DATA_DIR,'stimInternal_l_singleDBS_3_4_fs_185.mat'));
 %load(fullfile(OUTPUT_DIR,'stimInternal_R_bothDBS_5_6_fs_185.mat'));
-load(fullfile(OUTPUT_DIR,'stimInternal_R_singleDBS_1_2_fs_185.mat'));
+%load(fullfile(OUTPUT_DIR,'stimInternal_R_singleDBS_1_2_fs_185.mat'));
+
+ECoG_sepCCEPinternal = cellfun(@(x) x*4,ECoG_sepCCEPinternal,'un',0);
+DBS_sepCCEPinternal = cellfun(@(x) x*4,DBS_sepCCEPinternal,'un',0);
 
 ECoG_sepCCEPinternal1Raw = ECoG_sepCCEPinternal;
 DBS_sepCCEPinternal1Raw = DBS_sepCCEPinternal;
 
-
-%load(fullfile(OUTPUT_DIR,'stimInternal_l_singleDBS_2_1_fs_180.mat'));
+load(fullfile(DATA_DIR,'stimInternal_l_singleDBS_4_3_fs_185.mat'));
 %load(fullfile(OUTPUT_DIR,'stimInternal_R_bothDBS_6_5_fs_185.mat'));
-load(fullfile(OUTPUT_DIR,'stimInternal_R_singleDBS_2_1_fs_185.mat'));
+%load(fullfile(OUTPUT_DIR,'stimInternal_R_singleDBS_2_1_fs_185.mat'));
 
-sid = '695e1';
-OUTPUT_DIR = ['C:\Users\djcald.CSENETID\GoogleDrive\GRIDLabDavidShared\DBS\David_ParamSweep_Figures\' sid];
 
+
+ECoG_sepCCEPinternal = cellfun(@(x) x*4,ECoG_sepCCEPinternal,'un',0);
+DBS_sepCCEPinternal = cellfun(@(x) x*4,DBS_sepCCEPinternal,'un',0);
 
 ECoG_sepCCEPinternal2Raw = ECoG_sepCCEPinternal;
 DBS_sepCCEPinternal2Raw = DBS_sepCCEPinternal;
@@ -52,9 +60,11 @@ for specificCond = cellConds
     rrDbs = 'n';
     
     ecoFig = figure('units','normalized','outerposition',[0 0 1 1]);
-    dbsFig = figure('units','normalized','outerposition',[0 0 1 1]);
-    
-    
+   dbsFig = figure('units','normalized','outerposition',[0 0 1 1]);
+%        ecoFig = figure('Position', get(0, 'Screensize'));
+%     dbsFig = figure('Position', get(0, 'Screensize'));
+
+
     for condOfInt = 1:numConds
         %% rereference
         switch rrEco
@@ -232,7 +242,7 @@ for specificCond = cellConds
                     plot(mu,'k','linewidth',2)
             end
             
-            ylim([-3e-6 3e-6])
+            ylim([-12e-6 12e-6])
             xlim([0 5])
             
             %xlim([min(tCCEP) 5])
@@ -302,7 +312,7 @@ for specificCond = cellConds
                     hold on
                     plot(mu,'k','linewidth',2)
             end
-            ylim([-5e-4 5e-4])
+            ylim([-20e-4 20e-4])
             %ylim([-6e-6 6e-6])
             
             xlim([0 5])
@@ -330,10 +340,12 @@ for specificCond = cellConds
         %%
     end
     figure(ecoFig)
+
     SaveFig(OUTPUT_DIR, sprintf(['walkerECoG-%s-%s-%d-%d'], sid, specificCond, stimChans(1)-1,stimChans(2)-1), 'eps', '-r600');
     SaveFig(OUTPUT_DIR, sprintf(['walkerECoG-%s-%s-%d-%d'], sid, specificCond, stimChans(1)-1,stimChans(2)-1), 'png', '-r600');
     
     figure(dbsFig)
+
     SaveFig(OUTPUT_DIR, sprintf(['walkerDBS-%s-%s-%d-%d'], sid, specificCond, stimChans(1)-1,stimChans(2)-1), 'eps', '-r600');
     SaveFig(OUTPUT_DIR, sprintf(['walkerDBS-%s-%s-%d-%d'], sid, specificCond, stimChans(1)-1,stimChans(2)-1), 'png', '-r600');
     close all
