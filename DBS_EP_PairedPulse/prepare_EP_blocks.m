@@ -400,7 +400,7 @@ for block = blocks
         case '08b13'
             
             tBegin = 3.5; % ms
-            tEnd =28; % ms 
+            tEnd =28; % ms
             switch block
                 % baseline pre stim 1
                 case 1
@@ -436,6 +436,48 @@ for block = blocks
                 case 8
                     stimChans = [7 8];
             end
+            
+        case 'e9c9b'
+            
+            tBegin = 3.5; % ms
+            tEnd =28; % ms
+            switch block
+                % baseline pre stim 1
+                case 1
+                    stimChans = [7 8];
+                    
+                    % baseline pre stim 2
+                case 2
+                    stimChans = [7 8];
+                    
+                case 3
+                    stimChans = [7 8];
+                    
+                case 4
+                    stimChans = [7 8];
+                    
+                    % baseline post 200 ms A/B 200 ms delay
+                case 5
+                    stimChans = [7 8];
+                    
+                    % second baseline post 200 ms A/B , second baseline to compare
+                    % against for the following A/A tests
+                    
+                case 6
+                    stimChans = [7 8];
+                    
+                    % post 200 ms A/A
+                case 7
+                    stimChans = [7 8];
+                    
+                    % post 200 ms A/A - second one
+                case 8
+                    stimChans = [7 8];
+                    % post 200 ms A/A - second one
+                case 9
+                    stimChans = [7 8];
+            end
+            
             
         otherwise
             error('unknown sid')
@@ -546,7 +588,7 @@ for block = blocks
     signalPPblock{blockCount} = signalPP;
     pkLocsBlock{blockCount} = pkLocs;
     trLocsBlock{blockCount} = trLocs;
-   
+    
     [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak_single_trial(stimLevelUniq,epochsEP,tEpoch,...
         stimChans,tBegin,tEnd,rerefMode,[],smooth,avgTrials,numAvg);
     
@@ -556,8 +598,8 @@ for block = blocks
     
     
     % make labels to keep track of each trial
-    for counter = 1:size(signalPP,2)      
-            blockLabel{blockCount}{counter} = repmat(stimLevelUniq(counter),size(signalPP{counter},2),1);
+    for counter = 1:size(signalPP,2)
+        blockLabel{blockCount}{counter} = repmat(stimLevelUniq(counter),size(signalPP{counter},2),1);
     end
     
     blockCount = blockCount + 1;

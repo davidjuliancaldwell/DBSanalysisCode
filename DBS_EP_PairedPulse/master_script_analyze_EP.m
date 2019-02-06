@@ -2,8 +2,6 @@
 close all;clear all;clc
 Z_ConstantsDBS_PairedPulse;
 %% load in subject
-% here are subjects that we have acquired MEP data on
-
 matlab_dir = 'MATLAB_Converted';
 experiment = 'EP_Measurement';
 
@@ -50,16 +48,22 @@ for avgTrials = avgTrialsVec'
             case '8e907'
                 blocks = [1 2 5 6 7];
                 chanIntList = [4 5];
-                legendText = {'baseline 1' ,'baseline 2','post A/B 200 ms 1 ','post A/B 200 ms 2','post A/B 200 ms 3'};
+                legendText = {'baseline 1' ,'baseline 2','post A/B 200 ms 1','post A/B 200 ms 2','post A/B 200 ms 3'};
                 
             case '08b13'
                 blocks = [1 3 5 6 7 8];
                 chanIntList = [5 6];
-                legendText = {'baseline 1' ,'baseline 2','post A/B 200 ms 1 ',...
+                legendText = {'baseline 1' ,'baseline 2','post A/B 200 ms 1',...
                     'post A/B 200 ms 2/pre A/A','post A/A 200 ms 1','post A/A 200 ms 2'};
                 
+            case 'e9c9b'
+                blocks = [1 2 3 4 5 6 7 8 9 10];
+                chanIntList = [5 6];
+                    legendText = {'baseline 1','baseline 2','post A/A 200 ms 1','baseline 3 (post A/A)',...
+                    'post A/B 200 ms 1','baseline 4 (post A/B)','post A/B 25 ms 1','baseline 5 (post A/B)','baseline 6',
+                    'post A/A 25 ms 1'};
+                
         end
-        
         
         fprintf([sid,'\n'])
         fprintf(['average trials ' num2str(avgTrials) '\n'])
