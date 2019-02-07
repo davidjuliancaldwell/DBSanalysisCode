@@ -37,7 +37,7 @@ for block = blocks
             end
         case 'c963f'
             
-            tBegin = 2.1; % ms
+            tBegin = 1; % ms
             tEnd = 25; % ms
             
             switch block
@@ -360,8 +360,8 @@ for block = blocks
             error('no measurements for this subject')
             
         case '8e907'
-            tBegin = 2; % ms was 2.5 for 42
-            tEnd = 15; % ms % was 35 for 426
+            tBegin = 1.8; % ms was 2.5 for 42
+            tEnd = 17; % ms % was 35 for 426
             
             switch block
                 % baseline pre stim 1
@@ -487,8 +487,7 @@ for block = blocks
     % default values for t begin
     if ~exist('tBegin','var')
         tBegin = 1.8; % ms was 2.5 for 42
-        tEnd = 35; % ms % was 35 for 426
-        
+        tEnd = 35; % ms % was 35 for 426    
     end
     
     %%
@@ -513,7 +512,6 @@ for block = blocks
         stimCommandTimes(badTrialLocations) = [];
     end
     
-    
     fac = ECoGfs/tactFs;
     
     % adjust for when no stimuli were delivered when the stim level was
@@ -527,7 +525,6 @@ for block = blocks
             stimLevelUniq(count) = nan;
         end
         count = count + 1;
-        
     end
     
     stimLevelUniq = stimLevelUniq(~isnan(stimLevelUniq));
@@ -573,10 +570,8 @@ for block = blocks
         count = count + 1;
         
     end
-    
-    
+      
     epochsEPblock{blockCount} = epochsEP;
-    
     
     % get peak to peak values
     rerefMode = 'none';

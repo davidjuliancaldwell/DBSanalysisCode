@@ -7,7 +7,7 @@ for chanInt = chanIntList
         % confidence interval
         type = 'CI';
         figure
-        set(gcf,'position',[1.4277e+03 556.3333 786.6667 678.6667])
+        set(gcf,'position',[299 278 786 679])
         for i = 1:length(blocks)
             plotBTLError(tEpoch, 1e6*squeeze(epochsEPblock{i}{condInt}(:,chanInt,:)),type,cmap(i,:)')
         end
@@ -35,7 +35,7 @@ for chanInt = chanIntList
         %%
         % mean
         figure
-        set(gcf,'position',[1.4277e+03 556.3333 786.6667 678.6667])
+        set(gcf,'position',[299 278 786 679])
         
         for i = 1:length(blocks)
             plot(tEpoch, 1e6*mean(squeeze(epochsEPblock{i}{condInt}(:,chanInt,:)),2),'linewidth',2,'color',cmap(i,:)')

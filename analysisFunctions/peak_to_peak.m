@@ -26,9 +26,11 @@ end;
 
 % add in peak separation - this is in samples 
 
-[ppks,plats]=findpeaks(signal,'minpeakprominence',1e-6,'MinPeakDistance',35); 
-[npks,nlats]=findpeaks(-signal,'minpeakprominence',1e-6,'MinPeakDistance',35);
+[ppks,plats]=findpeaks(signal,'minpeakprominence',1e-6,'MinPeakDistance',90); 
+[npks,nlats]=findpeaks(-signal,'minpeakprominence',1e-6,'MinPeakDistance',90);
 
+
+% change from 35 to 90 , 2.7.2019
 
 falling=[];
 falling_pk=[];

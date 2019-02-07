@@ -30,6 +30,7 @@ plotCondAvg = 0;
 sidVecIterate = {'46c2a','9f852','8e907','08b13'};
 sidVecIterate = {'08b13'};
 sidVecIterate = {'c963f'};
+sidVecIterate = {'2e114'};
 
 for avgTrials = avgTrialsVec'
     for sid = sidVecIterate
@@ -41,9 +42,16 @@ for avgTrials = avgTrialsVec'
                 legendText = {'baseline','post 25 ms A/B'};
                 
             case 'c963f'
-                    blocks = [2 4];
+                blocks = [2 4 6 8];
                 chanIntList = [6];
-                legendText = {'baseline','post 25 ms A/B','post 50 ms A/B'};
+                legendText = {'baseline','post 25 ms A/B','baseline 2','post 50 ms A/B'};
+                
+            case '2e114'
+                blocks = [1 3 5 7 10 12];
+                chanIntList = [4];
+                legendText = {'baseline 1','post 25 ms A/B','baseline 2','post 50 ms A/B','baseline 3','post A only'};
+
+            case '3d413'
                 
             case '9f852'
                 blocks = [2 3 4 5 6 7 10 11];
@@ -65,20 +73,20 @@ for avgTrials = avgTrialsVec'
             case 'e9c9b'
                 blocks = [1 2 3 4 5 6 7 8 9 10];
                 chanIntList = [5 6];
-                    legendText = {'baseline 1','baseline 2','post A/A 200 ms 1','baseline 3 (post A/A)',...
+                legendText = {'baseline 1','baseline 2','post A/A 200 ms 1','baseline 3 (post A/A)',...
                     'post A/B 200 ms 1','baseline 4 (post A/B)','post A/B 25 ms 1','baseline 5 (post A/B)','baseline 6',
                     'post A/A 25 ms 1'};
                 
-                   case '41a73'
+            case '41a73'
                 blocks = [1 2 3 4 5 6 7 8 9 10 11];
                 chanIntList = [5 8];
-                    legendText = {'baseline 1','baseline 2','post A/B 200 ms 1','baseline 3 (post A/B)','baseline 4'
+                legendText = {'baseline 1','baseline 2','post A/B 200 ms 1','baseline 3 (post A/B)','baseline 4'
                     'post A/A 200 ms 1','baseline 5 (post A/A)','baseline 6','baseline 7','baseline 8','baseline 9'};
                 
-                  case '68754'
+            case '68754'
                 blocks = [1 2 3 4 5 6 7 8 9 10 11 12 13 14 ];
                 chanIntList = [4 7];
-                    legendText = {'baseline 1','baseline 2','post A/A 100 ms 1','baseline 3 (post A/A)',...
+                legendText = {'baseline 1','baseline 2','post A/A 100 ms 1','baseline 3 (post A/A)',...
                     'post A/B 100 ms 1','baseline 4 (post A/B)','post A/A 200 ms 1','baseline 5 (post A/A)','post',
                     'post A/A 25 ms 1',...
                     'pre DBS','during DBS','post DBS 1','post DBS 2'};
@@ -92,7 +100,6 @@ for avgTrials = avgTrialsVec'
         prepare_EP_blocks
         
         %% compare multiples blocks
-        
         analyze_EP_compare_multiple_blocks
         
         %% save data for statistical analysis in table form
@@ -105,9 +112,9 @@ for avgTrials = avgTrialsVec'
         for ii = 1:size(signalPPblockST,2)
             for jj = 1:size(signalPPblockST{ii},2)
                 tempPP = signalPPblockST{ii}{jj};
-                tempChannel = repmat([1:8]',1,size(tempPP,2));
+                tempChannel = repmat([1:8]',[1,size(tempPP,2)]);
                 tempBlock = repmat(blocks(ii),size(tempPP));
-                tempStimLevel = repmat(blockLabel{ii}{jj}',size(tempPP,1),1);
+                tempStimLevel = repmat(blockLabel{ii}{jj}',[size(tempPP,1),1]);
                 
                 PPvec = [PPvec; tempPP(:)];
                 blockVec = [blockVec; tempBlock(:)];
@@ -115,7 +122,7 @@ for avgTrials = avgTrialsVec'
                 chanVec = [chanVec; tempChannel(:)];
             end
         end
-        sidVec = cellstr(repmat(sid,size(PPvec),1));
+        sidVec = cellstr(repmat(sid,[size(PPvec),1]));
         %
         T = table(PPvec,blockVec,stimLevelVec,sidVec,chanVec);
         
@@ -123,10 +130,10 @@ for avgTrials = avgTrialsVec'
         
         if saveData && ~avgTrials
             writetable(T,[sid '_PairedPulseData.csv'],'Delimiter',',','QuoteStrings',true)
-            save([sid '_PairedPulseData.mat'],'signalPPblockST','chanIntList','blocks','sid','tBegin','tEnd','blockLabel','stimLevelUniq','legendText')
+            %    save([sid '_PairedPulseData.mat'],'signalPPblockST','chanIntList','blocks','sid','tBegin','tEnd','blockLabel','stimLevelUniq','legendText')
         elseif saveData && avgTrials
             writetable(T,[sid '_PairedPulseData_avg.csv'],'Delimiter',',','QuoteStrings',true)
-            save([sid '_PairedPulseData_avg.mat'],'signalPPblockST','chanIntList','blocks','sid','tBegin','tEnd','blockLabel','stimLevelUniq','legendText')
+            %  save([sid '_PairedPulseData_avg.mat'],'signalPPblockST','chanIntList','blocks','sid','tBegin','tEnd','blockLabel','stimLevelUniq','legendText')
         end
         
         clearvars signalPPblockST

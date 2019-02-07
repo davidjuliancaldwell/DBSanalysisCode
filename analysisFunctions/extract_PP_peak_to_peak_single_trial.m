@@ -36,6 +36,10 @@ for jj = 1:length(ucondition)
     order = 3;
     framelen = 71;
     
+    % 2.7.2019
+     order = 3;
+    framelen = 91;
+    
     cellMode = {'median','bipolar','mean','bipolarPair','singleChan'};
     
     if sum(strcmp(rerefMode,cellMode))
@@ -83,8 +87,8 @@ for jj = 1:length(ucondition)
             signalPP{jj}(~goodChans) = nan;
             pkLocs{jj}(~goodChans) = nan;
             trLocs{jj}(~goodChans) = nan;
-            
-%             if ii == 5
+%             
+%             if ii == 5 && jj == 4
 %                 figure
 %                 plot(tempSignalExtract)
 %                 vline(pk_loc)

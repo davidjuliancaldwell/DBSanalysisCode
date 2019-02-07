@@ -1,4 +1,6 @@
+setwd('C:/Users/david/SharedCode/DBSanalysisCode')
 
+library('plyr')
 library('here')
 library('nlme')
 library('ggplot2')
@@ -10,28 +12,34 @@ library("lme4")
 library('multcomp')
 
 rootDir = here()
-dataDir = here("DBS_CCEP_PairedPulse","R_data")
-codeDir = here("DBS_CCEP_PairedPulse","R_code")
+dataDir = here("DBS_EP_PairedPulse","R_data")
+codeDir = here("DBS_EP_PairedPulse","R_code")
 
-#sidVec <- c('46c2a','c963f','9f852','08b13','8e907')
+sidVec <- c('46c2a','c963f','2e114','9f852','08b13','8e907')
 #sidVec <- c('8e907')
-sidVec <- c('46c2a')
+#sidVec <- c('46c2a')
 #sidVec <- c('08b13')
 #sidVec <- c('9f852')
+#sidVec <- c('c963f')
+sidVec <- c('2e114')
+
 
 savePlot = 1
 avgMeasVec = c(0)
 figWidth = 8 
 figHeight = 6 
 
+dataList = list()
+index = 1
+
 for (avgMeas in avgMeasVec) {
   for (sid in sidVec){
-    source(here("DBS_CCEP_PairedPulse","R_config_files",paste0("subj_",sid,".R")))
+    source(here("DBS_EP_PairedPulse","R_config_files",paste0("subj_",sid,".R")))
     
     if (avgMeas) {
-      dataPP <- read.table(here("DBS_CCEP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_avg.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
+      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_avg.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
     } else{
-      dataPP <- read.table(here("DBS_CCEP_PairedPulse","R_data",paste0(sid,'_PairedPulseData.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
+      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
     }
     
     # multiply by 1e6
@@ -42,7 +50,40 @@ for (avgMeas in avgMeasVec) {
     
     for (chanInt in chanIntVec){
       
+      # select data of interest 
       dataInt <- na.exclude(subset(dataPP,(chanVec == chanInt) & (blockVec %in% blockIntPlot)))
+      
+      # map stimulation levels to consistent ordering for between subject comparison
+      uniqueStimLevel = as.double(unique(dataInt$stimLevelVec))
+      mappingStimLevel =c(1:length(uniqueStimLevel))
+      dataInt$mapStimLevel <- mapvalues(dataInt$stimLevelVec,
+                                        from=uniqueStimLevel,
+                                        to=mappingStimLevel)
+      dataInt$index = index
+      dataList[[index]] = dataInt
+      
+      #
+      dataInt$percentDiff = 0
+      for (comparison in whichCompareVec){
+        
+        
+        
+      }
+      
+      for (name in unique(data$sid)){
+        for (chan in unique(data[data$sid == name,]$channel)){
+          for (numStimTrial in unique(data$numStims)){
+            numBase = nrow(data[data$sid == name & data$channel == chan & data$numStims == 'Base',])
+            base = data[data$sid == name & data$channel == chan & data$numStims == 'Base',]$magnitude
+            baseMean = mean(base)
+            data[data$sid == name & data$channel == chan & data$numStims == 'Base',]$percentDiff = 100*(base - baseMean)/baseMean
+            for (typePhase in unique(data$phaseClass)){
+              percentDiff = 100*((data[data$sid == name & data$channel == chan & data$numStims == numStimTrial & data$phaseClass == typePhase,]$magnitude)-baseMean)/baseMean
+              data[data$sid == name & data$channel == chan & data$numStims == numStimTrial & data$phaseClass == typePhase,]$percentDiff = percentDiff
+            }
+          }
+        }
+      }
       
       p <- ggplot(dataInt, aes(x=stimLevelVec, y=PPvec,colour=stimLevelVec)) +
         geom_jitter(width=35) +  geom_smooth(method=lm) + facet_wrap(~blockVec, labeller = as_labeller(blockNames))+
@@ -62,19 +103,19 @@ for (avgMeas in avgMeasVec) {
       summary(fit.glm)
       summary(glht(fit.glm,linfct=mcp(blockVec="Tukey")))
       # plot(fit.glm)
-
+      
       # fit.lmm = lmer(PPvec ~ stimLevelVec + blockVec + (1|stimLevelVec) + (1|blockVec), data=dataToFit)
       # summary(fit.lmm)
-       #confint(fit.lmm,method="boot")
-
-       # get starting values
-       if (sid != '8e907') {
-         fit.startnlme0 <- nlsLM(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit)
-       } else {
-         fit.startnlme0 <- nlsLM(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit,start = c(Asym=400,xmid = 500,scal = 500),control = list(maxiter = 500))
-       }
-
-       startVals = summary(fit.startnlme0)$coefficients
+      #confint(fit.lmm,method="boot")
+      
+      # get starting values
+      if (sid != '8e907') {
+        fit.startnlme0 <- nlsLM(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit)
+      } else {
+        fit.startnlme0 <- nlsLM(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit,start = c(Asym=400,xmid = 500,scal = 500),control = list(maxiter = 500))
+      }
+      
+      startVals = summary(fit.startnlme0)$coefficients
       # 
       #  if (sid == '08b13') {
       #    fit.nlme0 <- gnls(PPvec ~ SSlogis(stimLevelVec, Asym, xmid, scal),data=dataToFit,
@@ -126,9 +167,9 @@ for (avgMeas in avgMeasVec) {
       p4 <- ggplot(dataToFit, aes(x=stimLevelVec, y=PPvec,colour=stimLevelVec)) + 
         geom_jitter(width=35) +
         facet_wrap(~blockVec, labeller = as_labeller(blockNames))+
-      #  labs(x = expression(paste("Stimulation current ",mu,"A")),y=expression(paste("Peak to Peak magnitude ",mu,"V"), fill="stimulus level"),title = paste0("Subject ", subjectNum, " ID ", sid," DBS Paired Pulse EP Measurements")) + 
-         labs(x = expression(paste("Stimulation current ",mu,"A")),y=expression(paste("Peak to Peak magnitude ",mu,"V"), fill="stimulus level"),title = paste0("Baseline and post-conditioning CEP measurements")) + 
-            guides(colour=guide_colorbar("stimulation level"))+ 
+        #  labs(x = expression(paste("Stimulation current ",mu,"A")),y=expression(paste("Peak to Peak magnitude ",mu,"V"), fill="stimulus level"),title = paste0("Subject ", subjectNum, " ID ", sid," DBS Paired Pulse EP Measurements")) + 
+        labs(x = expression(paste("Stimulation current ",mu,"A")),y=expression(paste("Peak to Peak magnitude ",mu,"V"), fill="stimulus level"),title = paste0("Baseline and post-conditioning CEP measurements")) + 
+        guides(colour=guide_colorbar("stimulation level"))+ 
         geom_line(data=predDataGroups,aes(x=stimLevelVec,y=PPvec),size=2,colour='black')
       
       print(p4)
@@ -150,9 +191,14 @@ for (avgMeas in avgMeasVec) {
       # AIC(fit.nlme0, fit.nlme1,fit.glm,fit.lmm)  
       
       #BIC(fit.nlme0, fit.nlme1,fit.glm,fit.lmm)
-      
+      index = index + 1
     }
   }
 }
+############# 
+# now do comparison at highest stim level relative to baseline
+dataList = do.call(rbind,dataList)
+
+
 
 #http://rstudio-pubs-static.s3.amazonaws.com/28730_850cac53898b45da8050f7f622d48927.html
