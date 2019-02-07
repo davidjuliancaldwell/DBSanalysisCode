@@ -24,11 +24,12 @@ avgTrialsVec = [0,1]';
 numAvg = 3;
 
 savePlot = 0;
-saveData = 1;
+saveData = 0;
 plotCondAvg = 0;
 
 sidVecIterate = {'46c2a','9f852','8e907','08b13'};
 sidVecIterate = {'08b13'};
+sidVecIterate = {'c963f'};
 
 for avgTrials = avgTrialsVec'
     for sid = sidVecIterate
@@ -38,6 +39,11 @@ for avgTrials = avgTrialsVec'
                 blocks = [1 3];
                 chanIntList = [6];
                 legendText = {'baseline','post 25 ms A/B'};
+                
+            case 'c963f'
+                    blocks = [2 4];
+                chanIntList = [6];
+                legendText = {'baseline','post 25 ms A/B','post 50 ms A/B'};
                 
             case '9f852'
                 blocks = [2 3 4 5 6 7 10 11];
@@ -62,6 +68,20 @@ for avgTrials = avgTrialsVec'
                     legendText = {'baseline 1','baseline 2','post A/A 200 ms 1','baseline 3 (post A/A)',...
                     'post A/B 200 ms 1','baseline 4 (post A/B)','post A/B 25 ms 1','baseline 5 (post A/B)','baseline 6',
                     'post A/A 25 ms 1'};
+                
+                   case '41a73'
+                blocks = [1 2 3 4 5 6 7 8 9 10 11];
+                chanIntList = [5 8];
+                    legendText = {'baseline 1','baseline 2','post A/B 200 ms 1','baseline 3 (post A/B)','baseline 4'
+                    'post A/A 200 ms 1','baseline 5 (post A/A)','baseline 6','baseline 7','baseline 8','baseline 9'};
+                
+                  case '68754'
+                blocks = [1 2 3 4 5 6 7 8 9 10 11 12 13 14 ];
+                chanIntList = [4 7];
+                    legendText = {'baseline 1','baseline 2','post A/A 100 ms 1','baseline 3 (post A/A)',...
+                    'post A/B 100 ms 1','baseline 4 (post A/B)','post A/A 200 ms 1','baseline 5 (post A/A)','post',
+                    'post A/A 25 ms 1',...
+                    'pre DBS','during DBS','post DBS 1','post DBS 2'};
                 
         end
         

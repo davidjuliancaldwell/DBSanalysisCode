@@ -13,7 +13,7 @@ rootDir = here()
 dataDir = here("DBS_CCEP_PairedPulse","R_data")
 codeDir = here("DBS_CCEP_PairedPulse","R_code")
 
-#sidVec <- c('46c2a','9f852','08b13','8e907')
+#sidVec <- c('46c2a','c963f','9f852','08b13','8e907')
 #sidVec <- c('8e907')
 sidVec <- c('46c2a')
 #sidVec <- c('08b13')
