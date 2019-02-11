@@ -17,11 +17,11 @@ codeDir = here("DBS_EP_PairedPulse","R_code")
 
 sidVec <- c('46c2a','c963f','2e114','9f852','08b13','8e907')
 #sidVec <- c('8e907')
-#sidVec <- c('46c2a')
+sidVec <- c('46c2a')
 #sidVec <- c('08b13')
 #sidVec <- c('9f852')
 #sidVec <- c('c963f')
-sidVec <- c('2e114')
+#sidVec <- c('2e114')
 
 
 savePlot = 1
@@ -65,6 +65,7 @@ for (avgMeas in avgMeasVec) {
       #
       dataInt$percentDiff = 0
       for (comparison in whichCompareVec){
+        dataIntCompare <- subset(dataInt,(blockVec %in% comparison))
         
         
         
