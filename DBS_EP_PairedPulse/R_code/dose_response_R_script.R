@@ -10,6 +10,9 @@ library('lmtest')
 library('glmm')
 library("lme4")
 library('multcomp')
+library('lmerTest')
+library('sjPlot')
+library('emmeans')
 
 rootDir = here()
 dataDir = here("DBS_EP_PairedPulse","R_data")
@@ -59,18 +62,43 @@ for (avgMeas in avgMeasVec) {
       dataInt$mapStimLevel <- mapvalues(dataInt$stimLevelVec,
                                         from=uniqueStimLevel,
                                         to=mappingStimLevel)
+    # dataInt$mapStimLevel = as.factor(dataInt$mapStimLevel)
       dataInt$index = index
       dataList[[index]] = dataInt
       
       #
       dataInt$percentDiff = 0
+      dataInt$absDiff = 0
+      
       for (comparison in whichCompareVec){
         dataIntCompare <- subset(dataInt,(blockVec %in% comparison))
+        first = dataIntCompare[dataIntCompare$mapStimLevel == stimLevel,]
         
-        
-        
+        for (stimLevel in (unique(dataIntCompare$mapStimLevel))){
+          
+        }
       }
       
+      fit.lm    = lm(PPvec ~ mapStimLevel + blockVec + mapStimLevel*blockVec,data=dataIntCompare)
+      
+      summary(fit.lm)
+      plot(fit.lm)
+      summary(glht(fit.lm,linfct=mcp(blockVec="Tukey")))
+      emmeans(fit.lm, list(pairwise ~ blockVec), adjust = "tukey")
+      emmeans(fit.lm, list(pairwise ~ mapStimLevel), adjust = "tukey")
+      
+      emm_s.t <- emmeans(fit.lm, pairwise ~ blockVec | mapStimLevel)
+      emm_s.t <- emmeans(fit.lm, pairwise ~ mapStimLevel | blockVec)
+      
+      anova(fit.lm)
+      tab_model(fit.lm)
+      
+      summary(glht(fit.lm,linfct=mcp(sid="Tukey")))
+      summary(glht(fit.lm,linfct=mcp(numStims="Tukey")))
+      
+      
+      data$percentDiff = 0
+      data$absDiff = 0
       for (name in unique(data$sid)){
         for (chan in unique(data[data$sid == name,]$channel)){
           for (numStimTrial in unique(data$numStims)){
@@ -81,6 +109,8 @@ for (avgMeas in avgMeasVec) {
             for (typePhase in unique(data$phaseClass)){
               percentDiff = 100*((data[data$sid == name & data$channel == chan & data$numStims == numStimTrial & data$phaseClass == typePhase,]$magnitude)-baseMean)/baseMean
               data[data$sid == name & data$channel == chan & data$numStims == numStimTrial & data$phaseClass == typePhase,]$percentDiff = percentDiff
+              absDiff = data[data$sid == name & data$channel == chan & data$numStims == numStimTrial & data$phaseClass == typePhase,]$magnitude-baseMean
+              data[data$sid == name & data$channel == chan & data$numStims == numStimTrial & data$phaseClass == typePhase,]$absDiff = absDiff
             }
           }
         }

@@ -6,4 +6,4 @@ blockNames <- c(
   `1` = "baseline",
   `3` = "post A/B 25 ms"
 )
-whichCompareVec = list(c(1,2))
+whichCompareVec = list(c(1,3))
