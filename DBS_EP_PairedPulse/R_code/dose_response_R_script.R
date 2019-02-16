@@ -80,6 +80,7 @@ for (avgMeas in avgMeasVec) {
       }
       
       fit.lm    = lm(PPvec ~ mapStimLevel + blockVec + mapStimLevel*blockVec,data=dataIntCompare)
+      fit.lm    = lm(PPvec ~ mapStimLevel + blockVec,data=dataIntCompare)
       
       summary(fit.lm)
       plot(fit.lm)
@@ -88,7 +89,7 @@ for (avgMeas in avgMeasVec) {
       emmeans(fit.lm, list(pairwise ~ mapStimLevel), adjust = "tukey")
       
       emm_s.t <- emmeans(fit.lm, pairwise ~ blockVec | mapStimLevel)
-      emm_s.t <- emmeans(fit.lm, pairwise ~ mapStimLevel | blockVec)
+      emm_s.t <- emmeans(fit.lm, pairwise ~ numStims | blockVec)
       
       anova(fit.lm)
       tab_model(fit.lm)
