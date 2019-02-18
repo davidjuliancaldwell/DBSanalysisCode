@@ -234,17 +234,26 @@ for (avgMeas in avgMeasVec) {
 }
 ############# 
 # now do comparison at highest stim level relative to baseline
-dataList = do.call(rbind,dataList)
-#blockList = do.call(rbind,blockList)
+dataList <- do.call(rbind,dataList)
+#blockList <- do.call(rbind,blockList)
 
 #plot
+grouped <- group_by(dataList, sidVec, chanVec, blockType,mapStimLevel)
+dataListSummarize <- summarise(grouped,meanPerc = mean(percentDiff),sdPerc = sd(percentDiff),
+                               meanAbs=mean(absDiff), sdDiff=sd(percentDiff))
 
 
 #dataListFactorized$stimLevelVec = as.factor(dataListFactorized$stimLevelVec)
-p3 <- ggplot(dataList, aes(x=mappingStimLevel, y=percentDiff,colour=blockType,fill=blockType)) +
-  geom_point(position=position_jitterdodge(dodge.width=0.250)) +geom_smooth(method=lm) +
+p3 <- ggplot(dataList, aes(x=mapStimLevel, y=percentDiff,colour=blockType,fill=blockType)) +
+  geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
   labs(x = expression(paste("Stimulation Level")),y=expression(paste("Percent Difference in EP Magnitude"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
 print(p3)
+
+#dataListFactorized$stimLevelVec = as.factor(dataListFactorized$stimLevelVec)
+p4 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPerc,colour=blockType,fill=blockType)) +
+  geom_point(position=position_jitterdodge(dodge.width=0.1)) +geom_smooth(method=lm) +
+  labs(x = expression(paste("Stimulation Level")),y=expression(paste("Percent Difference in EP Magnitude"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
+print(p4)
 
 if (savePlot && !avgMeas) {
   ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_combined.png"), units="in", width=figWidth, height=figHeight, dpi=600)
