@@ -1,15 +1,18 @@
 subjectNum = 6
-chanIntVec = c(4)
-blockIntLM = c(1,3,5,7,10,12)
-blockIntPlot = c(1,3,5,7,10,12)
+chanIntVec = c(6,4)
+blockIntLMVec = list(c(1,3,5,7,9),c(2,4,6,8,10))
+blockIntPlotVec = list(c(1,3,5,7,9),c(2,4,6,8,10))
 blockNames <- c(
-  `1` = "baseline",
-  `3` = "post A/B 25 ms",
-  `5` = "baseline 2",
-  `7` = "post A/B 50 ms",
-  `10` = "baseline 3",
-  `12` = "post A only"
+  `1` = "asleep",
+  `3` = "awake",
+  `5` = "awake",
+  `7` = "asleep",
+  `9` = "asleep",
+  `2` = "asleep",
+  `4` = "awake",
+  `6` = "awake",
+  `8` = "asleep",
+  `10` = "asleep"
 )
-blockType = c('baseline','A/B 25','baseline',
-              'A/B 50','baseline','A')
-whichCompareVec = list(c(1,3),c(5,7),c(10,12))
+blockTypeVec = list(c("asleep","awake","awake","awake","awake"),c("asleep","awake","awake","awake","awake"))
+blockIntPlot = list(c(1,3,5,7,9),c(2,4,6,8,10))

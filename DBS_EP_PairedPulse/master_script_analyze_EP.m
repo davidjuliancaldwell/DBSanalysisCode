@@ -20,17 +20,19 @@ experiment = 'EP_Measurement';
 %sid = '8e907';
 %sid = '46c2a';
 
-avgTrialsVec = [0,1]';
+avgTrialsVec = [1]';
 numAvg = 3;
 
 savePlot = 0;
-saveData = 0;
+saveData = 1;
 plotCondAvg = 0;
 
 sidVecIterate = {'46c2a','9f852','8e907','08b13'};
 sidVecIterate = {'08b13'};
 sidVecIterate = {'c963f'};
 sidVecIterate = {'2e114'};
+sidVecIterate = {'3d413'};
+
 
 for avgTrials = avgTrialsVec'
     for sid = sidVecIterate
@@ -50,8 +52,11 @@ for avgTrials = avgTrialsVec'
                 blocks = [1 3 5 7 10 12];
                 chanIntList = [4];
                 legendText = {'baseline 1','post 25 ms A/B','baseline 2','post 50 ms A/B','baseline 3','post A only'};
-
+                
             case '3d413'
+                blocks = [1 2 3 4 5 6 7 8 9 10];
+                chanIntList = [4 6];
+                legendText = {"asleep","asleep","awake","awake","awake","awake","asleep","asleep","asleep","asleep"};
                 
             case '9f852'
                 blocks = [2 3 4 5 6 7 10 11];
