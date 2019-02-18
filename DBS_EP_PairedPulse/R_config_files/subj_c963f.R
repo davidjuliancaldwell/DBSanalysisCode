@@ -8,3 +8,7 @@ blockNames <- c(
   `6` = "baseline 2",
   `8` = "post A/B 50 ms"
 )
+blockType = c('baseline','A/B 25','baseline',
+              'A/B 50')
+whichCompareVec = list(c(2,4),c(6,8))
+

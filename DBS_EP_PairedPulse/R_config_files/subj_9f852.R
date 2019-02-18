@@ -14,3 +14,8 @@ blockNames <- c(
   `10` = "'post A/B 200 ms 12 minutes later",
   `11` = "post A/B 25 ms second time"
   )
+
+blockType = c('baseline','A/B 25','baseline',
+              'A/A 25','baseline','A/B 200','A/B 200','A/B 25')
+
+whichCompareVec = list(c(2,3),c(4,5),c(6,7),c(6,10,11))

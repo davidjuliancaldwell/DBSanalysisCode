@@ -10,3 +10,6 @@ blockNames <- c(
   `10` = "baseline 3",
   `12` = "post A only"
 )
+blockType = c('baseline','A/B 25','baseline',
+              'A/B 50','baseline','A')
+whichCompareVec = list(c(1,3),c(5,7),c(10,12))

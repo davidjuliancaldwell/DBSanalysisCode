@@ -13,14 +13,16 @@ library('multcomp')
 library('lmerTest')
 library('sjPlot')
 library('emmeans')
+library("dplyr")
 
 rootDir = here()
 dataDir = here("DBS_EP_PairedPulse","R_data")
 codeDir = here("DBS_EP_PairedPulse","R_code")
 
 sidVec <- c('46c2a','c963f','2e114','9f852','08b13','8e907')
+#sidVec <- c('46c2a','c963f')
 #sidVec <- c('8e907')
-sidVec <- c('46c2a')
+#sidVec <- c('46c2a')
 #sidVec <- c('08b13')
 #sidVec <- c('9f852')
 #sidVec <- c('c963f')
@@ -33,6 +35,8 @@ figWidth = 8
 figHeight = 6 
 
 dataList = list()
+blockList = list()
+conditionList = list()
 index = 1
 
 for (avgMeas in avgMeasVec) {
@@ -62,59 +66,47 @@ for (avgMeas in avgMeasVec) {
       dataInt$mapStimLevel <- mapvalues(dataInt$stimLevelVec,
                                         from=uniqueStimLevel,
                                         to=mappingStimLevel)
-    # dataInt$mapStimLevel = as.factor(dataInt$mapStimLevel)
-      dataInt$index = index
-      dataList[[index]] = dataInt
       
-      #
-      dataInt$percentDiff = 0
-      dataInt$absDiff = 0
+      uniqueBlockLevel = unique(dataInt$blockVec)
       
+      dataInt$blockType <- mapvalues(dataInt$blockVec,
+                                        from=uniqueBlockLevel,
+                                        to=blockType)
+      
+      dataInt$mapStimLevel = as.factor(dataInt$mapStimLevel)
+      dataInt$blockType = as.factor(dataInt$blockType)
       for (comparison in whichCompareVec){
         dataIntCompare <- subset(dataInt,(blockVec %in% comparison))
-        first = dataIntCompare[dataIntCompare$mapStimLevel == stimLevel,]
         
-        for (stimLevel in (unique(dataIntCompare$mapStimLevel))){
-          
-        }
-      }
-      
-      fit.lm    = lm(PPvec ~ mapStimLevel + blockVec + mapStimLevel*blockVec,data=dataIntCompare)
-      fit.lm    = lm(PPvec ~ mapStimLevel + blockVec,data=dataIntCompare)
-      
-      summary(fit.lm)
-      plot(fit.lm)
-      summary(glht(fit.lm,linfct=mcp(blockVec="Tukey")))
-      emmeans(fit.lm, list(pairwise ~ blockVec), adjust = "tukey")
-      emmeans(fit.lm, list(pairwise ~ mapStimLevel), adjust = "tukey")
-      
-      emm_s.t <- emmeans(fit.lm, pairwise ~ blockVec | mapStimLevel)
-      emm_s.t <- emmeans(fit.lm, pairwise ~ numStims | blockVec)
-      
-      anova(fit.lm)
-      tab_model(fit.lm)
-      
-      summary(glht(fit.lm,linfct=mcp(sid="Tukey")))
-      summary(glht(fit.lm,linfct=mcp(numStims="Tukey")))
-      
-      
-      data$percentDiff = 0
-      data$absDiff = 0
-      for (name in unique(data$sid)){
-        for (chan in unique(data[data$sid == name,]$channel)){
-          for (numStimTrial in unique(data$numStims)){
-            numBase = nrow(data[data$sid == name & data$channel == chan & data$numStims == 'Base',])
-            base = data[data$sid == name & data$channel == chan & data$numStims == 'Base',]$magnitude
-            baseMean = mean(base)
-            data[data$sid == name & data$channel == chan & data$numStims == 'Base',]$percentDiff = 100*(base - baseMean)/baseMean
-            for (typePhase in unique(data$phaseClass)){
-              percentDiff = 100*((data[data$sid == name & data$channel == chan & data$numStims == numStimTrial & data$phaseClass == typePhase,]$magnitude)-baseMean)/baseMean
-              data[data$sid == name & data$channel == chan & data$numStims == numStimTrial & data$phaseClass == typePhase,]$percentDiff = percentDiff
-              absDiff = data[data$sid == name & data$channel == chan & data$numStims == numStimTrial & data$phaseClass == typePhase,]$magnitude-baseMean
-              data[data$sid == name & data$channel == chan & data$numStims == numStimTrial & data$phaseClass == typePhase,]$absDiff = absDiff
-            }
-          }
-        }
+        dataIntCompare <- dataIntCompare %>% 
+          group_by(mapStimLevel) %>% 
+          mutate(absDiff = PPvec - mean(PPvec[blockVec==comparison[1]]),
+                 percentDiff = 100*(PPvec - mean(PPvec[blockVec==comparison[1]]))/mean(PPvec[blockVec==comparison[1]]) ) 
+        
+        dataIntCompare = as_data_frame(dataIntCompare)
+        dataIntCompare$index = index
+        dataList[[index]] = dataIntCompare
+        blockList[[index]] = comparison
+
+        fit.lm    = lm(PPvec ~ mapStimLevel + blockVec + mapStimLevel*blockVec,data=dataIntCompare)
+        fit.lm    = lm(PPvec ~ mapStimLevel + blockVec,data=dataIntCompare)
+        
+        summary(fit.lm)
+       # plot(fit.lm)
+        summary(glht(fit.lm,linfct=mcp(blockVec="Tukey")))
+        summary(glht(fit.lm,linfct=mcp(mapStimLevel="Tukey")))
+        
+        emmeans(fit.lm, list(pairwise ~ blockVec), adjust = "tukey")
+        emmeans(fit.lm, list(pairwise ~ mapStimLevel), adjust = "tukey")
+        
+        emm_s.t <- emmeans(fit.lm, pairwise ~ blockVec | mapStimLevel)
+        emm_s.t <- emmeans(fit.lm, pairwise ~ mapStimLevel | blockVec)
+        
+        anova(fit.lm)
+        tab_model(fit.lm)
+        
+        index = index + 1
+
       }
       
       p <- ggplot(dataInt, aes(x=stimLevelVec, y=PPvec,colour=stimLevelVec)) +
@@ -188,8 +180,7 @@ for (avgMeas in avgMeasVec) {
                         data=dataToFit)
       
       # vs.   fixed=list(Asym ~ blockVec, xmid + scal ~ 1),
-      
-      
+    
       #Create a range of doses:
       predDataGroups <-expand.grid(stimLevelVec = seq(min(dataToFit$stimLevelVec), max(dataToFit$stimLevelVec), length.out = 100),blockVec = unique(dataToFit$blockVec))
       #Create a new data frame for ggplot using predict and your range of new 
@@ -223,14 +214,29 @@ for (avgMeas in avgMeasVec) {
       # AIC(fit.nlme0, fit.nlme1,fit.glm,fit.lmm)  
       
       #BIC(fit.nlme0, fit.nlme1,fit.glm,fit.lmm)
-      index = index + 1
     }
   }
 }
 ############# 
 # now do comparison at highest stim level relative to baseline
 dataList = do.call(rbind,dataList)
+blockList = do.call(rbind,blockList)
 
+fit.lmm = lmerTest::lmer(absDiff ~ mapStimLevel + blockType + (1|sidVec),data=dataList)
 
+#fit.lmm = lmerTest::lmer(absDiff ~ mapStimLevel + blockType + blockType*mapStimLevel + (1|sidVec),data=dataList)
 
-#http://rstudio-pubs-static.s3.amazonaws.com/28730_850cac53898b45da8050f7f622d48927.html
+summary(fit.lmm)
+# plot(fit.lm)
+summary(glht(fit.lmm,linfct=mcp(blockVec="Tukey")))
+summary(glht(fit.lmm,linfct=mcp(mapStimLevel="Tukey")))
+
+emmeans(fit.lmm, list(pairwise ~ blockVec), adjust = "tukey")
+emmeans(fit.lmm, list(pairwise ~ mapStimLevel), adjust = "tukey")
+
+emm_s.t <- emmeans(fit.lmm, pairwise ~ blockVec | mapStimLevel)
+emm_s.t <- emmeans(fit.lmm, pairwise ~ mapStimLevel | blockVec)
+
+anova(fit.lmm)
+tab_model(fit.lmm)
+
