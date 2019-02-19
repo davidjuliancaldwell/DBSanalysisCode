@@ -306,6 +306,9 @@ for block = blocks
         case '9f852'
             tBegin = 3;
             tEnd = 25;
+            
+            tBegin = 7;
+            tEnd = 70;
             switch block
                 % baseline pre stim 1
                 case 1
@@ -439,8 +442,8 @@ for block = blocks
             
         case 'e9c9b'
             
-            tBegin = 3.5; % ms
-            tEnd =28; % ms
+            tBegin = 3; % ms
+            tEnd = 55; % ms
             switch block
                 % baseline pre stim 1
                 case 1
@@ -450,34 +453,127 @@ for block = blocks
                 case 2
                     stimChans = [7 8];
                     
+                    % post A/A
                 case 3
                     stimChans = [7 8];
                     
+                    % baseline post A/A 200
                 case 4
                     stimChans = [7 8];
                     
-                    % baseline post 200 ms A/B 200 ms delay
+                    % post A/B 200
                 case 5
                     stimChans = [7 8];
                     
-                    % second baseline post 200 ms A/B , second baseline to compare
-                    % against for the following A/A tests
-                    
+                    % baseline post A/B
                 case 6
                     stimChans = [7 8];
                     
-                    % post 200 ms A/A
+                    % post A/B 25 ms
                 case 7
                     stimChans = [7 8];
                     
-                    % post 200 ms A/A - second one
+                    % baseline post A/B
                 case 8
                     stimChans = [7 8];
-                    % post 200 ms A/A - second one
+                    
+                    %baseline again
                 case 9
+                    stimChans = [7 8];
+                    % post A/A 25 ms
+                case 10
                     stimChans = [7 8];
             end
             
+        case '41a73'
+            
+            tBegin = 3; % ms
+            tEnd = 55; % ms
+            switch block
+                % baseline pre stim 1
+                case 1
+                    stimChans = [7 8];
+                    
+                    % baseline pre stim 2
+                case 2
+                    stimChans = [7 8];
+                    
+                    % post A/A
+                case 3
+                    stimChans = [7 8];
+                    
+                    % baseline post A/A 200
+                case 4
+                    stimChans = [7 8];
+                    
+                    % post A/B 200
+                case 5
+                    stimChans = [7 8];
+                    
+                    % baseline post A/B
+                case 6
+                    stimChans = [7 8];
+                    
+                    % post A/B 25 ms
+                case 7
+                    stimChans = [7 8];
+                    
+                    % baseline post A/B
+                case 8
+                    stimChans = [7 8];
+                    
+                    %baseline again
+                case 9
+                    stimChans = [7 8];
+                    % post A/A 25 ms
+                case 10
+                    stimChans = [7 8];
+            end
+            
+        case '68754'
+            
+            tBegin = 3; % ms
+            tEnd = 55; % ms
+            switch block
+                % baseline pre stim 1
+                case 1
+                    stimChans = [7 8];
+                    
+                    % baseline pre stim 2
+                case 2
+                    stimChans = [7 8];
+                    
+                    % post A/A
+                case 3
+                    stimChans = [7 8];
+                    
+                    % baseline post A/A 200
+                case 4
+                    stimChans = [7 8];
+                    
+                    % post A/B 200
+                case 5
+                    stimChans = [7 8];
+                    
+                    % baseline post A/B
+                case 6
+                    stimChans = [7 8];
+                    
+                    % post A/B 25 ms
+                case 7
+                    stimChans = [7 8];
+                    
+                    % baseline post A/B
+                case 8
+                    stimChans = [7 8];
+                    
+                    %baseline again
+                case 9
+                    stimChans = [7 8];
+                    % post A/A 25 ms
+                case 10
+                    stimChans = [7 8];
+            end
             
         otherwise
             error('unknown sid')
@@ -487,7 +583,7 @@ for block = blocks
     % default values for t begin
     if ~exist('tBegin','var')
         tBegin = 1.8; % ms was 2.5 for 42
-        tEnd = 35; % ms % was 35 for 426    
+        tEnd = 35; % ms % was 35 for 426
     end
     
     %%
@@ -570,7 +666,7 @@ for block = blocks
         count = count + 1;
         
     end
-      
+    
     epochsEPblock{blockCount} = epochsEP;
     
     % get peak to peak values

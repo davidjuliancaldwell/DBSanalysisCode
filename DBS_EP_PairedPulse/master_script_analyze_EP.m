@@ -9,7 +9,6 @@ experiment = 'EP_Measurement';
 %blocks = [6 7 9 11 13 15]; % this is for the 7/8 pair fo re6f3c
 %blocks = [5 10 14 17]; % this is for the 7/8 pair fo re6f3c
 
-
 %sid = '3809e';
 %sid = '46c2a';
 %sid = 'c963f';
@@ -20,7 +19,7 @@ experiment = 'EP_Measurement';
 %sid = '8e907';
 %sid = '46c2a';
 
-avgTrialsVec = [1]';
+avgTrialsVec = [0,1]';
 numAvg = 3;
 
 savePlot = 0;
@@ -32,6 +31,7 @@ sidVecIterate = {'08b13'};
 sidVecIterate = {'c963f'};
 sidVecIterate = {'2e114'};
 sidVecIterate = {'3d413'};
+sidVecIterate = {'9f852'};
 
 
 for avgTrials = avgTrialsVec'
@@ -59,10 +59,10 @@ for avgTrials = avgTrialsVec'
                 legendText = {"asleep","asleep","awake","awake","awake","awake","asleep","asleep","asleep","asleep"};
                 
             case '9f852'
-                blocks = [2 3 4 5 6 7 10 11];
+                blocks = [2 3 4 5 6 7 10 11 12];
                 chanIntList = [4];
                 legendText = {'baseline 2 (pre conditioning)' ,'post A/B 25 ms','baseline 3 (post 25 ms)',...
-                    'post A/A 25 ms','baseline 4 (post 25 ms A/A)','post A/A 200 ms','post A/A 200 ms 12 minutes later','post A/B 25 ms second time'};
+                    'post A/A 25 ms','baseline 4 (post 25 ms A/A)','post A/B 200 ms','baseline 5 - post A/B 200 ms 12 minutes later','post A/B 25 ms second time','baseline 6'};
                 
             case '8e907'
                 blocks = [1 2 5 6 7];
@@ -79,7 +79,7 @@ for avgTrials = avgTrialsVec'
                 blocks = [1 2 3 4 5 6 7 8 9 10];
                 chanIntList = [5 6];
                 legendText = {'baseline 1','baseline 2','post A/A 200 ms 1','baseline 3 (post A/A)',...
-                    'post A/B 200 ms 1','baseline 4 (post A/B)','post A/B 25 ms 1','baseline 5 (post A/B)','baseline 6',
+                    'post A/B 200 ms 1','baseline 4 (post A/B)','post A/B 25 ms 1','baseline 5 (post A/B)','baseline 6',...
                     'post A/A 25 ms 1'};
                 
             case '41a73'

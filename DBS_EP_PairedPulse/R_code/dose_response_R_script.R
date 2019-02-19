@@ -19,14 +19,16 @@ rootDir = here()
 dataDir = here("DBS_EP_PairedPulse","R_data")
 codeDir = here("DBS_EP_PairedPulse","R_code")
 
-sidVec <- c('46c2a','c963f','2e114','9f852','08b13','8e907')
+#sidVec <- c('46c2a','c963f','2e114','9f852','08b13','8e907','e9c9b')
+sidVec <- c('46c2a','c963f','2e114','9f852','08b13','8e907','e9c9b')
+
 #sidVec <- c('46c2a','c963f')
 #sidVec <- c('8e907')
 #sidVec <- c('46c2a')
 #sidVec <- c('08b13')
 #sidVec <- c('9f852')
 #sidVec <- c('c963f')
-#sidVec <- c('2e114')
+sidVec <- c('e9c9b')
 
 
 savePlot = 1
@@ -243,17 +245,25 @@ dataListSummarize <- summarise(grouped,meanPerc = mean(percentDiff),sdPerc = sd(
                                meanAbs=mean(absDiff), sdDiff=sd(percentDiff))
 
 
-#dataListFactorized$stimLevelVec = as.factor(dataListFactorized$stimLevelVec)
 p3 <- ggplot(dataList, aes(x=mapStimLevel, y=percentDiff,colour=blockType,fill=blockType)) +
   geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
-  labs(x = expression(paste("Stimulation Level")),y=expression(paste("Percent Difference in EP Magnitude"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
+  labs(x = expression(paste("Stimulation Level")),y=expression(paste("Percent Difference in EP Magnitude from baseline"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
 print(p3)
 
-#dataListFactorized$stimLevelVec = as.factor(dataListFactorized$stimLevelVec)
-p4 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPerc,colour=blockType,fill=blockType)) +
-  geom_point(position=position_jitterdodge(dodge.width=0.1)) +geom_smooth(method=lm) +
-  labs(x = expression(paste("Stimulation Level")),y=expression(paste("Percent Difference in EP Magnitude"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
+p4 <- ggplot(dataList, aes(x=mapStimLevel, y=absDiff,colour=blockType,fill=blockType)) +
+  geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
+  labs(x = expression(paste("Stimulation Level")),y=expression(paste("Absolute Difference in EP Magnitude from baseline"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
 print(p4)
+
+p5 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPerc,colour=blockType,fill=blockType)) +
+  geom_point(position=position_jitterdodge(dodge.width=0.1)) +geom_smooth(method=lm) +
+  labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean Percent Difference in EP Magnitude"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
+print(p5)
+
+p6 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanAbs,colour=blockType,fill=blockType)) +
+  geom_point(position=position_jitterdodge(dodge.width=0.1)) +geom_smooth(method=lm) +
+  labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean Absolute Difference in EP Magnitude from baseline"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
+print(p6)
 
 if (savePlot && !avgMeas) {
   ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_combined.png"), units="in", width=figWidth, height=figHeight, dpi=600)
@@ -263,8 +273,6 @@ if (savePlot && !avgMeas) {
 
 
 fit.lmm = lmerTest::lmer(absDiff ~ mapStimLevel + blockType + (1|sidVec),data=dataList)
-
-#fit.lmm = lmerTest::lmer(absDiff ~ mapStimLevel + blockType + blockType*mapStimLevel + (1|sidVec),data=dataList)
 
 summary(fit.lmm)
 # plot(fit.lm)
