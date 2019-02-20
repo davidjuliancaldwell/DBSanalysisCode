@@ -24,6 +24,7 @@ numAvg = 3;
 
 savePlot = 0;
 saveData = 1;
+screenBadChans = 0;
 plotCondAvg = 0;
 
 sidVecIterate = {'46c2a','9f852','8e907','08b13'};
@@ -31,7 +32,7 @@ sidVecIterate = {'08b13'};
 sidVecIterate = {'c963f'};
 sidVecIterate = {'2e114'};
 sidVecIterate = {'3d413'};
-sidVecIterate = {'9f852'};
+sidVecIterate = {'41a73'};
 
 
 for avgTrials = avgTrialsVec'
@@ -83,10 +84,10 @@ for avgTrials = avgTrialsVec'
                     'post A/A 25 ms 1'};
                 
             case '41a73'
-                blocks = [1 2 3 4 5 6 7 8 9 10 11];
+                blocks = [1 2 3 4 5 6 7 8 9 10 11 12];
                 chanIntList = [5 8];
-                legendText = {'baseline 1','baseline 2','post A/B 200 ms 1','baseline 3 (post A/B)','baseline 4'
-                    'post A/A 200 ms 1','baseline 5 (post A/A)','baseline 6','baseline 7','baseline 8','baseline 9'};
+                legendText = {'baseline 1','baseline 2','post A/B 200 ms 1','baseline 3 (post A/B)','baseline 4',...
+                    'post A/A 200 ms 1','baseline 5 (post A/A)','baseline 6','baseline 7','baseline 8','baseline 9','baseline 10'};
                 
             case '68754'
                 blocks = [1 2 3 4 5 6 7 8 9 10 11 12 13 14 ];
@@ -105,7 +106,7 @@ for avgTrials = avgTrialsVec'
         prepare_EP_blocks
         
         %% compare multiples blocks
-        analyze_EP_compare_multiple_blocks
+       analyze_EP_compare_multiple_blocks
         
         %% save data for statistical analysis in table form
         

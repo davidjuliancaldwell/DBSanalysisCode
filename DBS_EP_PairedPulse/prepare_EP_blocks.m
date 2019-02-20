@@ -453,19 +453,19 @@ for block = blocks
                 case 2
                     stimChans = [7 8];
                     
-                    % post A/A
+                    % post A/A 200
                 case 3
                     stimChans = [7 8];
                     
-                    % baseline post A/A 200
+                    % baseline 3 post A/A 200
                 case 4
                     stimChans = [7 8];
                     
-                    % post A/B 200
+                    % post A/B 200 ms
                 case 5
                     stimChans = [7 8];
                     
-                    % baseline post A/B
+                    % baseline post A/B 200
                 case 6
                     stimChans = [7 8];
                     
@@ -473,11 +473,11 @@ for block = blocks
                 case 7
                     stimChans = [7 8];
                     
-                    % baseline post A/B
+                    % baseline 5 post A/B
                 case 8
                     stimChans = [7 8];
                     
-                    %baseline again
+                    %baseline again - 6
                 case 9
                     stimChans = [7 8];
                     % post A/A 25 ms
@@ -487,47 +487,62 @@ for block = blocks
             
         case '41a73'
             
-            tBegin = 3; % ms
-            tEnd = 55; % ms
+            tBegin = 2.5; % ms
+            tEnd = 35; % ms
             switch block
                 % baseline pre stim 1
                 case 1
-                    stimChans = [7 8];
+                    stimChans = [6 7];
                     
                     % baseline pre stim 2
                 case 2
-                    stimChans = [7 8];
+                    stimChans = [6 7];
                     
-                    % post A/A
+                    % post A/B 200 ms
                 case 3
-                    stimChans = [7 8];
+                    stimChans = [6 7];
+                    badTrials = 1;
+                    badTrialLocations = [103 196 201:222];
                     
-                    % baseline post A/A 200
+                    % baseline post A/B 200 - baseline 3
                 case 4
-                    stimChans = [7 8];
-                    
-                    % post A/B 200
+                    stimChans = [6 7];
+                    badTrials = 1;
+                    badTrialLocations = [80 132 145:182];
+                    %
+                    % baseline 4
                 case 5
-                    stimChans = [7 8];
+                    stimChans = [6 7];
                     
-                    % baseline post A/B
+                    % post A/A 200 ms
                 case 6
-                    stimChans = [7 8];
+                    stimChans = [6 7];
+                    badTrials = 1;
+                    badTrialLocations = [193:240];
                     
-                    % post A/B 25 ms
+                    % baseline post A/A 200 ms - baseline 5
                 case 7
-                    stimChans = [7 8];
+                    stimChans = [6 7];
                     
-                    % baseline post A/B
+                    % baseline 6
                 case 8
-                    stimChans = [7 8];
+                    stimChans = [6 7];
                     
-                    %baseline again
+                    %baseline 7
                 case 9
-                    stimChans = [7 8];
-                    % post A/A 25 ms
+                    stimChans = [6 7];
+                    
+                    % baseline 8
                 case 10
-                    stimChans = [7 8];
+                    stimChans = [6 7];
+                    
+                    % baseline 9
+                case 11
+                    stimChans = [6 7];
+                    
+                    % baseline 10
+                case 12
+                    stimChans = [6 7];
             end
             
         case '68754'
@@ -638,8 +653,7 @@ for block = blocks
     %%
     epochsEP = {};
     preSamps = round(50*ECoGfs/1e3);
-    postSamps = round(500*ECoGfs/1e3);
-    postSamps = round(1000*ECoGfs/1e3);
+    postSamps = round(490*ECoGfs/1e3);
     tEpoch = [-preSamps:postSamps-1]/ECoGfs*1e3;
     
     goodVec = logical(ones(size(ECoG,2),1));
@@ -691,6 +705,21 @@ for block = blocks
     % make labels to keep track of each trial
     for counter = 1:size(signalPP,2)
         blockLabel{blockCount}{counter} = repmat(stimLevelUniq(counter),size(signalPP{counter},2),1);
+    end
+    
+    if screenBadChans
+        figure
+        index = 1;
+        stimCommandTimesNew = round((29+stimCommandTimes)*fac);
+        epochTemp = getEpochSignal(ECoG,stimCommandTimesNew-preSamps,stimCommandTimesNew+postSamps);
+        for jj=1:size(epochTemp,3)
+            subplot(15,16,index)
+            plot(tEpoch,epochTemp(:,5,jj))
+            ylim([-1e-3 1e-3])
+            title(num2str(index))
+            index = index + 1;
+        end
+        suptitle(['Block ' num2str(block)])
     end
     
     blockCount = blockCount + 1;

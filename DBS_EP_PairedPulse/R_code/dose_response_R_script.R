@@ -19,8 +19,7 @@ rootDir = here()
 dataDir = here("DBS_EP_PairedPulse","R_data")
 codeDir = here("DBS_EP_PairedPulse","R_code")
 
-#sidVec <- c('46c2a','c963f','2e114','9f852','08b13','8e907','e9c9b')
-sidVec <- c('46c2a','c963f','2e114','9f852','08b13','8e907','e9c9b')
+sidVec <- c('46c2a','c963f','2e114','9f852','08b13','8e907','e9c9b','41a73')
 
 #sidVec <- c('46c2a','c963f')
 #sidVec <- c('8e907')
@@ -28,7 +27,7 @@ sidVec <- c('46c2a','c963f','2e114','9f852','08b13','8e907','e9c9b')
 #sidVec <- c('08b13')
 #sidVec <- c('9f852')
 #sidVec <- c('c963f')
-sidVec <- c('e9c9b')
+#sidVec <- c('e9c9b')
 
 
 savePlot = 1
@@ -134,9 +133,13 @@ for (avgMeas in avgMeasVec) {
       
       if (savePlot && !avgMeas) {
         ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_lm.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_lm.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+        
       }
       else if (savePlot && avgMeas){
         ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_lm_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_lm_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+        
       }
       
       dataToFit <- na.exclude(dataPP[dataPP$blockVec %in% blockIntLM & dataPP$chanVec==chanInt,])
@@ -250,25 +253,59 @@ p3 <- ggplot(dataList, aes(x=mapStimLevel, y=percentDiff,colour=blockType,fill=b
   labs(x = expression(paste("Stimulation Level")),y=expression(paste("Percent Difference in EP Magnitude from baseline"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
 print(p3)
 
+if (savePlot && !avgMeas) {
+  ggsave(paste0("across_subj_percent.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+  ggsave(paste0("across_subj_percent.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+  
+} else if (savePlot && avgMeas){
+  ggsave(paste0("across_subj_percent_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+  ggsave(paste0("across_subj_percent_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+  
+}
+
 p4 <- ggplot(dataList, aes(x=mapStimLevel, y=absDiff,colour=blockType,fill=blockType)) +
   geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
   labs(x = expression(paste("Stimulation Level")),y=expression(paste("Absolute Difference in EP Magnitude from baseline"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
 print(p4)
 
+if (savePlot && !avgMeas) {
+  ggsave(paste0("across_subj_abs.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+  ggsave(paste0("across_subj_abs.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+  
+} else if (savePlot && avgMeas){
+  ggsave(paste0("across_subj_abs_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+  ggsave(paste0("across_subj_abs_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+  
+}
+
 p5 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPerc,colour=blockType,fill=blockType)) +
-  geom_point(position=position_jitterdodge(dodge.width=0.1)) +geom_smooth(method=lm) +
+  geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
   labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean Percent Difference in EP Magnitude"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
 print(p5)
 
+if (savePlot && !avgMeas) {
+  ggsave(paste0("across_subj_mean_perc.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+  ggsave(paste0("across_subj_mean_perc.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+  
+} else if (savePlot && avgMeas){
+  ggsave(paste0("across_subj_mean_abs_perc.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+  ggsave(paste0("across_subj_mean_abs_perc.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+  
+}
+
 p6 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanAbs,colour=blockType,fill=blockType)) +
-  geom_point(position=position_jitterdodge(dodge.width=0.1)) +geom_smooth(method=lm) +
+  geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
   labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean Absolute Difference in EP Magnitude from baseline"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
 print(p6)
 
 if (savePlot && !avgMeas) {
-  ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_combined.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+  ggsave(paste0("across_subj_mean_abs.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+  ggsave(paste0("across_subj_mean_abs.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+  
 } else if (savePlot && avgMeas){
-  ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_lm_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+  ggsave(paste0("across_subj_mean_abs_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+  ggsave(paste0("across_subj_mean_abs_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+  
 }
 
 
