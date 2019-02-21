@@ -1,5 +1,7 @@
 subjectNum = 9
-chanIntVec = c(4)
+chanIntVec = c(4,7)
+chanIntConditioningPairVec = c(1,0)
+
 #blockIntLM = c(2,3,5,7,11)
 blockIntLM = c(2,3,4,5,6,7,10,11,12)
 

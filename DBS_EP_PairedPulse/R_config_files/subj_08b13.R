@@ -1,5 +1,6 @@
 subjectNum = 12
 chanIntVec = c(6)
+chanIntConditioningPairVec = c(1)
 blockIntLM = c(1,5,6,7)
 blockIntPlot = c(1,3,5,6,7,8)
 blockNames <- c(

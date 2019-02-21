@@ -19,7 +19,7 @@ rootDir = here()
 dataDir = here("DBS_EP_PairedPulse","R_data")
 codeDir = here("DBS_EP_PairedPulse","R_code")
 
-sidVec <- c('46c2a','c963f','2e114','9f852','08b13','8e907','e9c9b','41a73')
+sidVec <- c('46c2a','c963f','2e114','9f852','08b13','8e907','e9c9b','41a73','68574')
 
 #sidVec <- c('46c2a','c963f')
 #sidVec <- c('8e907')
@@ -28,19 +28,21 @@ sidVec <- c('46c2a','c963f','2e114','9f852','08b13','8e907','e9c9b','41a73')
 #sidVec <- c('9f852')
 #sidVec <- c('c963f')
 #sidVec <- c('e9c9b')
-
+#sidVec = c('68574')
 
 savePlot = 1
 avgMeasVec = c(0)
 figWidth = 8 
 figHeight = 6 
 
-dataList = list()
-blockList = list()
-conditionList = list()
-index = 1
 
 for (avgMeas in avgMeasVec) {
+  
+  dataList = list()
+  blockList = list()
+  conditionList = list()
+  index = 1
+  
   for (sid in sidVec){
     source(here("DBS_EP_PairedPulse","R_config_files",paste0("subj_",sid,".R")))
     
@@ -60,6 +62,14 @@ for (avgMeas in avgMeasVec) {
     dataPP$stimLevelVec = dataPP$stimLevelVec/1e3
     dataPP <- subset(dataPP, PPvec<1500)
     dataPP <- subset(dataPP, PPvec>25)
+    
+    # denote which channel was in the conditioning pair 
+    
+    dataPP <- subset(dataPP,(chanVec %in% chanIntVec))
+    
+    dataPP$chanInCond <- mapvalues(dataPP$chanVec,
+                                   from=chanIntVec,
+                                   to=chanIntConditioningPairVec)
     # change to factor 
     dataPP$blockVec = as.factor(dataPP$blockVec)
     print(sid)
@@ -236,94 +246,126 @@ for (avgMeas in avgMeasVec) {
       #BIC(fit.nlme0, fit.nlme1,fit.glm,fit.lmm)
     }
   }
+  # now do comparison at highest stim level relative to baseline
+  dataList <- do.call(rbind,dataList)
+  #blockList <- do.call(rbind,blockList)
+  
+  #plot
+  grouped <- group_by(dataList, sidVec, chanVec, blockType,mapStimLevel)
+  dataListSummarize <- summarise(grouped,meanPerc = mean(percentDiff),sdPerc = sd(percentDiff),
+                                 meanAbs=mean(absDiff), sdDiff=sd(percentDiff),meanPP = mean(PPvec),sdPP = sd(PPvec))
+  
+  
+  p3 <- ggplot(dataList, aes(x=mapStimLevel, y=percentDiff,colour=blockType,fill=blockType)) +
+    geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
+    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Percent Difference in EP Magnitude from baseline"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
+  print(p3)
+  
+  if (savePlot && !avgMeas) {
+    ggsave(paste0("across_subj_percent.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_percent.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    
+  } else if (savePlot && avgMeas){
+    ggsave(paste0("across_subj_percent_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_percent_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    
+  }
+  
+  p4 <- ggplot(dataList, aes(x=mapStimLevel, y=absDiff,colour=blockType,fill=blockType)) +
+    geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
+    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Absolute Difference in EP Magnitude from baseline (",mu,"V)"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
+  print(p4)
+  
+  if (savePlot && !avgMeas) {
+    ggsave(paste0("across_subj_abs.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_abs.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    
+  } else if (savePlot && avgMeas){
+    ggsave(paste0("across_subj_abs_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_abs_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    
+  }
+  
+  p5 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPerc,colour=blockType,fill=blockType)) +
+    geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
+    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean Percent Difference in EP Magnitude"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
+  print(p5)
+  
+  if (savePlot && !avgMeas) {
+    ggsave(paste0("across_subj_mean_perc.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_perc.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    
+  } else if (savePlot && avgMeas){
+    ggsave(paste0("across_subj_mean_perc_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_perc_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    
+  }
+  
+  p6 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanAbs,colour=blockType,fill=blockType)) +
+    geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
+    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean Absolute Difference in EP Magnitude from baseline (",mu,"V)"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
+  print(p6)
+  
+  if (savePlot && !avgMeas) {
+    ggsave(paste0("across_subj_mean_abs.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    
+  } else if (savePlot && avgMeas){
+    ggsave(paste0("across_subj_mean_abs_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    
+  }
+  
+  p7 <- ggplot(dataList, aes(x=mapStimLevel, y=PPvec,colour=blockType,fill=blockType)) +
+    geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
+    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Peak to Peak Voltage (",mu,"V)"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
+ print(p7)
+   if (savePlot && !avgMeas) {
+    ggsave(paste0("across_subj_PP.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_PP.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    
+  } else if (savePlot && avgMeas){
+    ggsave(paste0("across_subj_PP_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_PP_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    
+  }
+ 
+ 
+ p8 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPP,colour=blockType,fill=blockType)) +
+   geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
+   labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean Peak to Peak Voltage (",mu,"V)"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
+ print(p8)
+ 
+ if (savePlot && !avgMeas) {
+   ggsave(paste0("across_subj_mean_PP.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+   ggsave(paste0("across_subj_mean_PP.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+   
+ } else if (savePlot && avgMeas){
+   ggsave(paste0("across_subj_mean_PP_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+   ggsave(paste0("across_subj_mean_PP_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+   
+ }  
+  
+  fit.lmm = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + chanInCond + (1|sidVec),data=dataList)
+  
+  #fit.lmm = lmerTest::lmer(absDiff ~ mapStimLevel + blockType + chanInCond + (1|sidVec),data=dataList)
+  fit.lm = lm(absDiff ~ mapStimLevel + blockType + chanInCond ,data=dataList)
+  
+  summary(fit.lmm)
+  # plot(fit.lm)
+  summary(glht(fit.lmm,linfct=mcp(blockType="Tukey")))
+  summary(glht(fit.lmm,linfct=mcp(mapStimLevel="Tukey")))
+  
+  emmeans(fit.lmm, list(pairwise ~ blockType), adjust = "tukey")
+  emmeans(fit.lmm, list(pairwise ~ mapStimLevel), adjust = "tukey")
+  
+  emm_s.t <- emmeans(fit.lmm, pairwise ~ blockType | mapStimLevel)
+  emm_s.t <- emmeans(fit.lmm, pairwise ~ mapStimLevel | blockType)
+  
+  anova(fit.lmm)
+  tab_model(fit.lmm)
+  
+  #########
+  # make some plots!
 }
 ############# 
-# now do comparison at highest stim level relative to baseline
-dataList <- do.call(rbind,dataList)
-#blockList <- do.call(rbind,blockList)
-
-#plot
-grouped <- group_by(dataList, sidVec, chanVec, blockType,mapStimLevel)
-dataListSummarize <- summarise(grouped,meanPerc = mean(percentDiff),sdPerc = sd(percentDiff),
-                               meanAbs=mean(absDiff), sdDiff=sd(percentDiff))
-
-
-p3 <- ggplot(dataList, aes(x=mapStimLevel, y=percentDiff,colour=blockType,fill=blockType)) +
-  geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
-  labs(x = expression(paste("Stimulation Level")),y=expression(paste("Percent Difference in EP Magnitude from baseline"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
-print(p3)
-
-if (savePlot && !avgMeas) {
-  ggsave(paste0("across_subj_percent.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-  ggsave(paste0("across_subj_percent.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
-  
-} else if (savePlot && avgMeas){
-  ggsave(paste0("across_subj_percent_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-  ggsave(paste0("across_subj_percent_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
-  
-}
-
-p4 <- ggplot(dataList, aes(x=mapStimLevel, y=absDiff,colour=blockType,fill=blockType)) +
-  geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
-  labs(x = expression(paste("Stimulation Level")),y=expression(paste("Absolute Difference in EP Magnitude from baseline"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
-print(p4)
-
-if (savePlot && !avgMeas) {
-  ggsave(paste0("across_subj_abs.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-  ggsave(paste0("across_subj_abs.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
-  
-} else if (savePlot && avgMeas){
-  ggsave(paste0("across_subj_abs_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-  ggsave(paste0("across_subj_abs_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
-  
-}
-
-p5 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPerc,colour=blockType,fill=blockType)) +
-  geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
-  labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean Percent Difference in EP Magnitude"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
-print(p5)
-
-if (savePlot && !avgMeas) {
-  ggsave(paste0("across_subj_mean_perc.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-  ggsave(paste0("across_subj_mean_perc.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
-  
-} else if (savePlot && avgMeas){
-  ggsave(paste0("across_subj_mean_abs_perc.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-  ggsave(paste0("across_subj_mean_abs_perc.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
-  
-}
-
-p6 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanAbs,colour=blockType,fill=blockType)) +
-  geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
-  labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean Absolute Difference in EP Magnitude from baseline"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
-print(p6)
-
-if (savePlot && !avgMeas) {
-  ggsave(paste0("across_subj_mean_abs.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-  ggsave(paste0("across_subj_mean_abs.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
-  
-} else if (savePlot && avgMeas){
-  ggsave(paste0("across_subj_mean_abs_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-  ggsave(paste0("across_subj_mean_abs_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
-  
-}
-
-
-fit.lmm = lmerTest::lmer(absDiff ~ mapStimLevel + blockType + (1|sidVec),data=dataList)
-
-summary(fit.lmm)
-# plot(fit.lm)
-summary(glht(fit.lmm,linfct=mcp(blockType="Tukey")))
-summary(glht(fit.lmm,linfct=mcp(mapStimLevel="Tukey")))
-
-emmeans(fit.lmm, list(pairwise ~ blockType), adjust = "tukey")
-emmeans(fit.lmm, list(pairwise ~ mapStimLevel), adjust = "tukey")
-
-emm_s.t <- emmeans(fit.lmm, pairwise ~ blockType | mapStimLevel)
-emm_s.t <- emmeans(fit.lmm, pairwise ~ mapStimLevel | blocktype)
-
-anova(fit.lmm)
-tab_model(fit.lmm)
-
-#########
-# make some plots!

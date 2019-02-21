@@ -49,7 +49,7 @@ for (avgMeas in avgMeasVec) {
     dataPP <- subset(dataPP, PPvec>25)
     # change to factor 
     print(sid)
-    
+
     for (chanInt in chanIntVec){
       
       blockType = blockTypeVec[[index]]
@@ -62,8 +62,8 @@ for (avgMeas in avgMeasVec) {
       # map stimulation levels to consistent ordering for between subject comparison
       uniqueStimLevel = as.double(unique(dataInt$stimLevelVec))
       
- 
-        mappingStimLevel =c(1:length(uniqueStimLevel))
+      
+      mappingStimLevel =c(1:length(uniqueStimLevel))
       
       dataInt$mapStimLevel <- mapvalues(dataInt$stimLevelVec,
                                         from=uniqueStimLevel,
@@ -76,31 +76,31 @@ for (avgMeas in avgMeasVec) {
       
       dataInt$mapStimLevel = as.factor(dataInt$mapStimLevel)
       dataInt$blockType = as.factor(dataInt$blockType)
-        dataIntCompare <- dataInt
-        
-        dataIntCompare = as_data_frame(dataIntCompare)
-        dataIntCompare$index = index
-        dataList[[index]] = dataIntCompare
-        blockList[[index]] = comparison
-        
-        fit.lm    = lm(PPvec ~ mapStimLevel + blockVec + mapStimLevel*blockVec,data=dataIntCompare)
-        fit.lm    = lm(PPvec ~ mapStimLevel + blockVec,data=dataIntCompare)
-        
-        summary(fit.lm)
-        # plot(fit.lm)
-        summary(glht(fit.lm,linfct=mcp(blockVec="Tukey")))
-        summary(glht(fit.lm,linfct=mcp(mapStimLevel="Tukey")))
-        
-        emmeans(fit.lm, list(pairwise ~ blockVec), adjust = "tukey")
-        emmeans(fit.lm, list(pairwise ~ mapStimLevel), adjust = "tukey")
-        
-        emm_s.t <- emmeans(fit.lm, pairwise ~ blockVec | mapStimLevel)
-        emm_s.t <- emmeans(fit.lm, pairwise ~ mapStimLevel | blockVec)
-        
-        anova(fit.lm)
-        tab_model(fit.lm)
-        
-
+      dataIntCompare <- dataInt
+      
+      dataIntCompare = as_data_frame(dataIntCompare)
+      dataIntCompare$index = index
+      dataList[[index]] = dataIntCompare
+      blockList[[index]] = comparison
+      
+      fit.lm    = lm(PPvec ~ mapStimLevel + blockVec + mapStimLevel*blockVec,data=dataIntCompare)
+      fit.lm    = lm(PPvec ~ mapStimLevel + blockVec,data=dataIntCompare)
+      
+      summary(fit.lm)
+      # plot(fit.lm)
+      summary(glht(fit.lm,linfct=mcp(blockVec="Tukey")))
+      summary(glht(fit.lm,linfct=mcp(mapStimLevel="Tukey")))
+      
+      emmeans(fit.lm, list(pairwise ~ blockVec), adjust = "tukey")
+      emmeans(fit.lm, list(pairwise ~ mapStimLevel), adjust = "tukey")
+      
+      emm_s.t <- emmeans(fit.lm, pairwise ~ blockVec | mapStimLevel)
+      emm_s.t <- emmeans(fit.lm, pairwise ~ mapStimLevel | blockVec)
+      
+      anova(fit.lm)
+      tab_model(fit.lm)
+      
+      
       p <- ggplot(dataInt, aes(x=stimLevelVec, y=PPvec,colour=stimLevelVec)) +
         geom_point(position=position_jitterdodge(dodge.width=0.250)) +  geom_smooth(method=lm) + facet_wrap(~blockVec, labeller = as_labeller(blockNames))+
         labs(x = expression(paste("Stimulation current (mA)")),y=expression(paste("Peak to Peak magnitude (",mu,"V)"), fill="stimulus level"),title = paste0("Subject ", subjectNum, " ID ", sid," DBS Paired Pulse EP Measurements")) +
@@ -117,7 +117,7 @@ for (avgMeas in avgMeasVec) {
         ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_lm_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
         
       }
-     index = index + 1 
+      index = index + 1 
     }
   }
 }
@@ -145,7 +145,6 @@ if (savePlot && !avgMeas) {
   ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_combined_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600,device="png")
   
 }
-
 
 # fit models
 
@@ -186,12 +185,12 @@ tab_model(fit.lmm2)
 #########
 # make some plots!
 
-  anova(fit.lmm, fit.lmm2)
+anova(fit.lmm, fit.lmm2)
 # Likelihood ratio test
 
- lrtest(fit.lmm, fit.lmm2)
+lrtest(fit.lmm, fit.lmm2)
 
 # aic
- AIC(fit.lmm, fit.lmm2)
+AIC(fit.lmm, fit.lmm2)
 
 BIC(fit.lmm, fit.lmm2)

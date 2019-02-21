@@ -545,49 +545,174 @@ for block = blocks
                     stimChans = [6 7];
             end
             
-        case '68754'
+        case '68574'
             
-            tBegin = 3; % ms
-            tEnd = 55; % ms
+            tBegin = 2.5; % ms
+            tEnd = 60; % ms
             switch block
                 % baseline pre stim 1
                 case 1
-                    stimChans = [7 8];
+                    stimChans = [5 6];
                     
                     % baseline pre stim 2
                 case 2
-                    stimChans = [7 8];
+                    stimChans = [5 6];
                     
-                    % post A/A
+                    % post A/A 100 ms
                 case 3
-                    stimChans = [7 8];
+                    stimChans = [5 6];
+                    badTrials = 1;
+                    badTrialLocations = [74:167];
                     
-                    % baseline post A/A 200
+                    % baseline post A/A 100 ms
                 case 4
-                    stimChans = [7 8];
+                    stimChans = [5 6];
                     
-                    % post A/B 200
+                    % post A/B 100
                 case 5
-                    stimChans = [7 8];
+                    stimChans = [5 6];
                     
-                    % baseline post A/B
+                    % baseline4-  post A/B
                 case 6
-                    stimChans = [7 8];
+                    stimChans = [5 6];
+                    badTrials = 1;
+                    badTrialLocations = [108:156];
                     
-                    % post A/B 25 ms
+                    
+                    % post A/A 200 ms
                 case 7
-                    stimChans = [7 8];
+                    stimChans = [5 6];
+                    badTrials = 1;
+                    badTrialLocations = [1:9 43:56];
                     
-                    % baseline post A/B
+                    % baseline 5 (post A/A )
                 case 8
-                    stimChans = [7 8];
+                    stimChans = [5 6];
                     
-                    %baseline again
+                    % post A/B 200 ms
                 case 9
-                    stimChans = [7 8];
-                    % post A/A 25 ms
+                    stimChans = [5 6];
+                    
+                    % baseline 6 - post A/B 200 ms
                 case 10
-                    stimChans = [7 8];
+                    stimChans = [5 6];
+                    
+                    % baseline 7 - pre DBS
+                    
+                case 11
+                    stimChans = [5 6];
+                    badTrials = 1;
+                    badTrialLocations = [62 97];
+                    
+                    % during DBS
+                case 13
+                    stimChans = [5 6];
+                    
+                    % post DBS
+                case 14
+                    stimChans = [5 6];
+                    
+                    % post DBS 2
+                case 15
+                    stimChans = [5 6];
+            end
+            
+        case '01fee'
+            
+            tBegin = 1.8; % ms
+            tEnd = 40; % ms
+            switch block
+                % baseline pre stim 1
+                case 1
+                    stimChans = [6 7];
+                    
+                    % baseline pre stim 2
+                case 2
+                    stimChans = [6 7];
+                    
+                    % post A/B 100 ms
+                case 3
+                    stimChans = [6 7];
+                    
+                    % baseline post A/B 100 ms
+                case 4
+                    stimChans = [6 7];
+                    
+                    % post A/A 100
+                case 5
+                    stimChans = [6 7];
+                    
+                    % baseline 4-  post A/A
+                case 6
+                    stimChans = [6 7];
+                    
+                    % post A/B 200 ms
+                case 7
+                    stimChans = [6 7];
+
+                    % baseline 5 (post A/B )
+                case 8
+                    stimChans = [6 7];
+                    
+                    % baseline 6 - pre DBS
+                   case 9
+                    stimChans = [6 7];
+                    
+                    % during DBS
+                case 10
+                    stimChans = [6 7];
+                    
+                    % post DBS
+                case 11
+                    stimChans = [6 7];
+                    
+                    % post DBS 2
+                case 12
+                    stimChans = [6 7];
+            end
+            
+                    case 'a23ed'
+            
+            tBegin = 1.8; % ms
+            tEnd = 40; % ms
+            switch block
+                % baseline pre stim 1
+                case 1
+                    stimChans = [6 7];
+                    
+                    % baseline pre stim 2
+                case 2
+                    stimChans = [6 7];
+                    
+                    % post A/B 200 ms - only 5 minutes!
+                case 3
+                    stimChans = [6 7];
+                    
+                    % baseline 3 post A/B 200 ms  - 15 mins
+                case 4
+                    stimChans = [6 7];
+                    
+                    % baseline 4
+                case 5
+                    stimChans = [6 7];
+                    
+                    % post A/B 200 ms - 15 minutes
+                case 6
+                    stimChans = [6 7];
+                    
+                    % baseline 5
+                case 7
+                    stimChans = [6 7];
+
+                    % post A/A 200 ms - 15 minutes - DSB was on during
+                    % conditioning
+                case 8
+                    stimChans = [6 7];
+                    
+                    % baseline 6 - pre DBS
+                   case 9
+                    stimChans = [6 7];
+                  
             end
             
         otherwise
@@ -714,7 +839,7 @@ for block = blocks
         epochTemp = getEpochSignal(ECoG,stimCommandTimesNew-preSamps,stimCommandTimesNew+postSamps);
         for jj=1:size(epochTemp,3)
             subplot(15,16,index)
-            plot(tEpoch,epochTemp(:,5,jj))
+            plot(tEpoch,epochTemp(:,4,jj))
             ylim([-1e-3 1e-3])
             title(num2str(index))
             index = index + 1;

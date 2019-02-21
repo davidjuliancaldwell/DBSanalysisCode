@@ -5,26 +5,12 @@ Z_ConstantsDBS_PairedPulse;
 matlab_dir = 'MATLAB_Converted';
 experiment = 'EP_Measurement';
 
-% select blocks to look at
-%blocks = [6 7 9 11 13 15]; % this is for the 7/8 pair fo re6f3c
-%blocks = [5 10 14 17]; % this is for the 7/8 pair fo re6f3c
-
-%sid = '3809e';
-%sid = '46c2a';
-%sid = 'c963f';
-%sid = '2e114';
-%sid = '3d413';
-%sid = 'fe7df';
-%sid = 'e6f3c';
-%sid = '8e907';
-%sid = '46c2a';
-
 avgTrialsVec = [0,1]';
 numAvg = 3;
 
 savePlot = 0;
-saveData = 1;
-screenBadChans = 0;
+saveData = 0;
+screenBadChans = 1;
 plotCondAvg = 0;
 
 sidVecIterate = {'46c2a','9f852','8e907','08b13'};
@@ -32,8 +18,7 @@ sidVecIterate = {'08b13'};
 sidVecIterate = {'c963f'};
 sidVecIterate = {'2e114'};
 sidVecIterate = {'3d413'};
-sidVecIterate = {'41a73'};
-
+sidVecIterate = {'01fee'};
 
 for avgTrials = avgTrialsVec'
     for sid = sidVecIterate
@@ -89,13 +74,27 @@ for avgTrials = avgTrialsVec'
                 legendText = {'baseline 1','baseline 2','post A/B 200 ms 1','baseline 3 (post A/B)','baseline 4',...
                     'post A/A 200 ms 1','baseline 5 (post A/A)','baseline 6','baseline 7','baseline 8','baseline 9','baseline 10'};
                 
-            case '68754'
-                blocks = [1 2 3 4 5 6 7 8 9 10 11 12 13 14 ];
+            case '68574'
+                blocks = [1 2 3 4 5 6 7 8 9 10 11 13 14 15];
                 chanIntList = [4 7];
                 legendText = {'baseline 1','baseline 2','post A/A 100 ms 1','baseline 3 (post A/A)',...
-                    'post A/B 100 ms 1','baseline 4 (post A/B)','post A/A 200 ms 1','baseline 5 (post A/A)','post',
-                    'post A/A 25 ms 1',...
-                    'pre DBS','during DBS','post DBS 1','post DBS 2'};
+                    'post A/B 100 ms 1','baseline 4 (post A/B)','post A/A 200 ms 1','baseline 5 (post A/A)','post A/B 200 ms 1',...
+                    'baseline 6 (post A/B 200 ms 1)','baseline 7 - pre DBS'...
+                    ,'during DBS','post DBS 1','post DBS 2'};
+                
+            case '01fee'
+                blocks = [1 2 3 4 5 6 7 8 9 10 11 13 14 15];
+                chanIntList = [5 8];
+                legendText = {'baseline 1','baseline 2','post A/A 100 ms 1','baseline 3 (post A/A)',...
+                    'post A/A 100 ms 1','baseline 4 (post A/A)','post A/A 200 ms 1','baseline 5 (post A/A)','post A/B 200 ms 1',...
+                    'baseline 6 (post A/B 200 ms 1)','baseline 7 - pre DBS'...
+                    ,'during DBS','post DBS 1','post DBS 2'};
+                
+            case 'a23ed'
+                blocks = [1 2 3 4 5 6 7 8 9];
+                chanIntList = [5 8];
+                legendText = {'baseline 1','baseline 2','post A/B 200 ms 1 (5 mins)','baseline 3 (post A/B)',...
+                    'baseline 4','post A/B 200 ms (15 mins)','baseline 5','post A/A 200 ms (15 mins)','baseline 6'};        
                 
         end
         
@@ -106,7 +105,7 @@ for avgTrials = avgTrialsVec'
         prepare_EP_blocks
         
         %% compare multiples blocks
-       analyze_EP_compare_multiple_blocks
+        analyze_EP_compare_multiple_blocks
         
         %% save data for statistical analysis in table form
         
