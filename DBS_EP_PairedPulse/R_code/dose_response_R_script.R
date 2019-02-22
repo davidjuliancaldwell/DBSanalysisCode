@@ -28,8 +28,9 @@ sidVec <- c('46c2a','c963f','2e114','9f852',
 #             '01fee')
 
 #sidVec <- c('9f852')
+#sidVec <- c('46c2a')
 
-savePlot = 1
+savePlot = 0
 avgMeasVec = c(0)
 figWidth = 8 
 figHeight = 6 
@@ -318,7 +319,7 @@ for (avgMeas in avgMeasVec) {
   
   p7 <- ggplot(dataList, aes(x=mapStimLevel, y=PPvec,colour=blockType,fill=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
-    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Peak to Peak Voltage (",mu,"V)"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
+    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Peak to Peak Voltage (",mu,"V)"), fill="stimulus level"),title = paste0("EP Magnitude"))
   print(p7)
   if (savePlot && !avgMeas) {
     ggsave(paste0("across_subj_PP.png"), units="in", width=figWidth, height=figHeight, dpi=600)
@@ -333,7 +334,7 @@ for (avgMeas in avgMeasVec) {
   
   p8 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPP,colour=blockType,fill=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
-    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean Peak to Peak Voltage (",mu,"V)"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
+    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean Peak to Peak Voltage (",mu,"V)"), fill="stimulus level"),title = paste0("EP Magnitude"))
   print(p8)
   
   if (savePlot && !avgMeas) {
@@ -346,21 +347,7 @@ for (avgMeas in avgMeasVec) {
     
   }  
   
-  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + chanInCond + (1|sidVec),data=dataList)
-  
-  summary(fit.lmmPP)
-  # plot(fit.lm)
-  summary(glht(fit.lmmPP,linfct=mcp(blockType="Tukey")))
-  summary(glht(fit.lmmPP,linfct=mcp(mapStimLevel="Tukey")))
-  
-  emmeans(fit.lmmPP, list(pairwise ~ blockType), adjust = "tukey")
-  emmeans(fit.lmmPP, list(pairwise ~ mapStimLevel), adjust = "tukey")
-  
-  emm_s.t <- emmeans(fit.lmmPP, pairwise ~ blockType | mapStimLevel)
-  emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | blockType)
-  
-  anova(fit.lmmPP)
-  tab_model(fit.lmmPP)
+
   
   fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + chanInCond + (1|sidVec),data=dataList)
 
