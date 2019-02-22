@@ -23,4 +23,5 @@ blockType = c('baseline','A/B 25','baseline',
 
 #whichCompareVec = list(c(2,3),c(4,5),c(6,7),c(6,10,11))
 #whichCompareVec = list(c(2,3),c(4,5),c(4,7),c(4,11),c(2,12))
-whichCompareVec = list(c(2,3,5,7,11))
+#whichCompareVec = list(c(2,3,5,7,11))
+whichCompareVec = list(c(2,3),c(4,5),c(6,7),c(10,11))

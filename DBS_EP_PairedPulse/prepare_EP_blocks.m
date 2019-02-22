@@ -2,6 +2,9 @@
 
 blockCount = 1; % do not change, counter variable
 blockLabel = {};
+
+figStimBox = figure;
+figCurrent = figure;
 for block = blocks
     
     % load in tank
@@ -318,7 +321,7 @@ for block = blocks
                 case 2
                     stimChans = [5 6];
                     
-                    % baseline post 25 ms A/B - 1
+                    %  post 25 ms A/B - 1
                 case 3
                     stimChans = [5 6];
                     
@@ -326,7 +329,7 @@ for block = blocks
                 case 4
                     stimChans = [5 6];
                     
-                    % baseline post 25 ms A/A - 1
+                    %  post 25 ms A/A - 1
                 case 5
                     stimChans = [5 6];
                     
@@ -334,7 +337,7 @@ for block = blocks
                 case 6
                     stimChans = [5 6];
                     
-                    % baseline post 200 ms A/B - 1
+                    %post 200 ms A/B - 1
                 case 7
                     stimChans = [5 6];
                     
@@ -342,7 +345,7 @@ for block = blocks
                 case 8
                     stimChans = [5 6];
                     
-                    % baseline post 200 ms A/B - 3
+                    % post 200 ms A/B - 3
                 case 9
                     stimChans = [5 6];
                     % baseline post 200 ms A/B - 4
@@ -619,8 +622,8 @@ for block = blocks
             
         case '01fee'
             
-            tBegin = 1.8; % ms
-            tEnd = 40; % ms
+            tBegin = 2; % ms
+            tEnd = 65; % ms
             switch block
                 % baseline pre stim 1
                 case 1
@@ -633,11 +636,13 @@ for block = blocks
                     % post A/B 100 ms
                 case 3
                     stimChans = [6 7];
-                    
+                    badTrials = 1;
+                    badTrialLocations = [107:129 237:240];
                     % baseline post A/B 100 ms
                 case 4
                     stimChans = [6 7];
-                    
+                    badTrials = 1;
+                    badTrialLocations = [107:129 168:240];
                     % post A/A 100
                 case 5
                     stimChans = [6 7];
@@ -649,29 +654,30 @@ for block = blocks
                     % post A/B 200 ms
                 case 7
                     stimChans = [6 7];
-
+                    
                     % baseline 5 (post A/B )
                 case 8
                     stimChans = [6 7];
+                    badTrials = 1;
+                    badTrialLocations = [64 88 167];
                     
-                    % baseline 6 - pre DBS
-                   case 9
+                    %  during DBS
+                case 9
                     stimChans = [6 7];
                     
-                    % during DBS
+                    % after DBS 1
                 case 10
                     stimChans = [6 7];
-                    
-                    % post DBS
+                    badTrials = 1;
+                    badTrialLocations = [169 204 205];
+                    % after DBS 2
                 case 11
                     stimChans = [6 7];
-                    
-                    % post DBS 2
-                case 12
-                    stimChans = [6 7];
+                    badTrials = 1;
+                    badTrialLocations = [132];
             end
             
-                    case 'a23ed'
+        case 'a23ed'
             
             tBegin = 1.8; % ms
             tEnd = 40; % ms
@@ -679,22 +685,32 @@ for block = blocks
                 % baseline pre stim 1
                 case 1
                     stimChans = [6 7];
+                            badTrials = 1;
+                    badTrialLocations = [195:219 239:240];
                     
                     % baseline pre stim 2
                 case 2
                     stimChans = [6 7];
+                              badTrials = 1;
+                    badTrialLocations = [128:161 216:240];
                     
                     % post A/B 200 ms - only 5 minutes!
                 case 3
                     stimChans = [6 7];
+                        badTrials = 1;
+                    badTrialLocations = [62 180 216:240];
                     
                     % baseline 3 post A/B 200 ms  - 15 mins
                 case 4
                     stimChans = [6 7];
+                            badTrials = 1;
+                    badTrialLocations = [78 190];
                     
                     % baseline 4
                 case 5
                     stimChans = [6 7];
+                           badTrials = 1;
+                    badTrialLocations = [221];
                     
                     % post A/B 200 ms - 15 minutes
                 case 6
@@ -703,16 +719,17 @@ for block = blocks
                     % baseline 5
                 case 7
                     stimChans = [6 7];
-
+                    
                     % post A/A 200 ms - 15 minutes - DSB was on during
                     % conditioning
                 case 8
                     stimChans = [6 7];
                     
                     % baseline 6 - pre DBS
-                   case 9
+                case 9
                     stimChans = [6 7];
-                  
+                       badTrials = 1;
+                    badTrialLocations = [78];
             end
             
         otherwise
@@ -839,7 +856,7 @@ for block = blocks
         epochTemp = getEpochSignal(ECoG,stimCommandTimesNew-preSamps,stimCommandTimesNew+postSamps);
         for jj=1:size(epochTemp,3)
             subplot(15,16,index)
-            plot(tEpoch,epochTemp(:,4,jj))
+            plot(tEpoch,epochTemp(:,5,jj))
             ylim([-1e-3 1e-3])
             title(num2str(index))
             index = index + 1;
@@ -851,8 +868,22 @@ for block = blocks
     
     clearvars badTrials badTrialLocations
     
-    fprintf(['finished block '  num2str(block) '\n'])
-    
+%     figure(figStimBox)
+%     hold on
+%     plot(stimBox(:,1))
+%     
+%     figure(figCurrent)
+%     hold on
+%     plot(stimProgrammed(:,1))
+%     
+%     fprintf(['finished block '  num2str(block) '\n'])
+%     
 end
+% figure(figStimBox)
+% 
+% legend
+% 
+% figure(figCurrent)
+% legend
 
 

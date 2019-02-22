@@ -19,16 +19,15 @@ rootDir = here()
 dataDir = here("DBS_EP_PairedPulse","R_data")
 codeDir = here("DBS_EP_PairedPulse","R_code")
 
-sidVec <- c('46c2a','c963f','2e114','9f852','08b13','8e907','e9c9b','41a73','68574')
+sidVec <- c('46c2a','c963f','2e114','9f852',
+            '08b13','8e907','e9c9b','41a73','68574',
+            '01fee','a23ed')
 
-#sidVec <- c('46c2a','c963f')
-#sidVec <- c('8e907')
-#sidVec <- c('46c2a')
-#sidVec <- c('08b13')
+# sidVec <- c('46c2a','c963f','2e114',
+#             '08b13','8e907','e9c9b','41a73','68574',
+#             '01fee')
+
 #sidVec <- c('9f852')
-#sidVec <- c('c963f')
-#sidVec <- c('e9c9b')
-#sidVec = c('68574')
 
 savePlot = 1
 avgMeasVec = c(0)
@@ -83,21 +82,21 @@ for (avgMeas in avgMeasVec) {
       uniqueStimLevel = as.double(unique(dataInt$stimLevelVec))
       
       if (sid == "2e114"){
-        mappingStimLevel =c(1,3,4)
+        mappingStimLevel =ordered(c(1,3,4))
         
       } else {
-        mappingStimLevel =c(1:length(uniqueStimLevel))
-   
+        mappingStimLevel =ordered(c(1:length(uniqueStimLevel)))
       }
-      
       dataInt$mapStimLevel <- mapvalues(dataInt$stimLevelVec,
                                         from=uniqueStimLevel,
                                         to=mappingStimLevel)
+      
       uniqueBlockLevel = unique(dataInt$blockVec)
+      blockTypeTrim = blockType[uniqueBlockLevel]
       
       dataInt$blockType <- mapvalues(dataInt$blockVec,
                                      from=uniqueBlockLevel,
-                                     to=blockType)
+                                     to=blockTypeTrim)
       
       dataInt$mapStimLevel = as.factor(dataInt$mapStimLevel)
       dataInt$blockType = as.factor(dataInt$blockType)
@@ -142,13 +141,13 @@ for (avgMeas in avgMeasVec) {
       print(p)
       
       if (savePlot && !avgMeas) {
-        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_lm.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_lm.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_chan_",chanInt,"_scatter_lm.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_chan_",chanInt,"_scatter_lm.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
         
       }
       else if (savePlot && avgMeas){
-        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_lm_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_lm_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_chan_",chanInt,"_scatter_lm_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_chan_",chanInt,"_scatter_lm_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
         
       }
       
@@ -246,6 +245,7 @@ for (avgMeas in avgMeasVec) {
       #BIC(fit.nlme0, fit.nlme1,fit.glm,fit.lmm)
     }
   }
+  
   # now do comparison at highest stim level relative to baseline
   dataList <- do.call(rbind,dataList)
   #blockList <- do.call(rbind,blockList)
@@ -319,8 +319,8 @@ for (avgMeas in avgMeasVec) {
   p7 <- ggplot(dataList, aes(x=mapStimLevel, y=PPvec,colour=blockType,fill=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
     labs(x = expression(paste("Stimulation Level")),y=expression(paste("Peak to Peak Voltage (",mu,"V)"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
- print(p7)
-   if (savePlot && !avgMeas) {
+  print(p7)
+  if (savePlot && !avgMeas) {
     ggsave(paste0("across_subj_PP.png"), units="in", width=figWidth, height=figHeight, dpi=600)
     ggsave(paste0("across_subj_PP.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
     
@@ -329,43 +329,75 @@ for (avgMeas in avgMeasVec) {
     ggsave(paste0("across_subj_PP_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
     
   }
- 
- 
- p8 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPP,colour=blockType,fill=blockType)) +
-   geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
-   labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean Peak to Peak Voltage (",mu,"V)"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
- print(p8)
- 
- if (savePlot && !avgMeas) {
-   ggsave(paste0("across_subj_mean_PP.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-   ggsave(paste0("across_subj_mean_PP.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
-   
- } else if (savePlot && avgMeas){
-   ggsave(paste0("across_subj_mean_PP_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-   ggsave(paste0("across_subj_mean_PP_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
-   
- }  
   
-  fit.lmm = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + chanInCond + (1|sidVec),data=dataList)
   
-  #fit.lmm = lmerTest::lmer(absDiff ~ mapStimLevel + blockType + chanInCond + (1|sidVec),data=dataList)
+  p8 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPP,colour=blockType,fill=blockType)) +
+    geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
+    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean Peak to Peak Voltage (",mu,"V)"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
+  print(p8)
+  
+  if (savePlot && !avgMeas) {
+    ggsave(paste0("across_subj_mean_PP.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_PP.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    
+  } else if (savePlot && avgMeas){
+    ggsave(paste0("across_subj_mean_PP_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_PP_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    
+  }  
+  
+  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + chanInCond + (1|sidVec),data=dataList)
+  
+  summary(fit.lmmPP)
+  # plot(fit.lm)
+  summary(glht(fit.lmmPP,linfct=mcp(blockType="Tukey")))
+  summary(glht(fit.lmmPP,linfct=mcp(mapStimLevel="Tukey")))
+  
+  emmeans(fit.lmmPP, list(pairwise ~ blockType), adjust = "tukey")
+  emmeans(fit.lmmPP, list(pairwise ~ mapStimLevel), adjust = "tukey")
+  
+  emm_s.t <- emmeans(fit.lmmPP, pairwise ~ blockType | mapStimLevel)
+  emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | blockType)
+  
+  anova(fit.lmmPP)
+  tab_model(fit.lmmPP)
+  
+  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + chanInCond + (1|sidVec),data=dataList)
+
+  summary(fit.lmmPP)
+  # plot(fit.lm)
+  summary(glht(fit.lmmPP,linfct=mcp(blockType="Tukey")))
+  summary(glht(fit.lmmPP,linfct=mcp(mapStimLevel="Tukey")))
+  
+  emmeans(fit.lmmPP, list(pairwise ~ blockType), adjust = "tukey")
+  emmeans(fit.lmmPP, list(pairwise ~ mapStimLevel), adjust = "tukey")
+  
+  emm_s.t <- emmeans(fit.lmmPP, pairwise ~ blockType | mapStimLevel)
+  emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | blockType)
+  
+  anova(fit.lmmPP)
+  tab_model(fit.lmmPP)
+  
+  fit.lmmdiff = lmerTest::lmer(absDiff ~ mapStimLevel + blockType + chanInCond + (1|sidVec),data=dataList)
+
   fit.lm = lm(absDiff ~ mapStimLevel + blockType + chanInCond ,data=dataList)
   
-  summary(fit.lmm)
+  summary(fit.lmmdiff)
   # plot(fit.lm)
-  summary(glht(fit.lmm,linfct=mcp(blockType="Tukey")))
-  summary(glht(fit.lmm,linfct=mcp(mapStimLevel="Tukey")))
+  summary(glht(fit.lmmdiff,linfct=mcp(blockType="Tukey")))
+  summary(glht(fit.lmmdiff,linfct=mcp(mapStimLevel="Tukey")))
   
-  emmeans(fit.lmm, list(pairwise ~ blockType), adjust = "tukey")
-  emmeans(fit.lmm, list(pairwise ~ mapStimLevel), adjust = "tukey")
+  emmeans(fit.lmmdiff, list(pairwise ~ blockType), adjust = "tukey")
+  emmeans(fit.lmmdiff, list(pairwise ~ mapStimLevel), adjust = "tukey")
   
-  emm_s.t <- emmeans(fit.lmm, pairwise ~ blockType | mapStimLevel)
-  emm_s.t <- emmeans(fit.lmm, pairwise ~ mapStimLevel | blockType)
+  emm_s.t <- emmeans(fit.lmmdiff, pairwise ~ blockType | mapStimLevel)
+  emm_s.t <- emmeans(fit.lmmdiff, pairwise ~ mapStimLevel | blockType)
   
-  anova(fit.lmm)
-  tab_model(fit.lmm)
+  anova(fit.lmmdiff)
+  tab_model(fit.lmmdiff)
   
-  #########
-  # make some plots!
+  
+  
+  
 }
-############# 
+

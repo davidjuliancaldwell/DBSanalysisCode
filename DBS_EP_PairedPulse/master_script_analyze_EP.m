@@ -8,9 +8,9 @@ experiment = 'EP_Measurement';
 avgTrialsVec = [0,1]';
 numAvg = 3;
 
-savePlot = 0;
-saveData = 0;
-screenBadChans = 1;
+savePlot = 1;
+saveData = 1;
+screenBadChans = 0;
 plotCondAvg = 0;
 
 sidVecIterate = {'46c2a','9f852','8e907','08b13'};
@@ -18,7 +18,7 @@ sidVecIterate = {'08b13'};
 sidVecIterate = {'c963f'};
 sidVecIterate = {'2e114'};
 sidVecIterate = {'3d413'};
-sidVecIterate = {'01fee'};
+sidVecIterate = {'a23ed'};
 
 for avgTrials = avgTrialsVec'
     for sid = sidVecIterate
@@ -83,12 +83,11 @@ for avgTrials = avgTrialsVec'
                     ,'during DBS','post DBS 1','post DBS 2'};
                 
             case '01fee'
-                blocks = [1 2 3 4 5 6 7 8 9 10 11 13 14 15];
+                blocks = [1 2 3 4 5 6 7 8 9 10 11];
                 chanIntList = [5 8];
-                legendText = {'baseline 1','baseline 2','post A/A 100 ms 1','baseline 3 (post A/A)',...
-                    'post A/A 100 ms 1','baseline 4 (post A/A)','post A/A 200 ms 1','baseline 5 (post A/A)','post A/B 200 ms 1',...
-                    'baseline 6 (post A/B 200 ms 1)','baseline 7 - pre DBS'...
-                    ,'during DBS','post DBS 1','post DBS 2'};
+                legendText = {'baseline 1','baseline 2','post A/B 100 ms 1','baseline 3 (post A/B)',...
+                    'post A/A 100 ms 1','baseline 4 (post A/A)','post A/B 200 ms 1','baseline 5 (post A/B, pre DBS)',...
+                    'during DBS','post DBS 1','post DBS 2'};
                 
             case 'a23ed'
                 blocks = [1 2 3 4 5 6 7 8 9];
