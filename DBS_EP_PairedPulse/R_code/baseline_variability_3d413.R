@@ -23,7 +23,7 @@ sidVec = c("3d413")
 
 
 savePlot = 1
-avgMeasVec = c(0)
+avgMeasVec = c(1)
 figWidth = 8 
 figHeight = 6 
 
@@ -49,7 +49,7 @@ for (avgMeas in avgMeasVec) {
     dataPP <- subset(dataPP, PPvec>25)
     # change to factor 
     print(sid)
-
+    
     for (chanInt in chanIntVec){
       
       blockType = blockTypeVec[[index]]
@@ -81,8 +81,7 @@ for (avgMeas in avgMeasVec) {
       dataIntCompare = as_data_frame(dataIntCompare)
       dataIntCompare$index = index
       dataList[[index]] = dataIntCompare
-      blockList[[index]] = comparison
-      
+
       fit.lm    = lm(PPvec ~ mapStimLevel + blockVec + mapStimLevel*blockVec,data=dataIntCompare)
       fit.lm    = lm(PPvec ~ mapStimLevel + blockVec,data=dataIntCompare)
       
@@ -100,11 +99,10 @@ for (avgMeas in avgMeasVec) {
       anova(fit.lm)
       tab_model(fit.lm)
       
-      
-      p <- ggplot(dataInt, aes(x=stimLevelVec, y=PPvec,colour=stimLevelVec)) +
+      p <- ggplot(dataInt, aes(x=stimLevelVec, y=PPvec,color=stimLevelVec)) +
         geom_point(position=position_jitterdodge(dodge.width=0.250)) +  geom_smooth(method=lm) + facet_wrap(~blockVec, labeller = as_labeller(blockNames))+
-        labs(x = expression(paste("Stimulation current (mA)")),y=expression(paste("Peak to Peak magnitude (",mu,"V)"), fill="stimulus level"),title = paste0("Subject ", subjectNum, " ID ", sid," DBS Paired Pulse EP Measurements")) +
-        guides(colour=guide_colorbar("stimulation level"))
+        labs(x = expression(paste("Stimulation current (mA)")),y=expression(paste("Peak to peak magnitude (",mu,"V)")),title = paste0("Subject ", subjectNum, " ID ", sid," DBS paired pulse EP measurements")) +
+        guides(colour=guide_colorbar("sStimulation level"))
       print(p)
       
       if (savePlot && !avgMeas) {
@@ -124,16 +122,16 @@ for (avgMeas in avgMeasVec) {
 ############# 
 # now do comparison at highest stim level relative to baseline
 dataList = do.call(rbind,dataList)
-blockList = do.call(rbind,blockList)
 
 #plot
 
 labelVec <- c("4" = "Channel 4","6" = "Channel 6")
 
 #dataListFactorized$stimLevelVec = as.factor(dataListFactorized$stimLevelVec)
-p3 <- ggplot(dataList, aes(x=stimLevelVec, y=PPvec,colour=blockType,fill=blockType)) +
+p3 <- ggplot(dataList, aes(x=stimLevelVec, y=PPvec,color=blockType)) +
   geom_point(position=position_jitterdodge(dodge.width=0.250)) +geom_smooth(method=lm) + facet_grid(. ~chanVec, labeller = labeller(chanVec = labelVec))+
-  labs(x = expression(paste("Stimulation current (mA)")),y=expression(paste("Peak to Peak magnitude (",mu,"V)"), fill="stimulus level"),title = paste0("Subject ", subjectNum, " ID ", sid," DBS Paired Pulse EP Measurements"))
+  labs(x = expression(paste("Stimulation current (mA)")),y=expression(paste("Peak to peak magnitude (",mu,"V)")),
+       color="Experimental condition",title = paste0("Anesthesia effect on EP magnitude"))
 print(p3)
 
 if (savePlot && !avgMeas) {

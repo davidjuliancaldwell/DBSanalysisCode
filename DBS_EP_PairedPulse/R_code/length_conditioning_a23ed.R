@@ -22,7 +22,7 @@ codeDir = here("DBS_EP_PairedPulse","R_code")
 sidVec = c("a23ed")
 
 
-savePlot = 1
+savePlot = 0
 avgMeasVec = c(0)
 figWidth = 8 
 figHeight = 6 
@@ -38,6 +38,8 @@ for (avgMeas in avgMeasVec) {
     
     # just modifiy a23ed
     whichCompareVec = list(c(2,3),c(5,6))
+    blockType = c('baseline','baseline','A/B 200 ms 5 minutes','baseline','baseline',
+                  'A/B 200 ms 15 minutes','baseline','A/A 200','baseline')
     
     if (avgMeas) {
       dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_avg.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
@@ -122,10 +124,10 @@ for (avgMeas in avgMeasVec) {
         
       }
       
-      p <- ggplot(dataInt, aes(x=stimLevelVec, y=PPvec,colour=stimLevelVec)) +
+      p <- ggplot(dataInt, aes(x=stimLevelVec, y=PPvec,color=stimLevelVec)) +
         geom_point(position=position_jitterdodge(dodge.width=0.250)) +  geom_smooth(method=lm) + facet_wrap(~blockVec, labeller = as_labeller(blockNames))+
-        labs(x = expression(paste("Stimulation current (mA)")),y=expression(paste("Peak to Peak magnitude (",mu,"V)"), fill="stimulus level"),title = paste0("Subject ", subjectNum, " ID ", sid," DBS Paired Pulse EP Measurements")) +
-        guides(colour=guide_colorbar("stimulation level"))
+        labs(x = expression(paste("Stimulation current (mA)")),y=expression(paste("Peak to peak magnitude (",mu,"V)")),title = paste0("Subject ", subjectNum, " ID ", sid," DBS paired pulse EP measurements")) +
+        guides(colour=guide_colorbar("Stimulation level"))
       print(p)
       
       if (savePlot && !avgMeas) {
@@ -157,9 +159,10 @@ for (avgMeas in avgMeasVec) {
                                  meanAbs=mean(absDiff), sdDiff=sd(percentDiff),meanPP = mean(PPvec),sdPP = sd(PPvec))
   
   
-  p3 <- ggplot(dataList, aes(x=mapStimLevel, y=percentDiff,colour=blockType,fill=blockType)) +
-    geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
-    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Percent Difference in EP Magnitude from baseline"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
+  p3 <- ggplot(dataList, aes(x=mapStimLevel, y=percentDiff,color=blockType)) +
+    geom_point(position=position_jitterdodge(dodge.width=0.75)) +
+    labs(x = expression(paste("Stimulation level")),y=expression(paste("Percent difference in EP magnitude from baseline")),
+         title = paste0("Changes in EP magnitude"),color="Experimental condition")
   print(p3)
   
   if (savePlot && !avgMeas) {
@@ -172,9 +175,9 @@ for (avgMeas in avgMeasVec) {
     
   }
   
-  p4 <- ggplot(dataList, aes(x=mapStimLevel, y=absDiff,colour=blockType,fill=blockType)) +
+  p4 <- ggplot(dataList, aes(x=mapStimLevel, y=absDiff,color=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
-    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Absolute Difference in EP Magnitude from baseline (",mu,"V)"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
+    labs(x = expression(paste("Stimulation level")),y=expression(paste("Absolute difference in EP magnitude from baseline (",mu,"V)"), color="Experimental condition"),title = paste0("Changes in EP magnitude"))
   print(p4)
   
   if (savePlot && !avgMeas) {
@@ -187,9 +190,10 @@ for (avgMeas in avgMeasVec) {
     
   }
   
-  p5 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPerc,colour=blockType,fill=blockType)) +
+  p5 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPerc,color=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
-    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean Percent Difference in EP Magnitude"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
+    labs(x = expression(paste("Stimulation level")),y=expression(paste("Mean percent difference in EP magnitude"), color="Experimental condition"),
+         title = paste0("Changes in EP magnitude"))
   print(p5)
   
   if (savePlot && !avgMeas) {
@@ -202,9 +206,10 @@ for (avgMeas in avgMeasVec) {
     
   }
   
-  p6 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanAbs,colour=blockType,fill=blockType)) +
+  p6 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanAbs,color=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
-    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean Absolute Difference in EP Magnitude from baseline (",mu,"V)"), fill="stimulus level"),title = paste0("Changes in EP Magnitude"))
+    labs(x = expression(paste("Stimulation level")),y=expression(paste("Mean absolute difference in EP magnitude from baseline (",mu,"V)"),
+                                                                 color="Experimental condition"),title = paste0("Changes in EP magnitude"))
   print(p6)
   
   if (savePlot && !avgMeas) {
@@ -217,9 +222,10 @@ for (avgMeas in avgMeasVec) {
     
   }
   
-  p7 <- ggplot(dataList, aes(x=mapStimLevel, y=PPvec,colour=blockType,fill=blockType)) +
+  p7 <- ggplot(dataList, aes(x=mapStimLevel, y=PPvec,color=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
-    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Peak to Peak Voltage (",mu,"V)"), fill="stimulus level"),title = paste0("EP Magnitude"))
+    labs(x = expression(paste("Stimulation level")),y=expression(paste("Peak to peak voltage (",mu,"V)"),
+                                                                 color="Experimental condition"),title = paste0("EP Magnitude by length of conditioning"))
   print(p7)
   if (savePlot && !avgMeas) {
     ggsave(paste0("across_a23ed_PP.png"), units="in", width=figWidth, height=figHeight, dpi=600)
@@ -234,7 +240,8 @@ for (avgMeas in avgMeasVec) {
   
   p8 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPP,colour=blockType,fill=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
-    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean Peak to Peak Voltage (",mu,"V)"), fill="stimulus level"),title = paste0("EP Magnitude"))
+    labs(x = expression(paste("Stimulation level")),y=expression(paste("Mean peak to peak voltage (",mu,"V)"), color="Experimental condition"),
+         title = paste0("EP Magnitude by length of conditioning"))
   print(p8)
   
   if (savePlot && !avgMeas) {
@@ -283,6 +290,7 @@ for (avgMeas in avgMeasVec) {
   
   fit.lm = lm(absDiff ~ mapStimLevel + blockType + chanInCond ,data=dataList)
   fit.lm = lm(absDiff ~ mapStimLevel + blockType ,data=dataList)
+  tab_model(fit.lm)
   
   summary(fit.lmmdiff)
   # plot(fit.lm)

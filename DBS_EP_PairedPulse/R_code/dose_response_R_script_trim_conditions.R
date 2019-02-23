@@ -30,7 +30,7 @@ sidVec <- c('46c2a','c963f','2e114','9f852',
 #sidVec <- c('9f852')
 #sidVec <- c('46c2a')
 
-savePlot = 0
+savePlot = 1
 avgMeasVec = c(0)
 figWidth = 8 
 figHeight = 6 
@@ -250,6 +250,9 @@ for (avgMeas in avgMeasVec) {
   # now do comparison at highest stim level relative to baseline
   dataList <- do.call(rbind,dataList)
   #blockList <- do.call(rbind,blockList)
+  
+  dataList <- dataList %>% filter(blockType %in% c('baseline','A/B 25','A/B 200','A/A 200'))
+  
   
   #plot
   grouped <- group_by(dataList, sidVec, chanVec, blockType,mapStimLevel)
