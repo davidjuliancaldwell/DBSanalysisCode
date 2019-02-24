@@ -35,7 +35,6 @@ avgMeasVec = c(0)
 figWidth = 8 
 figHeight = 6 
 
-
 for (avgMeas in avgMeasVec) {
   
   dataList = list()
@@ -260,7 +259,7 @@ for (avgMeas in avgMeasVec) {
                                  meanAbs=mean(absDiff), sdDiff=sd(percentDiff),meanPP = mean(PPvec),sdPP = sd(PPvec))
   
   
-  p3 <- ggplot(dataList, aes(x=mapStimLevel, y=percentDiff,color=blockType)) +
+  p3 <- ggplot(dataList, aes(x=as.numeric(mapStimLevel), y=percentDiff,color=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
     labs(x = expression(paste("Stimulation level")),y=expression(paste("Percent difference in EP magnitude from baseline")), color="Experimental condition",title = paste0("Changes in EP magnitude"))
   print(p3)
@@ -275,7 +274,7 @@ for (avgMeas in avgMeasVec) {
     
   }
   
-  p4 <- ggplot(dataList, aes(x=mapStimLevel, y=absDiff,,color=blockType)) +
+  p4 <- ggplot(dataList, aes(x=as.numeric(mapStimLevel), y=absDiff,color=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
     labs(x = expression(paste("Stimulation level")),y=expression(paste("Absolute difference in EP magnitude from baseline (",mu,"V)")),color="Experimental condition",title = paste0("Changes in EP magnitude"))
   print(p4)
@@ -290,7 +289,7 @@ for (avgMeas in avgMeasVec) {
     
   }
   
-  p5 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPerc,color=blockType)) +
+  p5 <- ggplot(dataListSummarize, aes(x=as.numeric(mapStimLevel), y=meanPerc,color=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
     labs(x = expression(paste("Stimulation level")),y=expression(paste("Mean percent difference in EP magnitude")), color="Experimental condition",title = paste0("Changes in EP magnitude"))
   print(p5)
@@ -337,7 +336,7 @@ for (avgMeas in avgMeasVec) {
   }
   
   
-  p8 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPP,colour=blockType,fill=blockType)) +
+  p8 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPP,color=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
     labs(x = expression(paste("Stimulation level")),y=expression(paste("Mean peak to peak voltage (",mu,"V)")), color="Experimental condition",title = paste0("EP magnitude"))
   print(p8)
@@ -351,6 +350,20 @@ for (avgMeas in avgMeasVec) {
     ggsave(paste0("across_subj_mean_PP_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
     
   }  
+  p9 <- ggplot(dataList, aes(x=as.numeric(stimLevelVec), y=absDiff,color=blockType)) +facet_wrap(~sidVec,scales = "free") +
+    geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
+    labs(x = expression(paste("Stimulation level (mA)")),y=expression(paste("Absolute difference in EP magnitude from baseline (",mu,"V)")),color="Experimental condition",title = paste0("Changes in EP magnitude"))
+  print(p9)
+  
+  if (savePlot && !avgMeas) {
+    ggsave(paste0("diff_scale_each_subj_abs.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("diff_scale_each_subj_abs.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    
+  } else if (savePlot && avgMeas){
+    ggsave(paste0("diff_scale_each_subj_abs_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("diff_scale_each_subj_abs_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    
+  }
   
 
   
