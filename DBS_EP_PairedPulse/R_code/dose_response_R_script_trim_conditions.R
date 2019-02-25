@@ -350,8 +350,11 @@ for (avgMeas in avgMeasVec) {
     ggsave(paste0("across_subj_mean_PP_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
     
   }  
+  
+  figHeight = 4
+  figWidth = 8
   p9 <- ggplot(dataList, aes(x=as.numeric(stimLevelVec), y=absDiff,color=blockType)) +facet_wrap(~sidVec,scales = "free") +
-    geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
+    geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
     labs(x = expression(paste("Stimulation level (mA)")),y=expression(paste("Absolute difference in EP magnitude from baseline (",mu,"V)")),color="Experimental condition",title = paste0("Changes in EP magnitude"))
   print(p9)
   
@@ -383,8 +386,10 @@ for (avgMeas in avgMeasVec) {
   anova(fit.lmmPP)
   tab_model(fit.lmmPP)
   
+  fit.lmmdiff = lmerTest::lmer(absDiff ~ stimLevelVec + blockType + chanInCond + (1|sidVec),data=dataList)
   fit.lmmdiff = lmerTest::lmer(absDiff ~ mapStimLevel + blockType + chanInCond + (1|sidVec),data=dataList)
-
+  
+  
   fit.lm = lm(absDiff ~ mapStimLevel + blockType + chanInCond ,data=dataList)
   
   summary(fit.lmmdiff)
