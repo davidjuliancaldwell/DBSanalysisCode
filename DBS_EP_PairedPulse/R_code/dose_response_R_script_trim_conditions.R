@@ -30,8 +30,8 @@ sidVec <- c('46c2a','c963f','2e114','9f852',
 #sidVec <- c('9f852')
 #sidVec <- c('46c2a')
 
-savePlot = 1
-avgMeasVec = c(0)
+savePlot = 0
+avgMeasVec = c(1)
 figWidth = 8 
 figHeight = 6 
 
@@ -373,7 +373,8 @@ for (avgMeas in avgMeasVec) {
   fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + chanInCond + (1|sidVec),data=dataList)
 
   summary(fit.lmmPP)
-  # plot(fit.lm)
+  plot(fit.lmmPP)
+  qqnorm(resid(fit.lmmPP))
   summary(glht(fit.lmmPP,linfct=mcp(blockType="Tukey")))
   summary(glht(fit.lmmPP,linfct=mcp(mapStimLevel="Tukey")))
   
@@ -393,7 +394,9 @@ for (avgMeas in avgMeasVec) {
   fit.lm = lm(absDiff ~ mapStimLevel + blockType + chanInCond ,data=dataList)
   
   summary(fit.lmmdiff)
-  # plot(fit.lm)
+  plot(fit.lmmdiff)
+  qqnorm(resid(fit.lmmdiff))
+  qqline(resid(fit.lmmdiff))  #summary(fit.lmm2)
   summary(glht(fit.lmmdiff,linfct=mcp(blockType="Tukey")))
   summary(glht(fit.lmmdiff,linfct=mcp(mapStimLevel="Tukey")))
   
