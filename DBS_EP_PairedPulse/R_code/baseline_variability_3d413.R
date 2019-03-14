@@ -23,9 +23,9 @@ sidVec = c("3d413")
 
 
 savePlot = 1
-avgMeasVec = c(1)
+avgMeasVec = c(0)
 figWidth = 8 
-figHeight = 6 
+figHeight = 4
 
 dataList = list()
 blockList = list()
@@ -106,13 +106,13 @@ for (avgMeas in avgMeasVec) {
       print(p)
       
       if (savePlot && !avgMeas) {
-        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_lm.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_lm.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_lm.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+         ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_lm.png"), units="in", width=figWidth, height=figHeight, dpi=600)
         
       }
       else if (savePlot && avgMeas){
+        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_lm_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
         ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_lm_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_lm_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
         
       }
       index = index + 1 
@@ -135,11 +135,11 @@ p3 <- ggplot(dataList, aes(x=stimLevelVec, y=PPvec,color=blockType)) +
 print(p3)
 
 if (savePlot && !avgMeas) {
-  ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_combined.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+  ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_combined.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps,fallback_resolution=600)
   ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_combined.png"), units="in", width=figWidth, height=figHeight, dpi=600,device="png")
   
 } else if (savePlot && avgMeas){
-  ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_combined_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="png")
+  ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_combined_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
   ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_combined_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600,device="png")
   
 }
