@@ -305,11 +305,11 @@ for (avgMeas in avgMeasVec) {
   
   if (savePlot && !avgMeas) {
     ggsave(paste0("across_subj_mean_perc.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_mean_perc.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    ggsave(paste0("across_subj_mean_perc.eps"), units="in", width=figWidth, height=figHeight, device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
     ggsave(paste0("across_subj_mean_perc_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_mean_perc_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    ggsave(paste0("across_subj_mean_perc_avg.eps"), units="in", width=figWidth, height=figHeight, device=cairo_ps, fallback_resolution=600)
     
   }
   
@@ -347,7 +347,7 @@ for (avgMeas in avgMeasVec) {
   
   p8 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPP,color=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
-    labs(x = expression(paste("Stimulation level")),y=expression(paste("Mean peak to peak voltage (",mu,"V)")), color="Experimental condition",title = paste0("EP magnitude"))
+    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean peak to peak voltage (",mu,"V)")), color="Experimental condition",title = paste0("EP magnitude"))
   print(p8)
   
   if (savePlot && !avgMeas) {
@@ -357,6 +357,23 @@ for (avgMeas in avgMeasVec) {
   } else if (savePlot && avgMeas){
     ggsave(paste0("across_subj_mean_PP_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
     ggsave(paste0("across_subj_mean_PP_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    
+  }  
+  
+  figWidth = 8 
+  figHeight = 4
+  p11 <- ggplot(data = dataListSummarize, aes(x = blockType, y = meanAbs,color=blockType)) +
+    geom_boxplot(notch=TRUE,outlier.shape=NA)  + geom_jitter(shape=16, position=position_jitter(0.2)) +
+    labs(x = expression(paste("Experimental Condition")),y=expression(paste("Absolute Difference from Baseline Peak-To-Peak (",mu,"V)")),color="Experimental Condition",title = paste0("EP Difference from Baseline by Conditioning Protocol"))
+  print(p11)
+  
+  if (savePlot && !avgMeas) {
+    ggsave(paste0("across_subj_mean_abs_box.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_box.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    
+  } else if (savePlot && avgMeas){
+    ggsave(paste0("across_subj_mean_abs_box_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_box_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   }  
   

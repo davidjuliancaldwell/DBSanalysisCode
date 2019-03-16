@@ -22,15 +22,18 @@ codeDir = here("DBS_EP_PairedPulse","R_code")
 sidVec = c("a23ed")
 
 
-savePlot = 0
-avgMeasVec = c(0)
+savePlot = 1
+avgMeasVec = c(1)
 figWidth = 8 
-figHeight = 6 
+figHeight = 4
 
 dataList = list()
 blockList = list()
 conditionList = list()
 index = 1
+
+# hardcode subject #
+subjectNum = 11
 
 for (avgMeas in avgMeasVec) {
   for (sid in sidVec){
@@ -124,20 +127,20 @@ for (avgMeas in avgMeasVec) {
         
       }
       
-      p <- ggplot(dataInt, aes(x=stimLevelVec, y=PPvec,color=stimLevelVec)) +
+      p <- ggplot(dataInt, aes(x=as.numeric(mapStimLevel), y=PPvec,color=stimLevelVec)) +
         geom_point(position=position_jitterdodge(dodge.width=0.250)) +  geom_smooth(method=lm) + facet_wrap(~blockVec, labeller = as_labeller(blockNames))+
-        labs(x = expression(paste("Stimulation current (mA)")),y=expression(paste("Peak to peak magnitude (",mu,"V)")),title = paste0("Subject ", subjectNum, " ID ", sid," DBS paired pulse EP measurements")) +
-        guides(colour=guide_colorbar("Stimulation level"))
+        labs(x = expression(paste("Stimulation Current (mA)")),y=expression(paste("Peak to Peak Magnitude (",mu,"V)")),title = paste0("Subject ", subjectNum," DBS Paired Pulse EP Measurements")) +
+        guides(colour=guide_colorbar("Stimulation Level"))
       print(p)
       
       if (savePlot && !avgMeas) {
         ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_chan_",chanInt,"_compare_length_scatter_lm.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_chan_",chanInt,"_compare_length_scatter_lm.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_chan_",chanInt,"_compare_length_scatter_lm.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
         
       }
       else if (savePlot && avgMeas){
         ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_chan_",chanInt,"_compare_length_scatter_lm_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_chan_",chanInt,"_compare_length_scatter_lm_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_chan_",chanInt,"_compare_length_scatter_lm_avg.eps"), units="in", width=figWidth, height=figHeight, device=cairo_ps, fallback_resolution=600)
         
       }
       
@@ -147,7 +150,7 @@ for (avgMeas in avgMeasVec) {
       summary(glht(fit.glm,linfct=mcp(blockVec="Tukey")))
      
     }
-  }
+  
   
   # now do comparison at highest stim level relative to baseline
   dataList <- do.call(rbind,dataList)
@@ -159,98 +162,98 @@ for (avgMeas in avgMeasVec) {
                                  meanAbs=mean(absDiff), sdDiff=sd(percentDiff),meanPP = mean(PPvec),sdPP = sd(PPvec))
   
   
-  p3 <- ggplot(dataList, aes(x=mapStimLevel, y=percentDiff,color=blockType)) +
+  p3 <- ggplot(dataList, aes(x=as.numeric(mapStimLevel), y=percentDiff,color=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.75)) +
-    labs(x = expression(paste("Stimulation level")),y=expression(paste("Percent difference in EP magnitude from baseline")),
-         title = paste0("Changes in EP magnitude"),color="Experimental condition")
+    labs(x = expression(paste("Stimulation level")),y=expression(paste("Percent Difference in EP Magnitude from Baseline")),
+         title = paste0("Changes in EP magnitude"),color="Experimental Condition")
   print(p3)
   
   if (savePlot && !avgMeas) {
     ggsave(paste0("across_a23ed_percent.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_a23ed_percent.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    ggsave(paste0("across_a23ed_percent.eps"), units="in", width=figWidth, height=figHeight, device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
     ggsave(paste0("across_a23ed_percent_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_a23ed_percent_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    ggsave(paste0("across_a23ed_percent_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   }
   
-  p4 <- ggplot(dataList, aes(x=mapStimLevel, y=absDiff,color=blockType)) +
+  p4 <- ggplot(dataList, aes(x=as.numeric(mapStimLevel), y=absDiff,color=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
-    labs(x = expression(paste("Stimulation level")),y=expression(paste("Absolute difference in EP magnitude from baseline (",mu,"V)"), color="Experimental condition"),title = paste0("Changes in EP magnitude"))
+    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Absolute Difference in EP Magnitude from Baseline (",mu,"V)")), color="Experimental Condition",title = paste0("Changes in EP magnitude"))
   print(p4)
   
   if (savePlot && !avgMeas) {
     ggsave(paste0("across_a23ed_abs.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_a23ed_abs.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    ggsave(paste0("across_a23ed_abs.eps"), units="in", width=figWidth, height=figHeight, device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
     ggsave(paste0("across_a23ed_abs_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_a23ed_abs_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    ggsave(paste0("across_a23ed_abs_avg.eps"), units="in", width=figWidth, height=figHeight, device=cairo_ps, fallback_resolution=600)
     
   }
   
-  p5 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPerc,color=blockType)) +
+  p5 <- ggplot(dataListSummarize, aes(x=as.numeric(mapStimLevel), y=meanPerc,color=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
-    labs(x = expression(paste("Stimulation level")),y=expression(paste("Mean percent difference in EP magnitude"), color="Experimental condition"),
-         title = paste0("Changes in EP magnitude"))
+    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean Percent Difference in EP Magnitude")), color="Experimental Condition",
+         title = paste0("Changes in EP Magnitude"))
   print(p5)
   
   if (savePlot && !avgMeas) {
     ggsave(paste0("across_a23ed_mean_perc.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_a23ed_mean_perc.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    ggsave(paste0("across_a23ed_mean_perc.eps"), units="in", width=figWidth, height=figHeight, device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
     ggsave(paste0("across_a23ed_mean_perc_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_a23ed_mean_perc_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    ggsave(paste0("across_a23ed_mean_perc_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   }
   
-  p6 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanAbs,color=blockType)) +
+  p6 <- ggplot(dataListSummarize, aes(x=as.numeric(mapStimLevel), y=meanAbs,color=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
-    labs(x = expression(paste("Stimulation level")),y=expression(paste("Mean absolute difference in EP magnitude from baseline (",mu,"V)"),
-                                                                 color="Experimental condition"),title = paste0("Changes in EP magnitude"))
+    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean Absolute Difference in EP Magnitude from Baseline (",mu,"V)")),
+                                                                 color="Experimental Condition",title = paste0("Changes in EP Magnitude"))
   print(p6)
   
   if (savePlot && !avgMeas) {
     ggsave(paste0("across_a23ed_mean_abs.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_a23ed_mean_abs.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    ggsave(paste0("across_a23ed_mean_abs.eps"), units="in", width=figWidth, height=figHeight, device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
     ggsave(paste0("across_a23ed_mean_abs_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_a23ed_mean_abs_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    ggsave(paste0("across_a23ed_mean_abs_avg.eps"), units="in", width=figWidth, height=figHeight, device=cairo_ps, fallback_resolution=600)
     
   }
   
-  p7 <- ggplot(dataList, aes(x=mapStimLevel, y=PPvec,color=blockType)) +
+  p7 <- ggplot(dataList, aes(x=as.numeric(mapStimLevel), y=PPvec,color=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
-    labs(x = expression(paste("Stimulation level")),y=expression(paste("Peak to peak voltage (",mu,"V)"),
-                                                                 color="Experimental condition"),title = paste0("EP Magnitude by length of conditioning"))
+    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Peak to Peak voltage (",mu,"V)")),
+                                                                 color="Experimental Condition",title = paste0("EP Magnitude by Length of Conditioning"))
   print(p7)
   if (savePlot && !avgMeas) {
     ggsave(paste0("across_a23ed_PP.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_a23ed_PP.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    ggsave(paste0("across_a23ed_PP.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
     ggsave(paste0("across_a23ed_PP_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_a23ed_PP_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    ggsave(paste0("across_a23ed_PP_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device=cairo_ps, fallback_resolution=600)
     
   }
   
   
-  p8 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPP,colour=blockType,fill=blockType)) +
+  p8 <- ggplot(dataListSummarize, aes(x=as.numeric(mapStimLevel), y=meanPP,colour=blockType,fill=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
-    labs(x = expression(paste("Stimulation level")),y=expression(paste("Mean peak to peak voltage (",mu,"V)"), color="Experimental condition"),
-         title = paste0("EP Magnitude by length of conditioning"))
+    labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean Peak to Peak Voltage (",mu,"V)")), color="Experimental Condition",
+         title = paste0("EP Magnitude by Length of Conditioning"))
   print(p8)
   
   if (savePlot && !avgMeas) {
     ggsave(paste0("across_a23ed_mean_PP.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_a23ed_mean_PP.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    ggsave(paste0("across_a23ed_mean_PP.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
     ggsave(paste0("across_a23ed_mean_PP_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_a23ed_mean_PP_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device="eps")
+    ggsave(paste0("across_a23ed_mean_PP_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device=cairo_ps, fallback_resolution=600)
     
   }  
   
@@ -306,4 +309,5 @@ for (avgMeas in avgMeasVec) {
   anova(fit.lmmdiff)
   tab_model(fit.lmmdiff)
   
+  }
 }

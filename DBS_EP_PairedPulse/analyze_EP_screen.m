@@ -7,7 +7,7 @@ Z_ConstantsDBS_PairedPulse;
 
 %sid = '3809e';
 sid = '46c2a';
-block = 2;
+block = 1;
 
 sid
 
@@ -81,7 +81,7 @@ for block = 1:6
     %%
     plotIt = 1;
     savePlot = 0;
-    [stim1Epoched,t,fs,labels,pulseWidths,uniqueLabels,uniquePulseWidths,uniquePulseWidthLabels] = voltage_monitor_different_width(Stim,Sing,plotIt,savePlot,'','','');
+    [stim1Epoched,t,fs,labels,pulseWidths,uniqueLabels,uniquePulseWidths,uniquePulseWidthLabels] = voltage_monitor_different_width(Stim,Sing,plotIt,savePlot,'','','',1);
     
     %% find out which each of the programmed stimuli actually were set to be delivered
     [sts,bursts] = get_epoch_indices(Sing.data,ECoGfs,stimFs);
@@ -92,7 +92,7 @@ for block = 1:6
     chansList = [1:8];
     chans = chansList(goodVec);
     blckedData(:,stimChans,:) = 0;
-    xlims = [-10 30];
+    xlims = [-5 30];
     
     for i = uniquePulseWidthLabels
         smallMultiples_DBS(blckedData(:,:,labels==i(1) & pulseWidths == i(2)),tBlck/1e3,'type2',stimChans,'xlims',xlims);

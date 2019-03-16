@@ -101,8 +101,8 @@ for (avgMeas in avgMeasVec) {
       
       p <- ggplot(dataInt, aes(x=stimLevelVec, y=PPvec,color=stimLevelVec)) +
         geom_point(position=position_jitterdodge(dodge.width=0.250)) +  geom_smooth(method=lm) + facet_wrap(~blockVec, labeller = as_labeller(blockNames))+
-        labs(x = expression(paste("Stimulation current (mA)")),y=expression(paste("Peak to peak magnitude (",mu,"V)")),title = paste0("Subject ", subjectNum, " ID ", sid," DBS paired pulse EP measurements")) +
-        guides(colour=guide_colorbar("sStimulation level"))
+        labs(x = expression(paste("Stimulation Current (mA)")),y=expression(paste("Peak to Peak magnitude (",mu,"V)")),title = paste0("Subject ", subjectNum, " ID ", sid," DBS Paired Pulse EP Mseasurements")) +
+        guides(colour=guide_colorbar("Stimulation Level"))
       print(p)
       
       if (savePlot && !avgMeas) {
@@ -130,8 +130,8 @@ labelVec <- c("4" = "Channel 4","6" = "Channel 6")
 #dataListFactorized$stimLevelVec = as.factor(dataListFactorized$stimLevelVec)
 p3 <- ggplot(dataList, aes(x=stimLevelVec, y=PPvec,color=blockType)) +
   geom_point(position=position_jitterdodge(dodge.width=0.250)) +geom_smooth(method=lm) + facet_grid(. ~chanVec, labeller = labeller(chanVec = labelVec))+
-  labs(x = expression(paste("Stimulation current (mA)")),y=expression(paste("Peak to peak magnitude (",mu,"V)")),
-       color="Experimental condition",title = paste0("Anesthesia effect on EP magnitude"))
+  labs(x = expression(paste("Stimulation Current (mA)")),y=expression(paste("Peak to peak magnitude (",mu,"V)")),
+       color="Experimental Condition",title = paste0("Anesthesia Effect on EP Magnitude"))
 print(p3)
 
 if (savePlot && !avgMeas) {
