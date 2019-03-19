@@ -1,14 +1,14 @@
 function smallMultiples_DBS(signal,t,varargin)
 %% small multiples plot for 1x8 DBS strips
 % plot small mutliple plots - time x channels x trials
-% 7.27.2018 David.J.Caldwell 
+% 7.27.2018 David.J.Caldwell
 
 % defaults
 type1 = [];
 type2 = [];
 average = 0;
- xlims =  [-10 100];
-   ylims = [-300 300];
+xlims =  [-10 100];
+ylims = [-300 300];
 
 for i=1:2:(length(varargin)-1)
     if ~ischar (varargin{i}),
@@ -72,7 +72,7 @@ for idx=1:size(signal,2)
     axis off
     axis tight
     xlim(xlims)
-   ylim(ylims)
+    ylim(ylims)
     vline(0)
     
     %subtitle(['Baseline CCEPs by Channel']);
@@ -88,10 +88,10 @@ obj.YUnit = '\muV';
 obj.Position = [20,-130];
 obj.hTextX_Pos = [5,-10]; %move only the LABEL position
 obj.hTextY_Pos =  [32,-5];
-obj.hLineY(2).LineWidth = 5;
-obj.hLineY(1).LineWidth = 5;
-obj.hLineX(2).LineWidth = 5;
-obj.hLineX(1).LineWidth = 5;
+obj.hLineY(2).LineWidth = 2;
+obj.hLineY(1).LineWidth = 2;
+obj.hLineX(2).LineWidth = 2;
+obj.hLineX(1).LineWidth = 2;
 obj.Border = 'LR';          %'LL'(default), 'LR', 'UL', 'UR'
 
 end
