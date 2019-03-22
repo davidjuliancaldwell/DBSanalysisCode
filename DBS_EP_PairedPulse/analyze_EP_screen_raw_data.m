@@ -8,12 +8,13 @@ Z_ConstantsDBS_PairedPulse;
 sid = '68574';
 sid = 'e9c9b';
 sid = '46c2a';
-sidCell = {'46c2a','68574','e9c9b'};
-blockCell = {[1:6],[5,6,13,14],[1:4,7]};
-indexVec = [1,2,3];
+sidCell = {'46c2a','68574','e9c9b','a23ed'};
+blockCell = {[1:6],[5,6,13,14],[1:4,7],[3,4,9]};
+indexVec = [1,2,3,4];
+indexVec = [4];
 matlab_dir = 'MATLAB_Converted';
 experiment = 'EP_Screen';
-index = 1;
+
 for index = indexVec
     
     sid = sidCell{index}
@@ -94,6 +95,38 @@ for index = indexVec
                         load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-7.mat')); %
                         stimChans = [7 8];
                 end
+                
+            case 'a23ed'
+                switch block
+                    case 1
+                        load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-1.mat'));
+                        stimChans = [7 8];
+                    case 2
+                        load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-2.mat')); %
+                        stimChans = [8 7];
+                    case 3
+                        load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-3.mat'));
+                        stimChans = [7 6];
+                    case 4
+                        load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-4.mat')); %
+                        stimChans = [6 7];
+                    case 5
+                        load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-5.mat')); %
+                        stimChans = [6 5];
+                    case 6
+                        load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-6.mat')); %
+                        stimChans = [5 6];
+                    case 7
+                        load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-7.mat')); %
+                        stimChans = [5 4];
+                    case 8
+                        load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-8.mat')); %
+                        stimChans = [4 5];
+                    case 9
+                        load(fullfile(SUB_DIR,sid,matlab_dir,experiment,'EP_Screen-9.mat')); %
+                        stimChans = [6 7];
+                        
+                end
         end
         
         %%
@@ -129,7 +162,7 @@ for index = indexVec
         blckedData(:,stimChans,:) = 0;
         
         preTime = 10;
-        postTIme = 100;
+        postTime = 100;
         
         preSamps = round(preTime*blckedDataFs/1e3);
         postSamps = round(postTime*blckedDataFs/1e3);
@@ -144,6 +177,8 @@ for index = indexVec
         
         for i = uniquePulseWidthLabels
             if i(1)>1000
+                numelements = size(epochNormed(:,:,labels==i(1) & pulseWidths == i(2)),3);
+                fprintf(['Subject ' sid ' ' num2str(i(1)) ' ',num2str(i(2)) ' ' num2str(stimChans(1)) ' ' num2str(stimChans(2)) ' # avg ' num2str(numelements) '\n'])
                 smallMultiples_DBS(epochNormed(:,:,labels==i(1) & pulseWidths == i(2)),tEpoch/1e3,'type2',stimChans,'xlims',xlims);
                 sgtitle(['stim chans = ' num2str(stimChans) ' current level = ' num2str(i(1)) ' \muA pulse width = ' num2str(i(2)) ' \mus'])
             end

@@ -80,9 +80,9 @@ for idx=1:size(signal,2)
     
 end
 obj = scalebar;
-obj.XLen = 10;              %X-Length, 10.
+obj.XLen = 50;              %X-Length, 10.
 obj.XUnit = 'ms';            %X-Unit, 'm'.
-obj.YLen = 100;
+obj.YLen = 200;
 obj.YUnit = '\muV';
 
 obj.Position = [20,-130];
