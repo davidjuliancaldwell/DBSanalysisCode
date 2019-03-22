@@ -6,8 +6,9 @@ for chanInt = chanIntList
     for condInt = 1:4
         % confidence interval
         type = 'CI';
-        figure
-        set(gcf,'position',[299 278 786 679])
+        confIntFig = figure;
+        confIntFig.Units = "inches";
+        confIntFig.Position = [1 1 4 4];
         for i = 1:length(blocks)
             plotBTLError(tEpoch, 1e6*squeeze(epochsEPblock{i}{condInt}(:,chanInt,:)),type,cmap(i,:)')
         end
@@ -34,8 +35,11 @@ for chanInt = chanIntList
         end
         %%
         % mean
-        figure
-        set(gcf,'position',[299 278 786 679])
+          % confidence interval
+        type = 'CI';
+        meanFig = figure;
+        meanFig.Units = "inches";
+        meanFig.Position = [1 1 4 4];
         
         for i = 1:length(blocks)
             plot(tEpoch, 1e6*mean(squeeze(epochsEPblock{i}{condInt}(:,chanInt,:)),2),'linewidth',2,'color',cmap(i,:)')

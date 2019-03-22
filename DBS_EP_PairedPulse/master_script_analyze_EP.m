@@ -6,10 +6,11 @@ matlab_dir = 'MATLAB_Converted';
 experiment = 'EP_Measurement';
 
 avgTrialsVec = [0,1]';
+avgTrialsVec = [0]';
 numAvg = 3;
 
-savePlot = 1;
-saveData = 1;
+savePlot = 0;
+saveData = 0;
 screenBadChans = 0;
 plotCondAvg = 0;
 
