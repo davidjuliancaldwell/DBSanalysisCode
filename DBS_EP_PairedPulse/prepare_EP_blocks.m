@@ -3,8 +3,12 @@
 blockCount = 1; % do not change, counter variable
 blockLabel = {};
 
-figStimBox = figure;
-figCurrent = figure;
+if plotCondAvg
+    
+    figStimBox = figure;
+    figCurrent = figure;
+    
+end
 for block = blocks
     
     % load in tank
@@ -679,37 +683,37 @@ for block = blocks
             
         case 'a23ed'
             
-            tBegin = 1.8; % ms
-            tEnd = 40; % ms
+            tBegin = 3; % ms
+            tEnd = 30; % ms
             switch block
                 % baseline pre stim 1
                 case 1
                     stimChans = [6 7];
-                            badTrials = 1;
+                    badTrials = 1;
                     badTrialLocations = [195:219 239:240];
                     
                     % baseline pre stim 2
                 case 2
                     stimChans = [6 7];
-                              badTrials = 1;
+                    badTrials = 1;
                     badTrialLocations = [128:161 216:240];
                     
                     % post A/B 200 ms - only 5 minutes!
                 case 3
                     stimChans = [6 7];
-                        badTrials = 1;
+                    badTrials = 1;
                     badTrialLocations = [62 180 216:240];
                     
                     % baseline 3 post A/B 200 ms  - 15 mins
                 case 4
                     stimChans = [6 7];
-                            badTrials = 1;
+                    badTrials = 1;
                     badTrialLocations = [78 190];
                     
                     % baseline 4
                 case 5
                     stimChans = [6 7];
-                           badTrials = 1;
+                    badTrials = 1;
                     badTrialLocations = [221];
                     
                     % post A/B 200 ms - 15 minutes
@@ -728,7 +732,7 @@ for block = blocks
                     % baseline 6 - pre DBS
                 case 9
                     stimChans = [6 7];
-                       badTrials = 1;
+                    badTrials = 1;
                     badTrialLocations = [78];
             end
             
@@ -868,21 +872,21 @@ for block = blocks
     
     clearvars badTrials badTrialLocations
     
-%     figure(figStimBox)
-%     hold on
-%     plot(stimBox(:,1))
-%     
-%     figure(figCurrent)
-%     hold on
-%     plot(stimProgrammed(:,1))
-%     
-%     fprintf(['finished block '  num2str(block) '\n'])
-%     
+    %     figure(figStimBox)
+    %     hold on
+    %     plot(stimBox(:,1))
+    %
+    %     figure(figCurrent)
+    %     hold on
+    %     plot(stimProgrammed(:,1))
+    %
+    %     fprintf(['finished block '  num2str(block) '\n'])
+    %
 end
 % figure(figStimBox)
-% 
+%
 % legend
-% 
+%
 % figure(figCurrent)
 % legend
 

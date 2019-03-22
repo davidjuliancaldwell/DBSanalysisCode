@@ -45,6 +45,17 @@ for chanInt = chanIntList
             plot(tEpoch, 1e6*mean(squeeze(epochsEPblock{i}{condInt}(:,chanInt,:)),2),'linewidth',2,'color',cmap(i,:)')
             hold on
         end
+        
+        if plotPkTr
+            pkInt = pkLocsBlock{4}(5,4);
+            trInt = trLocsBlock{4}(5,4);
+            tBeginSamp = ECoGfs*tBegin/1e3;
+            tEndSamp = ECoGfs*tEnd/1e3;
+            tPk = (tBeginSamp:tEndSamp)/ECoGfs;
+            pkIntTime = 1e3*tPk(pkInt);
+            trIntTime = 1e3*tPk(trInt);
+            
+        end
         xlim([-10 70])
         ylim([-350 350])
         ylabel('Voltage (\muV)')

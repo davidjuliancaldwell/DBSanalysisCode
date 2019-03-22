@@ -22,7 +22,7 @@ codeDir = here("DBS_EP_PairedPulse","R_code")
 sidVec = c("a23ed")
 
 
-savePlot = 0
+savePlot = 1
 avgMeasVec = c(0)
 figWidth = 8 
 figHeight = 4

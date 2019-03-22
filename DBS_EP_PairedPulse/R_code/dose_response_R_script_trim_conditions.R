@@ -30,8 +30,8 @@ sidVec <- c('46c2a','c963f','2e114','9f852',
 #sidVec <- c('9f852')
 #sidVec <- c('46c2a')
 
-savePlot = 0
-avgMeasVec = c(0)
+savePlot = 1
+avgMeasVec = c(0,1)
 figWidth = 8 
 figHeight = 6 
 

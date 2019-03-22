@@ -52,9 +52,9 @@ for i = 1:length(ucondition)
             tr_loc = nan;
         end
         
-        plotIt = 0;
+        plotIt = 1;
         
-        if plotIt && j == 6 && i == 4
+        if plotIt && j == 5 && i == 4
             figure
             plot(tempSignalExtract)
             vline(pk_loc)
