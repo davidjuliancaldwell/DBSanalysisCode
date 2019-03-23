@@ -30,8 +30,8 @@ sidVec <- c('46c2a','c963f','2e114','9f852',
 #sidVec <- c('9f852')
 #sidVec <- c('46c2a')
 
-savePlot = 1
-avgMeasVec = c(0,1)
+savePlot = 0
+avgMeasVec = c(0)
 figWidth = 8 
 figHeight = 6 
 
@@ -104,7 +104,7 @@ for (avgMeas in avgMeasVec) {
                                      from=uniqueBlockLevel,
                                      to=blockTypeTrim)
       
-      dataInt$mapStimLevel = as.factor(dataInt$mapStimLevel)
+      dataInt$mapStimLevel = as.ordered(dataInt$mapStimLevel)
       dataInt$blockType = as.factor(dataInt$blockType)
       for (comparison in whichCompareVec){
         dataIntCompare <- subset(dataInt,(blockVec %in% comparison))
@@ -398,7 +398,8 @@ for (avgMeas in avgMeasVec) {
 
   
   fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + chanInCond + (1|sidVec),data=dataList)
-
+  emm_options(pbkrtest.limit = 200000) 
+  
   summary(fit.lmmPP)
   plot(fit.lmmPP)
  qqnorm(resid(fit.lmmPP))

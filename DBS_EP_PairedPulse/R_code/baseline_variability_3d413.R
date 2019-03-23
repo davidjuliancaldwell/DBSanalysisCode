@@ -74,7 +74,7 @@ for (avgMeas in avgMeasVec) {
                                      from=uniqueBlockLevel,
                                      to=blockType)
       
-      dataInt$mapStimLevel = as.factor(dataInt$mapStimLevel)
+      dataInt$mapStimLevel = as.ordered(dataInt$mapStimLevel)
       dataInt$blockType = as.factor(dataInt$blockType)
       dataIntCompare <- dataInt
       

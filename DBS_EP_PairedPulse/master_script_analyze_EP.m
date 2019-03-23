@@ -14,7 +14,7 @@ saveData = 0;
 screenBadChans = 0;
 plotCondAvg = 0;
 
-plotPkTr = 0;
+plotPkTr = 1;
 
 sidVecIterate = {'46c2a','9f852','8e907','08b13'};
 sidVecIterate = {'08b13'};

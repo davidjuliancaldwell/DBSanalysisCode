@@ -82,6 +82,8 @@ for (avgMeas in avgMeasVec) {
                                         from=uniqueStimLevel,
                                         to=mappingStimLevel)
       
+      dataInt$mapStimLevel = as.ordered(dataInt$mapStimLevel)
+      
       uniqueBlockLevel = unique(dataInt$blockVec)
       blockTypeTrim = blockType[uniqueBlockLevel]
       
@@ -89,7 +91,7 @@ for (avgMeas in avgMeasVec) {
                                      from=uniqueBlockLevel,
                                      to=blockTypeTrim)
       
-      dataInt$mapStimLevel = as.factor(dataInt$mapStimLevel)
+     # dataInt$mapStimLevel = as.ordered(dataInt$mapStimLevel)
       dataInt$blockType = as.factor(dataInt$blockType)
 
       
