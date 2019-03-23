@@ -22,7 +22,7 @@ codeDir = here("DBS_EP_PairedPulse","R_code")
 sidVec = c("3d413")
 
 
-savePlot = 1
+savePlot = 0
 avgMeasVec = c(0)
 figWidth = 8 
 figHeight = 4
@@ -158,8 +158,8 @@ summary(glht(fit.lmm,linfct=mcp(mapStimLevel="Tukey")))
 emmeans(fit.lmm, list(pairwise ~ blockType), adjust = "tukey")
 emmeans(fit.lmm, list(pairwise ~ mapStimLevel), adjust = "tukey")
 
-emm_s.t <- emmeans(fit.lmm, pairwise ~ blockType | mapStimLevel)
-emm_s.t <- emmeans(fit.lmm, pairwise ~ mapStimLevel | blocktype)
+#emm_s.t <- emmeans(fit.lmm, pairwise ~ blockType | mapStimLevel)
+#emm_s.t <- emmeans(fit.lmm, pairwise ~ mapStimLevel | blocktype)
 
 anova(fit.lmm)
 tab_model(fit.lmm)

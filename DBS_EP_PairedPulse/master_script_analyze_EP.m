@@ -6,11 +6,11 @@ matlab_dir = 'MATLAB_Converted';
 experiment = 'EP_Measurement';
 
 avgTrialsVec = [0,1]';
-avgTrialsVec = [0,1]';
+avgTrialsVec = [0]';
 numAvg = 3;
 
 savePlot = 0;
-saveData = 1;
+saveData = 0;
 screenBadChans = 0;
 plotCondAvg = 0;
 
@@ -98,9 +98,9 @@ for avgTrials = avgTrialsVec'
                 legendText = {'baseline 1','baseline 2','post A/B 200 ms 1 (5 mins)','baseline 3 (post A/B)',...
                     'baseline 4','post A/B 200 ms (15 mins)','baseline 5','post A/A 200 ms (15 mins)','baseline 6'};  
                 
-%                          legendText = {'baseline 2','post A/B 200 ms 1 (5 mins)','post A/B 200 ms (15 mins)','post A/A 200 ms (15 mins)'};  
-%                 
-%                 blocks = [2 3 6 8];
+                         legendText = {'baseline 2','post A/B 200 ms 1 (5 mins)','post A/B 200 ms (15 mins)','post A/A 200 ms (15 mins)'};  
+                
+                blocks = [2 3 6 8];
                 
         end
         
