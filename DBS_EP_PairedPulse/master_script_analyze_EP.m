@@ -6,15 +6,15 @@ matlab_dir = 'MATLAB_Converted';
 experiment = 'EP_Measurement';
 
 avgTrialsVec = [0,1]';
-avgTrialsVec = [0]';
+avgTrialsVec = [0,1]';
 numAvg = 3;
 
-savePlot = 0;
-saveData = 0;
+savePlot = 1;
+saveData = 1;
 screenBadChans = 0;
 plotCondAvg = 0;
 
-plotPkTr = 1;
+plotPkTr = 0;
 
 sidVecIterate = {'46c2a','9f852','8e907','08b13'};
 sidVecIterate = {'08b13'};
@@ -22,6 +22,8 @@ sidVecIterate = {'c963f'};
 sidVecIterate = {'2e114'};
 sidVecIterate = {'3d413'};
 sidVecIterate = {'a23ed'};
+sidVecIterate = {'fe7df','e6f3c'};
+sidVecIterate = {'e6f3c'};
 
 for avgTrials = avgTrialsVec'
     for sid = sidVecIterate
@@ -35,40 +37,63 @@ for avgTrials = avgTrialsVec'
             case 'c963f'
                 blocks = [2 4 6 8];
                 chanIntList = [6];
-                legendText = {'baseline','post 25 ms A/B','baseline 2','post 50 ms A/B'};
+                legendText = {'baseline','post 25 ms A/B','baseline 2',...
+                    'post 50 ms A/B'};
                 
             case '2e114'
                 blocks = [1 3 5 7 10 12];
                 chanIntList = [4];
-                legendText = {'baseline 1','post 25 ms A/B','baseline 2','post 50 ms A/B','baseline 3','post A only'};
+                legendText = {'baseline 1','post 25 ms A/B','baseline 2',...
+                    'post 50 ms A/B','baseline 3','post A only'};
                 
             case '3d413'
                 blocks = [1 2 3 4 5 6 7 8 9 10];
                 chanIntList = [4 6];
-                legendText = {"asleep","asleep","awake","awake","awake","awake","asleep","asleep","asleep","asleep"};
+                legendText = {"asleep","asleep","awake","awake",...
+                    "awake","awake","asleep","asleep","asleep","asleep"};
+                
+            case 'fe7df'
+                blocks = [1 2 3 4 5 6 7 8 9];
+                chanIntList = [6];
+                legendText = {"baseline 1","baseline 2","baseline 3","post 25 ms A/B 1","baseline 4 post 25 ms A/B 2","post 200 ms A/B 1","baseline 5 post 200 ms A/B 2","baseline 6 post 200 ms A/B 3","baseline 7 post 200 ms A/B 4"};
+                
+            case 'e6f3c'
+                blocks = [5 6 7 8 9 10 11 12 13 14 15 16 17];
+                chanIntList = [7 6];
+                legendText = {"baseline 1 6/5 pair","baseline 1 8/7 pair",...
+                    "baseline 2 6/5 pair","baseline 2 8/7 pair","post A/B 200 ms 1 8/7 pair",...
+                    "post A/B 200 ms 1 6/5 pair","baseline 3 8/7 pair","baseline 3 6/5 pair",...
+                    "post A/A 25 ms 8/7 pair","post A/A 25 ms 6/5 pair","post A/B 25 ms 8/7 pair",...
+                    "post A/B 25 ms 6/5 pair - noisy","post A/B 25 ms 6/ pair - noisy"};
                 
             case '9f852'
                 blocks = [2 3 4 5 6 7 10 11 12];
                 chanIntList = [4];
-                legendText = {'baseline 2 (pre conditioning)' ,'post A/B 25 ms','baseline 3 (post 25 ms)',...
-                    'post A/A 25 ms','baseline 4 (post 25 ms A/A)','post A/B 200 ms','baseline 5 - post A/B 200 ms 12 minutes later','post A/B 25 ms second time','baseline 6'};
+                legendText = {'baseline 2 (pre conditioning)' ,'post A/B 25 ms',...
+                    'baseline 3 (post 25 ms)','post A/A 25 ms',...
+                    'baseline 4 (post 25 ms A/A)','post A/B 200 ms',...
+                    'baseline 5 - post A/B 200 ms 12 minutes later',...
+                    'post A/B 25 ms second time','baseline 6'};
                 
             case '8e907'
                 blocks = [1 2 5 6 7];
                 chanIntList = [4 5];
-                legendText = {'baseline 1' ,'baseline 2','post A/B 200 ms 1','post A/B 200 ms 2','post A/B 200 ms 3'};
+                legendText = {'baseline 1' ,'baseline 2','post A/B 200 ms 1',...
+                    'post A/B 200 ms 2','post A/B 200 ms 3'};
                 
             case '08b13'
                 blocks = [1 3 5 6 7 8];
                 chanIntList = [5 6];
                 legendText = {'baseline 1' ,'baseline 2','post A/B 200 ms 1',...
-                    'post A/B 200 ms 2/pre A/A','post A/A 200 ms 1','post A/A 200 ms 2'};
+                    'post A/B 200 ms 2/pre A/A','post A/A 200 ms 1',...
+                    'post A/A 200 ms 2'};
                 
             case 'e9c9b'
                 blocks = [1 2 3 4 5 6 7 8 9 10];
                 chanIntList = [5 6];
-                legendText = {'baseline 1','baseline 2','post A/A 200 ms 1','baseline 3 (post A/A)',...
-                    'post A/B 200 ms 1','baseline 4 (post A/B)','post A/B 25 ms 1','baseline 5 (post A/B)','baseline 6',...
+                legendText = {'baseline 1','baseline 2','post A/A 200 ms 1',...
+                    'baseline 3 (post A/A)','post A/B 200 ms 1',...
+                    'baseline 4 (post A/B)','post A/B 25 ms 1','baseline 5 (post A/B)','baseline 6',...
                     'post A/A 25 ms 1'};
                 
             case '41a73'
@@ -96,11 +121,11 @@ for avgTrials = avgTrialsVec'
                 blocks = [1 2 3 4 5 6 7 8 9];
                 chanIntList = [5 8];
                 legendText = {'baseline 1','baseline 2','post A/B 200 ms 1 (5 mins)','baseline 3 (post A/B)',...
-                    'baseline 4','post A/B 200 ms (15 mins)','baseline 5','post A/A 200 ms (15 mins)','baseline 6'};  
+                    'baseline 4','post A/B 200 ms (15 mins)','baseline 5','post A/A 200 ms (15 mins)','baseline 6'};
                 
-                         legendText = {'baseline 2','post A/B 200 ms 1 (5 mins)','post A/B 200 ms (15 mins)','post A/A 200 ms (15 mins)'};  
-                
-                blocks = [2 3 6 8];
+                %                          legendText = {'baseline 2','post A/B 200 ms 1 (5 mins)','post A/B 200 ms (15 mins)','post A/A 200 ms (15 mins)'};
+                %
+                %                 blocks = [2 3 6 8];
                 
         end
         

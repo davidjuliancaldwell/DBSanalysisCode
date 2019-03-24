@@ -786,21 +786,30 @@ for block = blocks
     
     stimLevelUniq = stimLevelUniq(~isnan(stimLevelUniq));
     
+    preSamps = round(50*ECoGfs/1e3);
+    postSamps = round(490*ECoGfs/1e3);
+    tEpoch = [-preSamps:postSamps-1]/ECoGfs*1e3;
+    
     % seems to be 29 sample delay between stim command and when the ECoG
     % data starts to move
     % and measured peak
     count = 1;
     
     for ii = stimLevelUniq
-        stimLevelCell{count} = round((29+stimCommandTimes(stimLevelCommandTimes == ii))*fac);
+        tempStimTimes = round((29+stimCommandTimes(stimLevelCommandTimes == ii))*fac);
+        
+        % make sure don't exceed edges of trial
+        tempEnd = tempStimTimes + postSamps;
+        badInds = tempEnd>size(ECoG,1);
+        tempStimTimes(badInds) = [];
+        stimLevelCell{count} = tempStimTimes;
         count = count + 1;
+        
     end
     
     %%
     epochsEP = {};
-    preSamps = round(50*ECoGfs/1e3);
-    postSamps = round(490*ECoGfs/1e3);
-    tEpoch = [-preSamps:postSamps-1]/ECoGfs*1e3;
+    
     
     goodVec = logical(ones(size(ECoG,2),1));
     goodVec(stimChans) = 0;
