@@ -20,7 +20,7 @@ dataDir = here("DBS_EP_PairedPulse","R_data")
 codeDir = here("DBS_EP_PairedPulse","R_code")
 
 sidVec <- c('46c2a','c963f','2e114','fe7df','e6f3c','9f852',
-            '08b13','8e907','e9c9b','41a73','68574',
+            '8e907','08b13','e9c9b','41a73','68574',
             '01fee','a23ed')
 
 # sidVec <- c('46c2a','c963f','2e114',
@@ -30,7 +30,7 @@ sidVec <- c('46c2a','c963f','2e114','fe7df','e6f3c','9f852',
 #sidVec <- c('9f852')
 #sidVec <- c('46c2a')
 
-savePlot = 0
+savePlot = 1
 avgMeasVec = c(1)
 figWidth = 8 
 figHeight = 6 
@@ -398,7 +398,7 @@ for (avgMeas in avgMeasVec) {
 
   
   fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + chanInCond + (1|sidVec),data=dataList)
-  emm_options(pbkrtest.limit = 200000) 
+  #emm_options(pbkrtest.limit = 200000) 
   
   summary(fit.lmmPP)
   plot(fit.lmmPP)
