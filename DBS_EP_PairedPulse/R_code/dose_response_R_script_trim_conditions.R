@@ -30,8 +30,8 @@ sidVec <- c('46c2a','c963f','2e114','fe7df','e6f3c','9f852',
 #sidVec <- c('9f852')
 #sidVec <- c('46c2a')
 
-savePlot = 1
-avgMeasVec = c(1)
+savePlot = 0
+avgMeasVec = c(0)
 figWidth = 8 
 figHeight = 6 
 
@@ -447,7 +447,7 @@ for (avgMeas in avgMeasVec) {
     
     figHeight = 4
     figWidth = 8
-    png("pairedPulse_qq_resid_PP_allSubjs_avg.png",width=figWidth,height=figHeight,units="in",res=600)
+    png("pairedPulse_resid_PP_allSubjs_avg.png",width=figWidth,height=figHeight,units="in",res=600)
     plot(fit.lmmPP)
     dev.off()
     
@@ -498,7 +498,7 @@ for (avgMeas in avgMeasVec) {
     
     figHeight = 4
     figWidth = 8
-    png("pairedPulse_qq_resid_allSubjs.png",width=figWidth,height=figHeight,units="in",res=600)
+    png("pairedPulse_resid_diff_allSubjs.png",width=figWidth,height=figHeight,units="in",res=600)
     plot(fit.lmmdiff)
     dev.off()
     
