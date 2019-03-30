@@ -148,7 +148,7 @@ if (savePlot && !avgMeas) {
 
 fit.lmm = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + (1|chanVec),data=dataList)
 
-fit.lmm2 = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + blockType*mapStimLevel + (1|chanVec),data=dataList)
+fit.lmm2 = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + blockType:mapStimLevel + (1|chanVec),data=dataList)
 
 summary(fit.lmm)
 # plot(fit.lm)

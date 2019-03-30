@@ -275,22 +275,6 @@ for (avgMeas in avgMeasVec) {
   anova(fit.lmmPP)
   tab_model(fit.lmmPP)
   
-  fit.lmmPP = lm(PPvec ~ mapStimLevel + blockType,data=dataList)
-  
-  summary(fit.lmmPP)
-  # plot(fit.lm)
-  summary(glht(fit.lmmPP,linfct=mcp(blockType="Tukey")))
-  summary(glht(fit.lmmPP,linfct=mcp(mapStimLevel="Tukey")))
-  
-  emmeans(fit.lmmPP, list(pairwise ~ blockType), adjust = "tukey")
-  emmeans(fit.lmmPP, list(pairwise ~ mapStimLevel), adjust = "tukey")
-  
-  emm_s.t <- emmeans(fit.lmmPP, pairwise ~ blockType | mapStimLevel)
-  emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | blockType)
-  
-  anova(fit.lmmPP)
-  tab_model(fit.lmmPP)
-  
   fit.lmmdiff = lm(absDiff ~ mapStimLevel + blockType,data=dataList)
   
   fit.lm = lm(absDiff ~ mapStimLevel + blockType + chanInCond ,data=dataList)

@@ -414,7 +414,6 @@ for (avgMeas in avgMeasVec) {
   
   anova(fit.lmmPP)
   tab_model(fit.lmmPP)
-  
 
   
   if (savePlot && !avgMeas) {
