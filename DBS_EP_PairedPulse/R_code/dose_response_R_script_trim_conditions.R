@@ -71,6 +71,8 @@ for (avgMeas in avgMeasVec) {
     dataPP$chanInCond <- mapvalues(dataPP$chanVec,
                                    from=chanIntVec,
                                    to=chanIntConditioningPairVec)
+    
+    dataPP$chanInCond <- as.factor(dataPP$chanInCond)
     # change to factor 
     dataPP$blockVec = as.factor(dataPP$blockVec)
     print(sid)
@@ -395,10 +397,8 @@ for (avgMeas in avgMeasVec) {
     
   }
   
-
-  
   fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + chanInCond + (1|sidVec),data=dataList)
-  emm_options(pbkrtest.limit = 200000) 
+  #emm_options(pbkrtest.limit = 200000) 
   
   summary(fit.lmmPP)
   plot(fit.lmmPP)
