@@ -227,10 +227,27 @@ for (avgMeas in avgMeasVec) {
     
   }
   
-  p7 <- ggplot(dataList, aes(x=as.numeric(mapStimLevel), y=PPvec,color=blockType)) +
-    geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
+  # p7 <- ggplot(dataList, aes(x=as.numeric(mapStimLevel), y=PPvec,color=blockType)) +
+  #   geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
+  #   labs(x = expression(paste("Stimulation Level")),y=expression(paste("Peak to Peak voltage (",mu,"V)")),
+  #                                                                color="Experimental Condition",title = paste0("EP Magnitude by Length of Conditioning"))
+  # print(p7)
+  # if (savePlot && !avgMeas) {
+  #   ggsave(paste0("across_a23ed_PP.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+  #   ggsave(paste0("across_a23ed_PP.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device=cairo_ps, fallback_resolution=600)
+  #   
+  # } else if (savePlot && avgMeas){
+  #   ggsave(paste0("across_a23ed_PP_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+  #   ggsave(paste0("across_a23ed_PP_avg.eps"), units="in", width=figWidth, height=figHeight, dpi=600,device=cairo_ps, fallback_resolution=600)
+  #   
+  #   
+  # }
+  # 
+  # 
+  p7 <- ggplot(dataList, aes(x=as.numeric(mapStimLevel), y=PPvec)) +
+    geom_point(position=position_jitterdodge(dodge.width=0.75)) + scale_color_manual(values=c('red"')) +geom_smooth(method=lm) +
     labs(x = expression(paste("Stimulation Level")),y=expression(paste("Peak to Peak voltage (",mu,"V)")),
-                                                                 color="Experimental Condition",title = paste0("EP Magnitude by Length of Conditioning"))
+         color="Experimental Condition",title = paste0("EP Magnitude by Length of Conditioning"))
   print(p7)
   if (savePlot && !avgMeas) {
     ggsave(paste0("across_a23ed_PP.png"), units="in", width=figWidth, height=figHeight, dpi=600)
@@ -297,3 +314,13 @@ for (avgMeas in avgMeasVec) {
   
   }
 }
+
+ggplotColours <- function(n = 6, h = c(0, 360) + 15){
+  +     if ((diff(h) %% 360) < 1) h[2] <- h[2] - 360/n
+  +     hcl(h = (seq(h[1], h[2], length = n)), c = 100, l = 65)
+  + }
+y <- 1:3
+barplot(y, col = ggplotColours(n = 3))
+y <- 1:4
+barplot(y, col = ggplotColours(n = 4))
+ggplotColours(n=4)
