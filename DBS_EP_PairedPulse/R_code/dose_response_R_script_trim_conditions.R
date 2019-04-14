@@ -345,8 +345,7 @@ for (avgMeas in avgMeasVec) {
     ggsave(paste0("across_subj_PP_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   }
-  
-  
+
   p8 <- ggplot(dataListSummarize, aes(x=mapStimLevel, y=meanPP,color=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.5)) +geom_smooth(method=lm) +
     labs(x = expression(paste("Stimulation Level")),y=expression(paste("Mean peak to peak voltage (",mu,"V)")), color="Experimental condition",title = paste0("EP magnitude"))
@@ -365,8 +364,8 @@ for (avgMeas in avgMeasVec) {
   figWidth = 8 
   figHeight = 4
   p11 <- ggplot(data = dataListSummarize, aes(x = blockType, y = meanAbs,color=blockType)) +
-    geom_boxplot(notch=TRUE,outlier.shape=NA)  + geom_jitter(shape=16, position=position_jitter(0.2)) +
-    labs(x = expression(paste("Experimental Condition")),y=expression(paste("Absolute Difference from Baseline Peak-To-Peak (",mu,"V)")),color="Experimental Condition",title = paste0("EP Difference from Baseline by Conditioning Protocol"))
+    geom_boxplot(notch=TRUE,outlier.shape=NA)  + geom_jitter(shape=16, position=position_jitter(0.2),aes(alpha = mapStimLevel)) +
+    labs(x = expression(paste("Experimental Condition")),y=expression(paste("Absolute Difference from Baseline Peak-To-Peak (",mu,"V)")),color="Experimental Condition",alpha="Ordered Stim Level",title = paste0("EP Difference from Baseline by Conditioning Protocol"))
   print(p11)
   
   if (savePlot && !avgMeas) {
