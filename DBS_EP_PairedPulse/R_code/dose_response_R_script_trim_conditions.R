@@ -23,6 +23,9 @@ sidVec <- c('46c2a','c963f','2e114','fe7df','e6f3c','9f852',
             '8e907','08b13','e9c9b','41a73','68574',
             '01fee','a23ed')
 
+diseaseVec <- c('PD','PD','MD','PD','PD','PD','PD','ET',
+                'PD','PD','PD','PD','ET','ET')
+
 # sidVec <- c('46c2a','c963f','2e114',
 #             '08b13','8e907','e9c9b','41a73','68574',
 #             '01fee')
@@ -85,6 +88,10 @@ for (avgMeas in avgMeasVec) {
       # map linear subject numbering, rather than using the total subject # order from each subj_ setup file
       
       dataInt$subjectNum = subjectNumIndex
+      
+      # add disease
+      
+      dataInt$disease = as.factor(diseaseVec[subjectNumIndex])
       
       # map stimulation levels to consistent ordering for between subject comparison
       uniqueStimLevel = as.double(unique(dataInt$stimLevelVec))
@@ -263,12 +270,10 @@ for (avgMeas in avgMeasVec) {
   
   dataList <- dataList %>% filter(blockType %in% c('baseline','A/B 25','A/B 200','A/A 200'))
   
-  
   #plot
   grouped <- group_by(dataList, sidVec, chanVec, blockType,mapStimLevel)
   dataListSummarize <- summarise(grouped,meanPerc = mean(percentDiff),sdPerc = sd(percentDiff),
                                  meanAbs=mean(absDiff), sdDiff=sd(percentDiff),meanPP = mean(PPvec),sdPP = sd(PPvec))
-  
   
   p3 <- ggplot(dataList, aes(x=as.numeric(mapStimLevel), y=percentDiff,color=blockType)) +
     geom_point(position=position_jitterdodge(dodge.width=0.75)) +geom_smooth(method=lm) +
@@ -396,7 +401,7 @@ for (avgMeas in avgMeasVec) {
     
   }
   
-  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + chanInCond + (1|sidVec),data=dataList)
+  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + disease + chanInCond + (1|sidVec),data=dataList)
   #emm_options(pbkrtest.limit = 200000) 
   
   summary(fit.lmmPP)
