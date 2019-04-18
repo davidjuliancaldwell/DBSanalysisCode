@@ -23,8 +23,8 @@ sidVec <- c('46c2a','c963f','2e114','fe7df','e6f3c','9f852',
             '8e907','08b13','e9c9b','41a73','68574',
             '01fee','a23ed')
 
-diseaseVec <- c('PD','PD','MD','PD','PD','PD','PD','ET',
-                'PD','PD','PD','PD','ET','ET')
+diseaseVec <- c('PD','PD','MD','PD','PD','PD','PD','MD',
+                'PD','PD','PD','PD','MD')
 
 # sidVec <- c('46c2a','c963f','2e114',
 #             '08b13','8e907','e9c9b','41a73','68574',
@@ -51,9 +51,9 @@ for (avgMeas in avgMeasVec) {
     source(here("DBS_EP_PairedPulse","R_config_files",paste0("subj_",sid,".R")))
     
     if (avgMeas) {
-      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_avg.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
+      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_avg.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
     } else{
-      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
+      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
     }
     
     if (sid == "2e114"){
@@ -80,6 +80,10 @@ for (avgMeas in avgMeasVec) {
     dataPP$blockVec = as.factor(dataPP$blockVec)
     print(sid)
     
+    dataPP$disease = as.factor(diseaseVec[subjectNumIndex])
+    dataPP$subjectNum = as.factor(subjectNumIndex)
+    
+    
     for (chanInt in chanIntVec){
       
       # select data of interest 
@@ -87,11 +91,8 @@ for (avgMeas in avgMeasVec) {
       
       # map linear subject numbering, rather than using the total subject # order from each subj_ setup file
       
-      dataInt$subjectNum = subjectNumIndex
       
       # add disease
-      
-      dataInt$disease = as.factor(diseaseVec[subjectNumIndex])
       
       # map stimulation levels to consistent ordering for between subject comparison
       uniqueStimLevel = as.double(unique(dataInt$stimLevelVec))
@@ -271,7 +272,7 @@ for (avgMeas in avgMeasVec) {
   dataList <- dataList %>% filter(blockType %in% c('baseline','A/B 25','A/B 200','A/A 200'))
   
   #plot
-  grouped <- group_by(dataList, sidVec, chanVec, blockType,mapStimLevel)
+  grouped <- group_by(dataList, sidVec, chanVec, blockType,mapStimLevel,disease)
   dataListSummarize <- summarise(grouped,meanPerc = mean(percentDiff),sdPerc = sd(percentDiff),
                                  meanAbs=mean(absDiff), sdDiff=sd(percentDiff),meanPP = mean(PPvec),sdPP = sd(PPvec))
   
@@ -401,7 +402,11 @@ for (avgMeas in avgMeasVec) {
     
   }
   
-  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + disease + chanInCond + (1|sidVec),data=dataList)
+  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + blockType + (1|subjectNum),data=dataList)
+  
+  #fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + disease + (1|sidVec:chanInCond),data=dataList)
+  #fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + disease + (1|subjectNum),data=dataList)
+  
   #emm_options(pbkrtest.limit = 200000) 
   
   summary(fit.lmmPP)
