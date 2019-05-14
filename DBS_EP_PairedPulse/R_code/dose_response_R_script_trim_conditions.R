@@ -106,7 +106,6 @@ for (avgMeas in avgMeasVec) {
       dataInt$mapStimLevel <- mapvalues(dataInt$stimLevelVec,
                                         from=uniqueStimLevel,
                                         to=mappingStimLevel)
-      
       uniqueBlockLevel = unique(dataInt$blockVec)
       blockTypeTrim = blockType[uniqueBlockLevel]
       
@@ -367,9 +366,27 @@ for (avgMeas in avgMeasVec) {
     
   }  
   
-  figWidth = 8 
+  # figWidth = 8
+  # figHeight = 4
+  # p11 <- ggplot(data = dataListSummarize, aes(x = blockType, y = meanAbs,color=blockType)) +
+  #   geom_boxplot(notch=TRUE,outlier.shape=NA)  + geom_jitter(shape=16, position=position_jitter(0.2),aes(alpha = mapStimLevel)) +
+  #   labs(x = expression(paste("Experimental Condition")),y=expression(paste("Absolute Difference from Baseline Peak-To-Peak (",mu,"V)")),color="Experimental Condition",alpha="Ordered Stim Level",title = paste0("EP Difference from Baseline by Conditioning Protocol"))
+  # print(p11)
+  # 
+  # if (savePlot && !avgMeas) {
+  #   ggsave(paste0("across_subj_mean_abs_box.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+  #   ggsave(paste0("across_subj_mean_abs_box.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+  # 
+  # } else if (savePlot && avgMeas){
+  #   ggsave(paste0("across_subj_mean_abs_box_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+  #   ggsave(paste0("across_subj_mean_abs_box_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+  # 
+  # }
+  
+  figWidth = 8
   figHeight = 4
-  p11 <- ggplot(data = dataListSummarize, aes(x = blockType, y = meanAbs,color=blockType)) +
+  goodVecBlock <- c("A/B 25","A/B 200","A/A 200")
+  p11 <- ggplot(data =  dataListSummarize%>% filter(blockType %in% goodVecBlock), aes(x = blockType, y = meanAbs,color=blockType)) +
     geom_boxplot(notch=TRUE,outlier.shape=NA)  + geom_jitter(shape=16, position=position_jitter(0.2),aes(alpha = mapStimLevel)) +
     labs(x = expression(paste("Experimental Condition")),y=expression(paste("Absolute Difference from Baseline Peak-To-Peak (",mu,"V)")),color="Experimental Condition",alpha="Ordered Stim Level",title = paste0("EP Difference from Baseline by Conditioning Protocol"))
   print(p11)
@@ -382,7 +399,7 @@ for (avgMeas in avgMeasVec) {
     ggsave(paste0("across_subj_mean_abs_box_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
     ggsave(paste0("across_subj_mean_abs_box_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
-  }  
+  }
   
   figHeight = 10
   figWidth = 8
@@ -407,7 +424,7 @@ for (avgMeas in avgMeasVec) {
   #fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + disease + (1|sidVec:chanInCond),data=dataList)
   #fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + disease + (1|subjectNum),data=dataList)
   
-  #emm_options(pbkrtest.limit = 200000) 
+#emm_options(pbkrtest.limit = 200000) 
   
   summary(fit.lmmPP)
   plot(fit.lmmPP)
