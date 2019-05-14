@@ -388,7 +388,8 @@ for (avgMeas in avgMeasVec) {
   goodVecBlock <- c("A/B 25","A/B 200","A/A 200")
   p11 <- ggplot(data =  dataListSummarize%>% filter(blockType %in% goodVecBlock), aes(x = blockType, y = meanAbs,color=blockType)) +
     geom_boxplot(notch=TRUE,outlier.shape=NA)  + geom_jitter(shape=16, position=position_jitter(0.2),aes(alpha = mapStimLevel)) +
-    labs(x = expression(paste("Experimental Condition")),y=expression(paste("Absolute Difference from Baseline Peak-To-Peak (",mu,"V)")),color="Experimental Condition",alpha="Ordered Stim Level",title = paste0("EP Difference from Baseline by Conditioning Protocol"))
+    labs(x = expression(paste("Experimental Condition")),y=expression(paste("Absolute Difference from Baseline Peak-To-Peak (",mu,"V)")),color="Experimental Condition",alpha="Ordered Stim Level",title = paste0("EP Difference from Baseline by Conditioning Protocol")) +
+    scale_color_brewer(palette="Dark2")
   print(p11)
   
   if (savePlot && !avgMeas) {
