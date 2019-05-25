@@ -432,16 +432,14 @@ for (avgMeas in avgMeasVec) {
   }
   
   
-  # bar plot with error
+  # bar plot 
   figWidth = 8
   figHeight = 4
   goodVecBlock <- c("A/B 25","A/B 200","A/A 200")
   p14 <- ggplot(data =  dataListSummarizeBar, aes(x = blockType, y = meanAbs,fill=blockType)) +
     geom_bar(stat="identity")  +
     labs(x = expression(paste("Experimental Condition")),y=expression(paste("Absolute Difference from Baseline Peak-To-Peak (",mu,"V)")),fill="Experimental Condition",title = paste0("EP Difference from Baseline by Conditioning Protocol")) +
-    scale_fill_brewer(palette="Dark2") +
-    geom_errorbar(aes(ymin=meanAbs-seAbs, ymax=meanAbs+seAbs), width=.2,
-                  position=position_dodge(.9)) 
+    scale_fill_brewer(palette="Dark2")
   print(p14)
   
   if (savePlot && !avgMeas) {
