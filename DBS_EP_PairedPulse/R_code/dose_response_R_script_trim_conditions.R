@@ -383,6 +383,8 @@ for (avgMeas in avgMeasVec) {
   # 
   # }
   
+  # box plot
+  
   figWidth = 8
   figHeight = 4
   goodVecBlock <- c("A/B 25","A/B 200","A/A 200")
@@ -401,7 +403,83 @@ for (avgMeas in avgMeasVec) {
     ggsave(paste0("across_subj_mean_abs_box_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   }
+  dataBarInt = dataList%>% filter(blockType %in% goodVecBlock)
+  groupedAll <- group_by(dataBarInt,blockType)
+  dataListSummarizeBar <- summarise(groupedAll,meanPerc = mean(percentDiff),sdPerc = sd(percentDiff),
+                                    meanAbs=mean(absDiff),sdAbs=sd(absDiff), sdDiff=sd(percentDiff),meanPP = mean(PPvec),sdPP = sd(PPvec),
+                                    n=n(),seAbs=sdAbs/sqrt(n))
   
+  # bar plot with error
+  figWidth = 8
+  figHeight = 4
+  goodVecBlock <- c("A/B 25","A/B 200","A/A 200")
+  p12 <- ggplot(data =  dataListSummarizeBar, aes(x = blockType, y = meanAbs,fill=blockType)) +
+    geom_bar(stat="identity")  +
+    labs(x = expression(paste("Experimental Condition")),y=expression(paste("Absolute Difference from Baseline Peak-To-Peak (",mu,"V)")),fill="Experimental Condition",title = paste0("EP Difference from Baseline by Conditioning Protocol")) +
+    scale_fill_brewer(palette="Dark2") +
+    geom_errorbar(aes(ymin=meanAbs-seAbs, ymax=meanAbs+seAbs), width=.2,
+                  position=position_dodge(.9)) 
+  print(p12)
+  
+  if (savePlot && !avgMeas) {
+    ggsave(paste0("across_subj_mean_abs_bar_standarderror.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_bar_standarderror.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    
+  } else if (savePlot && avgMeas){
+    ggsave(paste0("across_subj_mean_abs_bar_standarderror_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_bar_standarderror_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    
+  }
+  
+  
+  # bar plot with error
+  figWidth = 8
+  figHeight = 4
+  goodVecBlock <- c("A/B 25","A/B 200","A/A 200")
+  p14 <- ggplot(data =  dataListSummarizeBar, aes(x = blockType, y = meanAbs,fill=blockType)) +
+    geom_bar(stat="identity")  +
+    labs(x = expression(paste("Experimental Condition")),y=expression(paste("Absolute Difference from Baseline Peak-To-Peak (",mu,"V)")),fill="Experimental Condition",title = paste0("EP Difference from Baseline by Conditioning Protocol")) +
+    scale_fill_brewer(palette="Dark2") +
+    geom_errorbar(aes(ymin=meanAbs-seAbs, ymax=meanAbs+seAbs), width=.2,
+                  position=position_dodge(.9)) 
+  print(p14)
+  
+  if (savePlot && !avgMeas) {
+    ggsave(paste0("across_subj_mean_abs_bar.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_bar.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    
+  } else if (savePlot && avgMeas){
+    ggsave(paste0("across_subj_mean_abs_bar_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_bar_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    
+  }
+  
+  
+  # bar with dots
+  figWidth = 8
+  figHeight = 4
+  goodVecBlock <- c("A/B 25","A/B 200","A/A 200")
+  p13 <- ggplot() +
+    geom_jitter(data =  dataListSummarize%>% filter(blockType %in% goodVecBlock),shape=16, position=position_jitter(0.2), aes(x = blockType, y = meanAbs,color=blockType,alpha = mapStimLevel)) +
+    guides(fill=FALSE) +
+    geom_bar(data=dataListSummarizeBar,stat="identity",aes(x = blockType, y = meanAbs,fill=blockType))  +
+    labs(x = expression(paste("Experimental Condition")),y=expression(paste("Absolute Difference from Baseline Peak-To-Peak (",mu,"V)")),color="Experimental Condition",alpha="Ordered Stim Level",title = paste0("EP Difference from Baseline by Conditioning Protocol")) +
+    scale_color_brewer(palette="Dark2") +
+    scale_fill_brewer(palette="Dark2")
+  print(p13)
+  
+  if (savePlot && !avgMeas) {
+    ggsave(paste0("across_subj_mean_abs_bar_dots.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_bar_dots.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    
+  } else if (savePlot && avgMeas){
+    ggsave(paste0("across_subj_mean_abs_bar_dots_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_bar_dots_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    
+  }
+
+  
+  # all subjects
   figHeight = 10
   figWidth = 8
   p9 <- ggplot(dataList, aes(x=as.numeric(stimLevelVec), y=absDiff,color=blockType)) +facet_wrap(~subjectNum,scales = "free") +
