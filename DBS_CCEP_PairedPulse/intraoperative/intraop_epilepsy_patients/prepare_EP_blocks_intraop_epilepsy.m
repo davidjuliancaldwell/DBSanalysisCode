@@ -1,13 +1,13 @@
 %% iterate through blocks
 for block = blocks
-    
-    
     load(fullfile(fileFolder,sid,matlabFolder,dataFolder,['EP_Measure-' num2str(block) '.mat']));
     
-    
     %%
-    ECoG = 4*ECO1.data(:,1:8);
+    
     ECoGfs = ECO1.info.SamplingRateHz;
+    
+    ECoG = 4*[ECO1.data ECO2.data ECO3.data];
+    clearvars ECO1 ECO2 ECO3
     
     stimBox = Stim.data;
     stimFs = Stim.info.SamplingRateHz;
@@ -26,8 +26,6 @@ for block = blocks
         stimLevelCommandTimes(badTrialLocations) = [];
         stimCommandTimes(badTrialLocations) = [];
     end
-    
-    
     fac = ECoGfs/tactFs;
     
     % adjust for when no stimuli were delivered when the stim level was
@@ -66,7 +64,7 @@ for block = blocks
     goodVec = logical(ones(size(ECoG,2),1));
     stimChans = stimChansVec(blockCount,:);
     goodVec(stimChans) = 0;
-    chansList = [1:8];
+    chansList = [1:128];
     chans = chansList(goodVec);
     ECoG(:,stimChans,:) = 0;
     
@@ -88,25 +86,29 @@ for block = blocks
         count = count + 1;
         
     end
-        
+    
     epochsEPblock{blockCount} = epochsEP;
     
-    % get peak to peak values
-    rerefMode = 'none';
-    smooth = 1;
+    % do not need to extract peak to peak values in OR
+    % renable to get PP values
     
-    [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak(stimLevelUniq,epochsEP,tEpoch,stimChans,tBegin,tEnd,rerefMode,[],smooth);
-    
-    signalPPblock{blockCount} = signalPP;
-    pkLocsBlock{blockCount} = pkLocs;
-    trLocsBlock{blockCount} = trLocs;
-    
-    [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak_single_trial(stimLevelUniq,epochsEP,tEpoch,stimChans,tBegin,tEnd,rerefMode,[],smooth);
-    
-    signalPPblockST{blockCount} = signalPP;
-    pkLocsBlockST{blockCount} = pkLocs;
-    trLocsBlockST{blockCount} = trLocs;
-    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %     % get peak to peak values
+    %     rerefMode = 'none';
+    %     smooth = 1;
+    %
+    %     [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak(stimLevelUniq,epochsEP,tEpoch,stimChans,tBegin,tEnd,rerefMode,[],smooth);
+    %
+    %     signalPPblock{blockCount} = signalPP;
+    %     pkLocsBlock{blockCount} = pkLocs;
+    %     trLocsBlock{blockCount} = trLocs;
+    %
+    %     [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak_single_trial(stimLevelUniq,epochsEP,tEpoch,stimChans,tBegin,tEnd,rerefMode,[],smooth);
+    %
+    %     signalPPblockST{blockCount} = signalPP;
+    %     pkLocsBlockST{blockCount} = pkLocs;
+    %     trLocsBlockST{blockCount} = trLocs;
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     blockCount = blockCount + 1;
     
     clearvars badTrials badTrialLocations
