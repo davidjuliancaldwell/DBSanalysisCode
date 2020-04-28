@@ -14,6 +14,8 @@ library('lmerTest')
 library('sjPlot')
 library('emmeans')
 library("dplyr")
+library('effectsize')
+
 
 rootDir = here()
 dataDir = here("DBS_EP_PairedPulse","R_data")
@@ -33,6 +35,7 @@ diseaseVec <- c('PD','PD','MD','PD','PD','PD','PD','MD',
 #sidVec <- c('9f852')
 #sidVec <- c('46c2a')
 
+log_data = FALSE
 savePlot = 0
 avgMeasVec = c(0)
 figWidth = 8 
@@ -67,6 +70,9 @@ for (avgMeas in avgMeasVec) {
     dataPP <- subset(dataPP, PPvec<1500)
     dataPP <- subset(dataPP, PPvec>25)
     
+    if (log_data){
+    dataPP$PPvec <- log(dataPP$PPvec)
+    }
     # denote which channel was in the conditioning pair 
     
     dataPP <- subset(dataPP,(chanVec %in% chanIntVec))
@@ -120,8 +126,15 @@ for (avgMeas in avgMeasVec) {
         
         dataIntCompare <- dataIntCompare %>% 
           group_by(mapStimLevel) %>% 
-          mutate(absDiff = PPvec - mean(PPvec[blockVec==comparison[1]]),
+          mutate(
+            effectSize = cohens_d(PPvec[blockVec==comparison[2]],PPvec[blockVec==comparison[1]])[1,1],
+                  absDiff = PPvec - mean(PPvec[blockVec==comparison[1]]),
                  percentDiff = 100*(PPvec - mean(PPvec[blockVec==comparison[1]]))/mean(PPvec[blockVec==comparison[1]]) ) 
+        
+        dataIntCompare <- dataIntCompare %>% 
+          group_by(mapStimLevel,chanVec,blockType,mapStimLevel) %>% 
+          mutate(
+            meanPP = mean(PPvec) ) 
         
         dataIntCompare = as_data_frame(dataIntCompare)
         dataIntCompare$index = index
@@ -650,7 +663,21 @@ for (avgMeas in avgMeasVec) {
     
   }
   
-
+  dataSubset <- unique(dataList %>% select(effectSize,subjectNum,meanPP,mapStimLevel,disease,chanInCond,blockType) %>% filter(blockType != 'baseline'))
+  fit.effectSize = lmerTest::lmer(effectSize ~ log(meanPP) + mapStimLevel + disease + blockType + (1|subjectNum),data=dataSubset)
   
+  plot(fit.effectSize)
+  
+  qqnorm(resid(fit.effectSize))
+  qqline(resid(fit.effectSize))  #summary(fit.lmm2)
+  
+  figWidth = 8
+  figHeight = 4
+  goodVecBlock <- c("A/B 25","A/B 200","A/A 200")
+  pEffect <- ggplot(data =  dataSubset%>% filter(blockType %in% goodVecBlock), aes(x = blockType, y = effectSize,color=blockType)) +
+    geom_boxplot(notch=TRUE,outlier.shape=NA)  + geom_jitter(shape=16, position=position_jitter(0.2),aes(alpha = mapStimLevel)) +
+    labs(x = expression(paste("Experimental Condition")),y=expression(paste("Effect Size")),color="Experimental Condition",alpha="Ordered Stim Level",title = paste0("EP Difference from Baseline by Conditioning Protocol")) +
+    scale_color_brewer(palette="Dark2")
+  print(pEffect)
 }
 
