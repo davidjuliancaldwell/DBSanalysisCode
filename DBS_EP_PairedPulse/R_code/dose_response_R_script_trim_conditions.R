@@ -15,6 +15,7 @@ library('sjPlot')
 library('emmeans')
 library("dplyr")
 library('effectsize')
+library('caret')
 
 
 rootDir = here()
@@ -35,9 +36,10 @@ diseaseVec <- c('PD','PD','MD','PD','PD','PD','PD','MD',
 #sidVec <- c('9f852')
 #sidVec <- c('46c2a')
 
-log_data = FALSE
+log_data = TRUE
+box_data = FALSE
 savePlot = 0
-avgMeasVec = c(0)
+avgMeasVec = c(1)
 figWidth = 8 
 figHeight = 6 
 
@@ -54,7 +56,7 @@ for (avgMeas in avgMeasVec) {
     source(here("DBS_EP_PairedPulse","R_config_files",paste0("subj_",sid,".R")))
     
     if (avgMeas) {
-      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_avg.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
+      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_avg_10.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
     } else{
       dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
     }
@@ -73,6 +75,11 @@ for (avgMeas in avgMeasVec) {
     if (log_data){
     dataPP$PPvec <- log(dataPP$PPvec)
     }
+    
+    if (box_data){
+      box_trans <- caret::BoxCoxTrans(dataPP$PPvec)
+      dataPP$PPvec <- predict(box_trans,dataPP$PPvec)
+    }
     # denote which channel was in the conditioning pair 
     
     dataPP <- subset(dataPP,(chanVec %in% chanIntVec))
@@ -84,6 +91,7 @@ for (avgMeas in avgMeasVec) {
     dataPP$chanInCond <- as.factor(dataPP$chanInCond)
     # change to factor 
     dataPP$blockVec = as.factor(dataPP$blockVec)
+    dataPP$chanVec = as.factor(dataPP$chanVec)
     print(sid)
     
     dataPP$disease = as.factor(diseaseVec[subjectNumIndex])
@@ -127,7 +135,7 @@ for (avgMeas in avgMeasVec) {
         dataIntCompare <- dataIntCompare %>% 
           group_by(mapStimLevel) %>% 
           mutate(
-            effectSize = cohens_d(PPvec[blockVec==comparison[2]],PPvec[blockVec==comparison[1]])[1,1],
+           # effectSize = cohens_d(PPvec[blockVec==comparison[2]],PPvec[blockVec==comparison[1]])[1,1],
                   absDiff = PPvec - mean(PPvec[blockVec==comparison[1]]),
                  percentDiff = 100*(PPvec - mean(PPvec[blockVec==comparison[1]]))/mean(PPvec[blockVec==comparison[1]]) ) 
         
@@ -509,7 +517,7 @@ for (avgMeas in avgMeasVec) {
     
   }
   
-  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + blockType + (1|subjectNum),data=dataList)
+  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + blockType + (1|subjectNum/chanVec),data=dataList)
   
   #fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + disease + (1|sidVec:chanInCond),data=dataList)
   #fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + disease + (1|subjectNum),data=dataList)

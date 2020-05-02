@@ -1,4 +1,4 @@
-function [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak_single_trial(ucondition,signalSep,t,badChans,tBegin,tEnd,rerefMode,channelReref,smooth,avgTrials,numAvg)
+function [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak_single_trial(ucondition,signalSep,t,badChans,tBegin,tEnd,rerefMode,channelReref,smooth,avgTrials,numAvg,chanInt)
 % extract_PP_peak_to_peak
 % extract peak to peak values in a signal
 % this works on single trials
@@ -37,7 +37,7 @@ for jj = 1:length(ucondition)
     framelen = 71;
     
     % 2.7.2019
-     order = 3;
+    order = 3;
     framelen = 91;
     
     % 2711 for grant figure
@@ -45,8 +45,7 @@ for jj = 1:length(ucondition)
     cellMode = {'median','bipolar','mean','bipolarPair','singleChan'};
     
     if sum(strcmp(rerefMode,cellMode))
-        tempSignal = rereference_CAR_median(tempSignal,rerefMode,badChans,[1 2],channelReref);
-        
+        tempSignal = rereference_CAR_median(tempSignal,rerefMode,badChans,[],channelReref);
     end
     
     if avgTrials
@@ -55,14 +54,13 @@ for jj = 1:length(ucondition)
             tempSignalChan = squeeze(tempSignal(:,jjj,:));
             [tempSignalAvg] = avg_every_p_elems(tempSignalChan,numAvg);
             tempSignalNew(:,jjj,:) = tempSignalAvg;
-
+            
         end
         tempSignal = tempSignalNew;
         numTrials = size(tempSignal,3);
     end
     
-    %%%%%%%%%%%%%%%%%%  loop through channels          
-            
+    %%%%%%%%%%%%%%%%%%  loop through channels
     
     for ii = 1:numChans
         for iii = 1:numTrials
@@ -86,19 +84,21 @@ for jj = 1:length(ucondition)
             trLocs{jj}(ii,iii) = tr_loc;
             
             
-            signalPP{jj}(~goodChans) = nan;
-            pkLocs{jj}(~goodChans) = nan;
-            trLocs{jj}(~goodChans) = nan;
-%             
-%             if ii == 1 && jj == 1
-%                 figure
-%                 plot(tempSignalExtract)
-%                 vline(pk_loc)
-%                 vline(tr_loc)
-%             end
+            
+            %
+            %             if ii == chanInt && jj == max(length(ucondition))
+            %                 figure
+            %                 plot(tempSignalExtract)
+            %                 vline(pk_loc)
+            %                 vline(tr_loc)
+            %             end
             
         end
     end
+    
+    signalPP{jj}(~goodChans) = nan;
+    pkLocs{jj}(~goodChans) = nan;
+    trLocs{jj}(~goodChans) = nan;
     
 end
 

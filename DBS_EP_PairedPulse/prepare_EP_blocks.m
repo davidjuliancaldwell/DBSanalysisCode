@@ -839,23 +839,29 @@ for block = blocks
     epochsEPblock{blockCount} = epochsEP;
     
     % get peak to peak values
-    rerefMode = 'none';
     smooth = 1;
     
-    [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak(stimLevelUniq,epochsEP,tEpoch,stimChans,...
-        tBegin,tEnd,rerefMode,[],smooth);
+    [signalPPAvg,pkLocsAvg,trLocsAvg] =  extract_PP_peak_to_peak(stimLevelUniq,epochsEP,tEpoch,stimChans,...
+        tBegin,tEnd,rerefMode,chanReref,smooth);
     
-    signalPPblock{blockCount} = signalPP;
-    pkLocsBlock{blockCount} = pkLocs;
-    trLocsBlock{blockCount} = trLocs;
+    signalPPblock{blockCount} = signalPPAvg;
+    pkLocsBlock{blockCount} = pkLocsAvg;
+    trLocsBlock{blockCount} = trLocsAvg;
+    
+    chanIntTemp = chanIntList(1);
     
     [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak_single_trial(stimLevelUniq,epochsEP,tEpoch,...
-        stimChans,tBegin,tEnd,rerefMode,[],smooth,avgTrials,numAvg);
+        stimChans,tBegin,tEnd,rerefMode,chanReref,smooth,avgTrials,numAvg,chanIntTemp);
     
     signalPPblockST{blockCount} = signalPP;
     pkLocsBlockST{blockCount} = pkLocs;
     trLocsBlockST{blockCount} = trLocs;
     
+    [signalPPfromAvg,pkLocsFromAvg,trLocsFromAvg] =  extract_PP_ind_from_avg_max_min(stimLevelUniq,epochsEP,tEpoch,tBegin,tEnd,pkLocsAvg,trLocsAvg,stimChans,smooth,rerefMode,chanReref);
+    
+    signalPPblockSTfromAvg{blockCount} = signalPPfromAvg;
+    pkLocsBlockSTfromAvg{blockCount} = pkLocsFromAvg;
+    trLocsBlockSTfromAvg{blockCount} = trLocsFromAvg;
     
     % make labels to keep track of each trial
     for counter = 1:size(signalPP,2)

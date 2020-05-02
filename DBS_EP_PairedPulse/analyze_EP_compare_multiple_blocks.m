@@ -47,8 +47,8 @@ for chanInt = chanIntList
         end
         
         if plotPkTr
-            pkInt = pkLocsBlock{4}(5,4);
-            trInt = trLocsBlock{4}(5,4);
+            pkInt = pkLocsBlock{1}(chanInt,4);
+            trInt = trLocsBlock{1}(chanInt,4);
             tBeginSamp = ECoGfs*tBegin/1e3;
             tEndSamp = ECoGfs*tEnd/1e3;
             tPk = (tBeginSamp:tEndSamp)/ECoGfs;

@@ -6,11 +6,11 @@ matlab_dir = 'MATLAB_Converted';
 experiment = 'EP_Measurement';
 
 avgTrialsVec = [0,1]';
-avgTrialsVec = [0]';
-numAvg = 3;
+%avgTrialsVec = [1]';
+numAvg = 10;
 
 savePlot = 0;
-saveData = 0;
+saveData = 1;
 screenBadChans = 0;
 plotCondAvg = 0;
 
@@ -24,6 +24,17 @@ sidVecIterate = {'3d413'};
 sidVecIterate = {'a23ed'};
 sidVecIterate = {'fe7df','e6f3c'};
 sidVecIterate = {'e6f3c'};
+sidVecIterate = {'46c2a','9f852','8e907','08b13'};
+sidVecIterate = {'9f852'};
+
+sidVecIterate = {'46c2a','c963f','2e114','3d413','fe7df','e6f3c',...
+    '9f852','8e907','08b13','e9c9b','41a73','68574',...
+    '01fee','a23ed'};
+
+% rereference against the first channel in the array if desired
+chanReref = 1;
+rerefMode = 'none';
+
 
 for avgTrials = avgTrialsVec'
     for sid = sidVecIterate
@@ -145,34 +156,37 @@ for avgTrials = avgTrialsVec'
         stimLevelVec = [];
         sidVec = [];
         chanVec = [];
+        PPfromAvgVec = [];
         for ii = 1:size(signalPPblockST,2)
             for jj = 1:size(signalPPblockST{ii},2)
                 tempPP = signalPPblockST{ii}{jj};
                 tempChannel = repmat([1:8]',[1,size(tempPP,2)]);
                 tempBlock = repmat(blocks(ii),size(tempPP));
                 tempStimLevel = repmat(blockLabel{ii}{jj}',[size(tempPP,1),1]);
+                tempPPfromAvgVec = signalPPblockSTfromAvg{ii}{jj};
                 
                 PPvec = [PPvec; tempPP(:)];
                 blockVec = [blockVec; tempBlock(:)];
                 stimLevelVec = [stimLevelVec; tempStimLevel(:)];
                 chanVec = [chanVec; tempChannel(:)];
+                PPfromAvgVec = [PPfromAvgVec; tempPPfromAvgVec(:)];
             end
         end
         sidVec = cellstr(repmat(sid,[size(PPvec),1]));
         %
-        T = table(PPvec,blockVec,stimLevelVec,sidVec,chanVec);
+        T = table(PPvec,blockVec,stimLevelVec,sidVec,chanVec,PPfromAvgVec);
         
         %% save data for statistical analysis in table form
         
         if saveData && ~avgTrials
-            writetable(T,[sid '_PairedPulseData.csv'],'Delimiter',',','QuoteStrings',true)
+            writetable(T,[sid '_PairedPulseData_new.csv'],'Delimiter',',','QuoteStrings',true)
             %    save([sid '_PairedPulseData.mat'],'signalPPblockST','chanIntList','blocks','sid','tBegin','tEnd','blockLabel','stimLevelUniq','legendText')
         elseif saveData && avgTrials
-            writetable(T,[sid '_PairedPulseData_avg.csv'],'Delimiter',',','QuoteStrings',true)
+            writetable(T,[sid '_PairedPulseData_avg_10.csv'],'Delimiter',',','QuoteStrings',true)
             %  save([sid '_PairedPulseData_avg.mat'],'signalPPblockST','chanIntList','blocks','sid','tBegin','tEnd','blockLabel','stimLevelUniq','legendText')
         end
         
-        clearvars signalPPblockST
+        clearvars signalPPblockST signalPPblockSTfromAvg
         
     end
 end

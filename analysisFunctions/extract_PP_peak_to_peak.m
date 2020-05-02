@@ -16,8 +16,17 @@ goodChans = logical(goodChans);
 
 for i = 1:length(ucondition)
     
+    cellMode = {'median','bipolar','mean','bipolarPair','singleChan'};
+    
+    tempSignal = signalSep{i};
+    if sum(strcmp(rerefMode,cellMode))
+        tempSignal = rereference_CAR_median(tempSignal,rerefMode,badChans,[],channelReref);
+        
+    end
+    
     %%%%%%%%%%%%%%%%%% ECoG
-    tempSignal= mean(signalSep{i},3);
+    % tempSignal= mean(signalSep{i},3);
+    tempSignal = mean(tempSignal,3);
     numChans = size(tempSignal,2);
     
     order = 3;
@@ -28,12 +37,7 @@ for i = 1:length(ucondition)
     order = 3;
     framelen = 25;
     
-    cellMode = {'median','bipolar','mean','bipolarPair','singleChan'};
     
-    if sum(strcmp(rerefMode,cellMode))
-        tempSignal = rereference_CAR_median(tempSignal,rerefMode,badChans,[1 2],channelReref);
-        
-    end
     
     %%%%%%%%%%%%%%%%%%  loop through channels
     
@@ -54,7 +58,7 @@ for i = 1:length(ucondition)
         
         plotIt = 1;
         
-        if plotIt && j == 5 && i == 4
+        if plotIt
             figure
             plot(tempSignalExtract)
             vline(pk_loc)
@@ -68,8 +72,8 @@ for i = 1:length(ucondition)
     
 end
 
-signalPP(~goodChans) = nan;
-pkLocs(~goodChans) = nan;
-trLocs(~goodChans) = nan;
+signalPP(~goodChans,:) = nan;
+pkLocs(~goodChans,:) = nan;
+trLocs(~goodChans,:) = nan;
 
 end
