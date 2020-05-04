@@ -1,4 +1,4 @@
-function [signalPP,pkLocsAvg,trLocsAvg] =  extract_PP_ind_from_avg_max_min(ucondition,signalSep,t,tBegin,tEnd,pkLocs,trLocs,badChans,smooth,rerefMode,channelReref)
+function [signalPP,pkLocsAvg,trLocsAvg] =  extract_PP_ind_from_avg_max_min(ucondition,signalSep,t,tBegin,tEnd,pkLocs,trLocs,badChans,smooth,rerefMode,channelReref,avgTrials,numAvg)
 % extract_PP_peak_to_peak
 % extract peak to peak values in a signal
 
@@ -24,16 +24,9 @@ framelen = 91;
 
 for i = 1:length(ucondition)
     
-    
-    
     tempSignal= signalSep{i};
     numChans = size(tempSignal,2);
     numTrials = size(tempSignal,3);
-    
-    signalPP{i}= zeros(numChans,numTrials);
-    pkLocsAvg{i} = zeros(numChans,numTrials);
-    trLocsAvg{i} = zeros(numChans,numTrials);
-    
     
     %%%%%%%%%%%%%%%%%%  loop through channels
     
@@ -44,6 +37,24 @@ for i = 1:length(ucondition)
     if sum(strcmp(rerefMode,cellMode))
         tempSignal = rereference_CAR_median(tempSignal,rerefMode,badChans,[],channelReref);
     end
+    
+    
+    if avgTrials
+        tempSignalNew = [];
+        for jjj = 1:size(tempSignal,2)
+            tempSignalChan = squeeze(tempSignal(:,jjj,:));
+            [tempSignalAvg] = avg_every_p_elems(tempSignalChan,numAvg);
+            tempSignalNew(:,jjj,:) = tempSignalAvg;
+            
+        end
+        tempSignal = tempSignalNew;
+        numTrials = size(tempSignal,3);
+    end
+    
+    signalPP{i}= zeros(numChans,numTrials);
+    pkLocsAvg{i} = zeros(numChans,numTrials);
+    trLocsAvg{i} = zeros(numChans,numTrials);
+    
     
     for ii = 1:numChans
         

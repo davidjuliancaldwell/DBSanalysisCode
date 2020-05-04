@@ -54,7 +54,7 @@ for block = blocks
                 case 2
                     stimChans = [7 8];
                     badTrials = 1;
-                    badTrialLocations = [1:16];
+                    badTrialLocations = [1:16, 39, 40, 83];
                     % post first time
                 case 3
                     stimChans = [6 5];
@@ -764,6 +764,21 @@ for block = blocks
     stimLevelUniq = unique(stimLevel(stimLevel>0))';
     stimLevelCell = {};
     
+    if screenBadChans
+        figure
+        index = 1;
+        stimCommandTimesNew = round((29+stimCommandTimes)*fac);
+        epochTemp = getEpochSignal(ECoG,stimCommandTimesNew-preSamps,stimCommandTimesNew+postSamps);
+        for jj=1:size(epochTemp,3)
+            subplot(15,16,index)
+            plot(tEpoch,epochTemp(:,5,jj))
+            ylim([-1e-3 1e-3])
+            title(num2str(index))
+            index = index + 1;
+        end
+        suptitle(['Block ' num2str(block)])
+    end
+    
     if exist('badTrials','var')
         stimLevelCommandTimes(badTrialLocations) = [];
         stimCommandTimes(badTrialLocations) = [];
@@ -841,14 +856,17 @@ for block = blocks
     % get peak to peak values
     smooth = 1;
     
+    % example channel for peakt o peak
+    chanIntTemp = chanIntList(1);
+    
+    
     [signalPPAvg,pkLocsAvg,trLocsAvg] =  extract_PP_peak_to_peak(stimLevelUniq,epochsEP,tEpoch,stimChans,...
-        tBegin,tEnd,rerefMode,chanReref,smooth);
+        tBegin,tEnd,rerefMode,chanReref,smooth,chanIntTemp);
     
     signalPPblock{blockCount} = signalPPAvg;
     pkLocsBlock{blockCount} = pkLocsAvg;
     trLocsBlock{blockCount} = trLocsAvg;
     
-    chanIntTemp = chanIntList(1);
     
     [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak_single_trial(stimLevelUniq,epochsEP,tEpoch,...
         stimChans,tBegin,tEnd,rerefMode,chanReref,smooth,avgTrials,numAvg,chanIntTemp);
@@ -857,7 +875,8 @@ for block = blocks
     pkLocsBlockST{blockCount} = pkLocs;
     trLocsBlockST{blockCount} = trLocs;
     
-    [signalPPfromAvg,pkLocsFromAvg,trLocsFromAvg] =  extract_PP_ind_from_avg_max_min(stimLevelUniq,epochsEP,tEpoch,tBegin,tEnd,pkLocsAvg,trLocsAvg,stimChans,smooth,rerefMode,chanReref);
+    [signalPPfromAvg,pkLocsFromAvg,trLocsFromAvg] =  extract_PP_ind_from_avg_max_min(stimLevelUniq,epochsEP,...
+        tEpoch,tBegin,tEnd,pkLocsAvg,trLocsAvg,stimChans,smooth,rerefMode,chanReref,avgTrials,numAvg);
     
     signalPPblockSTfromAvg{blockCount} = signalPPfromAvg;
     pkLocsBlockSTfromAvg{blockCount} = pkLocsFromAvg;
@@ -868,20 +887,6 @@ for block = blocks
         blockLabel{blockCount}{counter} = repmat(stimLevelUniq(counter),size(signalPP{counter},2),1);
     end
     
-    if screenBadChans
-        figure
-        index = 1;
-        stimCommandTimesNew = round((29+stimCommandTimes)*fac);
-        epochTemp = getEpochSignal(ECoG,stimCommandTimesNew-preSamps,stimCommandTimesNew+postSamps);
-        for jj=1:size(epochTemp,3)
-            subplot(15,16,index)
-            plot(tEpoch,epochTemp(:,5,jj))
-            ylim([-1e-3 1e-3])
-            title(num2str(index))
-            index = index + 1;
-        end
-        suptitle(['Block ' num2str(block)])
-    end
     
     blockCount = blockCount + 1;
     

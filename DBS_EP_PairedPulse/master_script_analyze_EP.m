@@ -5,9 +5,9 @@ Z_ConstantsDBS_PairedPulse;
 matlab_dir = 'MATLAB_Converted';
 experiment = 'EP_Measurement';
 
-avgTrialsVec = [0,1]';
+avgTrialsVec = [1]';
 %avgTrialsVec = [1]';
-numAvg = 10;
+numAvg = 5;
 
 savePlot = 0;
 saveData = 1;

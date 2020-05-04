@@ -20,14 +20,14 @@ if nargin < 2
 end;
 
 
-% min peak prominence - before 8-16-2018 , 5e-6 
+% min peak prominence - before 8-16-2018 , 5e-6
 % min peak prominence - 8-16-2018 , 5e-6
 % before 9-19-2018 - was 1e-6
 
-% add in peak separation - this is in samples 
+% add in peak separation - this is in samples
 
-[ppks,plats]=findpeaks(signal,'minpeakprominence',1e-6,'MinPeakDistance',90); 
-[npks,nlats]=findpeaks(-signal,'minpeakprominence',1e-6,'MinPeakDistance',90);
+[ppks,plats]=findpeaks(signal,'minpeakprominence',5e-7,'MinPeakDistance',60);
+[npks,nlats]=findpeaks(-signal,'minpeakprominence',5e-7,'MinPeakDistance',60);
 
 
 % change from 35 to 90 , 2.7.2019

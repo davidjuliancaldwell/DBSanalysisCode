@@ -56,9 +56,9 @@ for (avgMeas in avgMeasVec) {
     source(here("DBS_EP_PairedPulse","R_config_files",paste0("subj_",sid,".R")))
     
     if (avgMeas) {
-      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_avg_10.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
+      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_avg_5.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
     } else{
-      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
+      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
     }
     
     if (sid == "2e114"){
@@ -67,19 +67,11 @@ for (avgMeas in avgMeasVec) {
     }
     
     # multiply by 1e6
+    # here is where we use the column from the average one
     dataPP$PPvec = dataPP$PPvec*1e6
     dataPP$stimLevelVec = dataPP$stimLevelVec/1e3
-    dataPP <- subset(dataPP, PPvec<1500)
-    dataPP <- subset(dataPP, PPvec>25)
     
-    if (log_data){
-    dataPP$PPvec <- log(dataPP$PPvec)
-    }
-    
-    if (box_data){
-      box_trans <- caret::BoxCoxTrans(dataPP$PPvec)
-      dataPP$PPvec <- predict(box_trans,dataPP$PPvec)
-    }
+
     # denote which channel was in the conditioning pair 
     
     dataPP <- subset(dataPP,(chanVec %in% chanIntVec))
@@ -118,7 +110,7 @@ for (avgMeas in avgMeasVec) {
         mappingStimLevel =ordered(c(1:length(uniqueStimLevel)))
       }
       dataInt$mapStimLevel <- mapvalues(dataInt$stimLevelVec,
-                                        from=uniqueStimLevel,
+                                        from=sort(uniqueStimLevel),
                                         to=mappingStimLevel)
       uniqueBlockLevel = unique(dataInt$blockVec)
       blockTypeTrim = blockType[uniqueBlockLevel]
@@ -129,13 +121,36 @@ for (avgMeas in avgMeasVec) {
       
       dataInt$mapStimLevel = as.ordered(dataInt$mapStimLevel)
       dataInt$blockType = as.factor(dataInt$blockType)
+      
+      dataInt <- subset(dataInt, PPvec<1000)
+      dataInt <- subset(dataInt, PPvec>30)
+      
+      if (log_data){
+        dataInt$PPvec <- log(dataInt$PPvec)
+      }
+      
+      if (box_data){
+        box_trans <- caret::BoxCoxTrans(dataInt$PPvec)
+        dataInt$PPvec <- predict(box_trans,dataInt$PPvec)
+      }
+      
+
       for (comparison in whichCompareVec){
         dataIntCompare <- subset(dataInt,(blockVec %in% comparison))
+
+        #if(!(is.data.frame(dataIntCompare) & (nrow(dataIntCompare)==0))){
+
+        # make sure each part of the comparison has at least 5 trials, otherwise exclude it 
+        dataIntCompare <- dataIntCompare %>% group_by(mapStimLevel,blockVec) %>% mutate(enough = n()>=2)
         
+        dataIntCompare <- dataIntCompare %>% group_by(mapStimLevel) %>% filter(all(enough) & length(unique(blockVec))>1)
+        
+        if(!(empty(dataIntCompare))){   
+          
         dataIntCompare <- dataIntCompare %>% 
           group_by(mapStimLevel) %>% 
           mutate(
-           # effectSize = cohens_d(PPvec[blockVec==comparison[2]],PPvec[blockVec==comparison[1]])[1,1],
+            effectSize = cohens_d(PPvec[blockVec==comparison[2]],PPvec[blockVec==comparison[1]])[1,1],
                   absDiff = PPvec - mean(PPvec[blockVec==comparison[1]]),
                  percentDiff = 100*(PPvec - mean(PPvec[blockVec==comparison[1]]))/mean(PPvec[blockVec==comparison[1]]) ) 
         
@@ -149,24 +164,25 @@ for (avgMeas in avgMeasVec) {
         dataList[[index]] = dataIntCompare
         blockList[[index]] = comparison
         
-        fit.lm    = lm(PPvec ~ mapStimLevel + blockVec + mapStimLevel*blockVec,data=dataIntCompare)
-        fit.lm    = lm(PPvec ~ mapStimLevel + blockVec,data=dataIntCompare)
+        #fit.lm    = lm(PPvec ~ mapStimLevel + blockVec + mapStimLevel*blockVec,data=dataIntCompare)
+        #fit.lm    = lm(PPvec ~ mapStimLevel + blockVec,data=dataIntCompare)
         
-        summary(fit.lm)
+        #summary(fit.lm)
         # plot(fit.lm)
-        summary(glht(fit.lm,linfct=mcp(blockVec="Tukey")))
-        summary(glht(fit.lm,linfct=mcp(mapStimLevel="Tukey")))
+        #summary(glht(fit.lm,linfct=mcp(blockVec="Tukey")))
+        #summary(glht(fit.lm,linfct=mcp(mapStimLevel="Tukey")))
         
-        emmeans(fit.lm, list(pairwise ~ blockVec), adjust = "tukey")
-        emmeans(fit.lm, list(pairwise ~ mapStimLevel), adjust = "tukey")
+        #emmeans(fit.lm, list(pairwise ~ blockVec), adjust = "tukey")
+        #emmeans(fit.lm, list(pairwise ~ mapStimLevel), adjust = "tukey")
         
-        emm_s.t <- emmeans(fit.lm, pairwise ~ blockVec | mapStimLevel)
-        emm_s.t <- emmeans(fit.lm, pairwise ~ mapStimLevel | blockVec)
+        #emm_s.t <- emmeans(fit.lm, pairwise ~ blockVec | mapStimLevel)
+        #emm_s.t <- emmeans(fit.lm, pairwise ~ mapStimLevel | blockVec)
         
-        anova(fit.lm)
-        tab_model(fit.lm)
+        #anova(fit.lm)
+        #tab_model(fit.lm)
         
         index = index + 1
+        }
         
       }
       
@@ -517,7 +533,7 @@ for (avgMeas in avgMeasVec) {
     
   }
   
-  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + blockType + (1|subjectNum/chanVec),data=dataList)
+  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + blockType + (1|subjectNum),data=dataList)
   
   #fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + disease + (1|sidVec:chanInCond),data=dataList)
   #fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + disease + (1|subjectNum),data=dataList)
@@ -527,6 +543,7 @@ for (avgMeas in avgMeasVec) {
   summary(fit.lmmPP)
   plot(fit.lmmPP)
  qqnorm(resid(fit.lmmPP))
+ qqline(resid(fit.lmmPP))
   summary(glht(fit.lmmPP,linfct=mcp(blockType="Tukey")))
   summary(glht(fit.lmmPP,linfct=mcp(mapStimLevel="Tukey")))
   
@@ -594,8 +611,8 @@ for (avgMeas in avgMeasVec) {
     
   }
   
-  fit.lmmdiff = lmerTest::lmer(absDiff ~ stimLevelVec + blockType + chanInCond + (1|sidVec),data=dataList)
-  fit.lmmdiff = lmerTest::lmer(absDiff ~ mapStimLevel + blockType + chanInCond + (1|sidVec),data=dataList)
+  #fit.lmmdiff = lmerTest::lmer(absDiff ~ stimLevelVec + blockType + chanInCond + (1|sidVec),data=dataList)
+  fit.lmmdiff = lmerTest::lmer(absDiff ~ mapStimLevel + disease  + chanInCond + blockType + (1|subjectNum),data=dataList)
   
   
   fit.lm = lm(absDiff ~ mapStimLevel + blockType + chanInCond ,data=dataList)
@@ -672,8 +689,11 @@ for (avgMeas in avgMeasVec) {
   }
   
   dataSubset <- unique(dataList %>% select(effectSize,subjectNum,meanPP,mapStimLevel,disease,chanInCond,blockType) %>% filter(blockType != 'baseline'))
+  if(!log_data){
   fit.effectSize = lmerTest::lmer(effectSize ~ log(meanPP) + mapStimLevel + disease + blockType + (1|subjectNum),data=dataSubset)
-  
+  }else if(log_data){
+    fit.effectSize = lmerTest::lmer(effectSize ~ meanPP + mapStimLevel + disease + blockType + (1|subjectNum),data=dataSubset)
+  }
   plot(fit.effectSize)
   
   qqnorm(resid(fit.effectSize))

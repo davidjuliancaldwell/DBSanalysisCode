@@ -1,4 +1,4 @@
-function [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak(ucondition,signalSep,t,badChans,tBegin,tEnd,rerefMode,channelReref,smooth)
+function [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak(ucondition,signalSep,t,badChans,tBegin,tEnd,rerefMode,channelReref,smooth,chanInt)
 % extract_PP_peak_to_peak
 % extract peak to peak values in a signal
 
@@ -37,6 +37,11 @@ for i = 1:length(ucondition)
     order = 3;
     framelen = 25;
     
+        % original was above before 7/27/2018
+    
+    order = 7;
+    framelen = 113;
+    
     
     
     %%%%%%%%%%%%%%%%%%  loop through channels
@@ -56,9 +61,9 @@ for i = 1:length(ucondition)
             tr_loc = nan;
         end
         
-        plotIt = 1;
+        plotIt = 0;
         
-        if plotIt
+        if plotIt && j == chanInt
             figure
             plot(tempSignalExtract)
             vline(pk_loc)
