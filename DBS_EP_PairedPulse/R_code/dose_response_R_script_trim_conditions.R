@@ -16,7 +16,7 @@ library('emmeans')
 library("dplyr")
 library('effectsize')
 library('caret')
-
+library('DescTools')
 
 rootDir = here()
 dataDir = here("DBS_EP_PairedPulse","R_data")
@@ -29,6 +29,15 @@ sidVec <- c('46c2a','c963f','2e114','fe7df','e6f3c','9f852',
 diseaseVec <- c('PD','PD','MD','PD','PD','PD','PD','MD',
                 'PD','PD','PD','PD','MD')
 
+sidVec <- c('c963f','2e114','fe7df','e6f3c',
+            '8e907','08b13','e9c9b','41a73','68574',
+            '01fee')
+
+diseaseVec <- c('PD','MD','PD','PD','PD','MD',
+                'PD','PD','PD','PD')
+
+
+
 # sidVec <- c('46c2a','c963f','2e114',
 #             '08b13','8e907','e9c9b','41a73','68574',
 #             '01fee')
@@ -38,8 +47,9 @@ diseaseVec <- c('PD','PD','MD','PD','PD','PD','PD','MD',
 
 log_data = TRUE
 box_data = FALSE
+trim_data = TRUE
 savePlot = 0
-avgMeasVec = c(1)
+avgMeasVec = c(0)
 figWidth = 8 
 figHeight = 6 
 
@@ -122,8 +132,16 @@ for (avgMeas in avgMeasVec) {
       dataInt$mapStimLevel = as.ordered(dataInt$mapStimLevel)
       dataInt$blockType = as.factor(dataInt$blockType)
       
-      dataInt <- subset(dataInt, PPvec<1000)
+      #dataInt <- subset(dataInt, PPvec<1000)
       dataInt <- subset(dataInt, PPvec>30)
+      
+      if (trim_data){
+        dataInt <- dataInt %>% group_by(blockVec,blockType,mapStimLevel) %>% mutate(PPvecLabel = !is.element(seq_len(length(PPvec)),attr(Trim(PPvec,0.05,na.rm=FALSE),'trim')))
+        dataInt <- subset(dataInt,PPvecLabel==TRUE)
+        
+      }
+      
+      dataInt <- subset(dataInt,mapStimLevel>=1)
       
       if (log_data){
         dataInt$PPvec <- log(dataInt$PPvec)
@@ -141,7 +159,7 @@ for (avgMeas in avgMeasVec) {
         #if(!(is.data.frame(dataIntCompare) & (nrow(dataIntCompare)==0))){
 
         # make sure each part of the comparison has at least 5 trials, otherwise exclude it 
-        dataIntCompare <- dataIntCompare %>% group_by(mapStimLevel,blockVec) %>% mutate(enough = n()>=2)
+        dataIntCompare <- dataIntCompare %>% group_by(mapStimLevel,blockVec) %>% mutate(enough = n()>=10)
         
         dataIntCompare <- dataIntCompare %>% group_by(mapStimLevel) %>% filter(all(enough) & length(unique(blockVec))>1)
         
@@ -690,9 +708,9 @@ for (avgMeas in avgMeasVec) {
   
   dataSubset <- unique(dataList %>% select(effectSize,subjectNum,meanPP,mapStimLevel,disease,chanInCond,blockType) %>% filter(blockType != 'baseline'))
   if(!log_data){
-  fit.effectSize = lmerTest::lmer(effectSize ~ log(meanPP) + mapStimLevel + disease + blockType + (1|subjectNum),data=dataSubset)
+  fit.effectSize = lmerTest::lmer(effectSize ~ log(meanPP) + mapStimLevel + chanInCond + disease + blockType + (1|subjectNum),data=dataSubset)
   }else if(log_data){
-    fit.effectSize = lmerTest::lmer(effectSize ~ meanPP + mapStimLevel + disease + blockType + (1|subjectNum),data=dataSubset)
+    fit.effectSize = lmerTest::lmer(effectSize ~ meanPP + mapStimLevel + chanInCond + disease + blockType + (1|subjectNum),data=dataSubset)
   }
   plot(fit.effectSize)
   
