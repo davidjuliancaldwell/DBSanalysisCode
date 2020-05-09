@@ -29,12 +29,12 @@ sidVec <- c('46c2a','c963f','2e114','fe7df','e6f3c','9f852',
 diseaseVec <- c('PD','PD','MD','PD','PD','PD','PD','MD',
                 'PD','PD','PD','PD','MD')
 
-sidVec <- c('c963f','2e114','fe7df','e6f3c',
-            '8e907','08b13','e9c9b','41a73','68574',
-            '01fee')
+#sidVec <- c('c963f','2e114','fe7df','e6f3c',
+#            '8e907','08b13','e9c9b','41a73','68574',
+#            '01fee')
 
-diseaseVec <- c('PD','MD','PD','PD','PD','MD',
-                'PD','PD','PD','PD')
+#diseaseVec <- c('PD','MD','PD','PD','PD','MD',
+#                'PD','PD','PD','PD')
 
 
 
@@ -45,7 +45,7 @@ diseaseVec <- c('PD','MD','PD','PD','PD','MD',
 #sidVec <- c('9f852')
 #sidVec <- c('46c2a')
 
-log_data = TRUE
+log_data = FALSE
 box_data = FALSE
 trim_data = TRUE
 savePlot = 0
@@ -141,7 +141,7 @@ for (avgMeas in avgMeasVec) {
         
       }
       
-      dataInt <- subset(dataInt,mapStimLevel>=1)
+      dataInt <- subset(dataInt,mapStimLevel>=3)
       
       if (log_data){
         dataInt$PPvec <- log(dataInt$PPvec)
@@ -450,8 +450,8 @@ for (avgMeas in avgMeasVec) {
   print(p11)
   
   if (savePlot && !avgMeas) {
-    ggsave(paste0("across_subj_mean_abs_box.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_mean_abs_box.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_mean_abs_box_all_subjs.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_box_all_subjs.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
     ggsave(paste0("across_subj_mean_abs_box_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
@@ -552,6 +552,7 @@ for (avgMeas in avgMeasVec) {
   }
   
   fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + blockType + (1|subjectNum),data=dataList)
+ # fit.lmmPP = lm(PPvec ~ mapStimLevel + disease  + chanInCond + blockType ,data=dataList)
   
   #fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + disease + (1|sidVec:chanInCond),data=dataList)
   #fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + disease + (1|subjectNum),data=dataList)
@@ -579,24 +580,24 @@ for (avgMeas in avgMeasVec) {
     
     figHeight = 4
     figWidth = 8
-    png("pairedPulse_resid_PP_allSubjs.png",width=figWidth,height=figHeight,units="in",res=600)
+    png("pairedPulse_resid_PP_trim_allSubjs.png",width=figWidth,height=figHeight,units="in",res=600)
     plot(fit.lmmPP)
     dev.off()
     
     setEPS()
-    postscript("pairedPulse_resid_PP_allSubjs.eps",width=figWidth,height=figHeight)
+    postscript("pairedPulse_resid_PP_trim_allSubjs.eps",width=figWidth,height=figHeight)
     plot(fit.lmmPP)
     dev.off()
     
     figHeight = 4
     figWidth = 8
-    png("pairedPulse_qq_PP_allSubjs.png",width=figWidth,height=figHeight,units="in",res=600)
+    png("pairedPulse_qq_PP__trim_allSubjs.png",width=figWidth,height=figHeight,units="in",res=600)
     qqnorm(resid(fit.lmmPP))
     qqline(resid(fit.lmmPP))  #summary(fit.lmm2)
     dev.off()
     
     setEPS()
-    postscript("pairedPulse_qq_PP_allSubjs.eps",width=figWidth,height=figHeight)
+    postscript("pairedPulse_qq_PP_trim_allSubjs.eps",width=figWidth,height=figHeight)
     qqnorm(resid(fit.lmmPP))
     qqline(resid(fit.lmmPP))  #summary(fit.lmm2)
     dev.off()
@@ -712,6 +713,9 @@ for (avgMeas in avgMeasVec) {
   }else if(log_data){
     fit.effectSize = lmerTest::lmer(effectSize ~ meanPP + mapStimLevel + chanInCond + disease + blockType + (1|subjectNum),data=dataSubset)
   }
+  
+  #fit.effectSize = lm(effectSize ~ meanPP + mapStimLevel + chanInCond + disease + blockType ,data=dataSubset)
+  
   plot(fit.effectSize)
   
   qqnorm(resid(fit.effectSize))
@@ -722,8 +726,72 @@ for (avgMeas in avgMeasVec) {
   goodVecBlock <- c("A/B 25","A/B 200","A/A 200")
   pEffect <- ggplot(data =  dataSubset%>% filter(blockType %in% goodVecBlock), aes(x = blockType, y = effectSize,color=blockType)) +
     geom_boxplot(notch=TRUE,outlier.shape=NA)  + geom_jitter(shape=16, position=position_jitter(0.2),aes(alpha = mapStimLevel)) +
-    labs(x = expression(paste("Experimental Condition")),y=expression(paste("Effect Size")),color="Experimental Condition",alpha="Ordered Stim Level",title = paste0("EP Difference from Baseline by Conditioning Protocol")) +
-    scale_color_brewer(palette="Dark2")
+    labs(x = expression(paste("Experimental Condition")),y=expression(paste("Effect Size")),color="Experimental Condition",alpha="Ordered Stim Level",title = paste0("Effect Size by Conditioning Protocol")) +
+    scale_color_brewer(palette="Dark2") + scale_alpha_discrete(range=c(0.5,1))
   print(pEffect)
+  if (savePlot && !avgMeas) {
+    ggsave(paste0("across_subj_effect_trim_all_subjs.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_effect_trim_all_subjs.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    
+  } else if (savePlot && avgMeas){
+    ggsave(paste0("across_subj_effect_trim_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_effect_trim_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    
+  }
+  
+  if (savePlot && !avgMeas) {
+    
+    figHeight = 4
+    figWidth = 8
+    png("pairedPulse_resid_effectSize_allSubjs.png",width=figWidth,height=figHeight,units="in",res=600)
+    plot(fit.effectSize)
+    dev.off()
+    
+    setEPS()
+    postscript("pairedPulse_resid_effectSize_allSubjs.eps",width=figWidth,height=figHeight)
+    plot(fit.effectSize)
+    dev.off()
+    
+    figHeight = 4
+    figWidth = 8
+    png("pairedPulse_qq_effectSize_allSubjs.png",width=figWidth,height=figHeight,units="in",res=600)
+    qqnorm(resid(fit.effectSize))
+    qqline(resid(fit.effectSize))  #summary(fit.lmm2)
+    dev.off()
+    
+    setEPS()
+    postscript("pairedPulse_qq_effectSize_allSubjs.eps",width=figWidth,height=figHeight)
+    qqnorm(resid(fit.effectSize))
+    qqline(resid(fit.effectSize))  #summary(fit.lmm2)
+    dev.off()
+    
+  } else if (savePlot && avgMeas){
+    
+    figHeight = 4
+    figWidth = 8
+    png("pairedPulse_resid_effectSize_allSubjs_avg.png",width=figWidth,height=figHeight,units="in",res=600)
+    plot(fit.effectSize)
+    dev.off()
+    
+    setEPS()
+    postscript("pairedPulse_resid_effectSize_allSubjs_avg.eps",width=figWidth,height=figHeight)
+    plot(fit.lmmPP)
+    dev.off()
+    
+    figHeight = 4
+    figWidth = 8
+    png("pairedPulse_qq_effectSize_allSubjs_avg.png",width=figWidth,height=figHeight,units="in",res=600)
+    qqnorm(resid(fit.lmmPP))
+    qqline(resid(fit.lmmPP))  #summary(fit.lmm2)
+    dev.off()
+    
+    setEPS()
+    postscript("pairedPulse_qq_effectSize_allSubjs_avg.eps",width=figWidth,height=figHeight)
+    qqnorm(resid(fit.lmmPP))
+    qqline(resid(fit.lmmPP))  #summary(fit.lmm2)
+    dev.off()
+    
+  }
+  
 }
 
