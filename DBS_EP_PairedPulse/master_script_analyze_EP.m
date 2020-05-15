@@ -5,7 +5,7 @@ Z_ConstantsDBS_PairedPulse;
 matlab_dir = 'MATLAB_Converted';
 experiment = 'EP_Measurement';
 
-avgTrialsVec = [1]';
+avgTrialsVec = [0]';
 %avgTrialsVec = [1]';
 numAvg = 5;
 
@@ -31,9 +31,48 @@ sidVecIterate = {'46c2a','c963f','2e114','3d413','fe7df','e6f3c',...
     '9f852','8e907','08b13','e9c9b','41a73','68574',...
     '01fee','a23ed'};
 
+%sidVecIterate = {'2e114','3d413','fe7df','e6f3c',...
+%    '9f852','8e907','08b13','e9c9b','41a73','68574',...
+%    '01fee','a23ed'};
+
+
 % rereference against the first channel in the array if desired
 chanReref = 1;
 rerefMode = 'none';
+
+%% try artifact processing
+
+type = 'dictionary';
+useProcrustes = 1; % use procrustes distance for scaling artifact on each trial 
+trainDuration = [0 2]; % this is how long the stimulation train was
+minDuration = 2; % minimum duration of artifact in ms
+fixedDistance = 4;
+plotIt = 0;
+useFixedEnd = 0;
+recoverExp = 0;
+
+% parameters for detecting artifact onset and offset
+pre = 0.8; % default time window to extend before the artifact pulse to ensure the artifact is appropriately detected (0.8 ms as default)
+post = 1.5; % default time window to extend before the artifact pulse to ensure the artifact is appropriately detected (1 ms as default)
+onsetThreshold = 1.5; %This value is used as absolute valued z-score threshold to determine the onset of artifacts within a train. The differentiated smoothed signal is used to determine artifact onset. This is also used in determining how many stimulation pulses are within a train, by ensuring that beginning of each artifact is within a separate artifact pulse.
+threshVoltageCut = 80; %This is used to help determine the end of each individual artifact pulse dynamically. More specifically, this is a percentile value, against which the absolute valued, z-scored smoothed raw signal is compared to find the last value which exceeds the specified percentile voltage value. Higher values of this (i.e. closer to 100) result in a shorter duration artifact, while lower values result in a longer calculated duration of artifact. This parameter therefore should likely be set higher for more transient artifacts and lower for longer artifacts.
+threshDiffCut = 80; %This is used to help determine the end of each individual artifact pulse dynamically. More specifically, this is a percentile value, against which the absolute valued, z-scored differentiated smoothed raw signal is compared to find the last value which exceeds the specified percentile voltage value. Higher values of this (i.e. closer to 100) result in a shorter duration artifact, while lower values result in a longer calculated duration of artifact. This parameter therefore should likely be set higher for more transient artifacts and lower for longer artifacts.
+
+% these are the metrics used if the dictionary method is selected. The
+% options are 'eucl', 'cosine', 'corr', for either euclidean distance,
+% cosine similarity, or correlation for clustering and template matching.
+distanceMetricDbscan = 'eucl';
+distanceMetricSigMatch = 'corr';
+
+amntPreAverage = 5; % number of samples at the beginning of each artifact pulse to use as a baseline normalization
+normalize = 'preAverage'; % method to use for normalization of each artifact pulse. 'preAverage' uses the average across the number of samples specified above
+
+% additional HDBSCAN parameters and window selection
+bracketRange = [-5:5]; %This variable sets the number of samples around the maximum voltage deflection to use for template clustering and subsequent matching. The smaller this range, the lower the dimensionality used for clustering, and the fewer points used to calculate the best matching template. This value is used to try and ensure that non-informative points are not included in the clustering and template matching. This should be set to what looks like the approximate length of the artifact's largest part.
+minPts = 2;  % Defined as k in the manuscript. This is a parameter that determines how many neighbors are used for core distance calculations for each point in the artifact window. This is a parameter that determines how many neighbors are used for core distance calculations. Increasing this parameter restricts clusters to increasingly dense areas.
+minClustSize = 3; % Defined as n in the manuscript. The minimum number of clustered artifact pulses for a cluster to be labelled as a true cluster. Increasing this number can reduce the number of clusters, and merges some clusters together that would have otherwise been labelled as individual clusters.
+outlierThresh = 0.99; % Outlier parameter for labeling artifact pulses as noise in the HDBSCAN clustering. Any artifact pulse with an outlier score greater than this will be labelled as noise. Increasing this value results in fewer points being labelled as noise
+xlimsWave = [-50,400];
 
 
 for avgTrials = avgTrialsVec'
@@ -142,6 +181,8 @@ for avgTrials = avgTrialsVec'
         
         fprintf([sid,'\n'])
         fprintf(['average trials ' num2str(avgTrials) '\n'])
+        
+        
         
         %% prepare data
         prepare_EP_blocks
