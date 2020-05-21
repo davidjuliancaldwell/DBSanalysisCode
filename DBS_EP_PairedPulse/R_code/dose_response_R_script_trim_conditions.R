@@ -29,12 +29,12 @@ sidVec <- c('46c2a','c963f','2e114','fe7df','e6f3c','9f852',
 diseaseVec <- c('PD','PD','MD','PD','PD','PD','PD','MD',
                 'PD','PD','PD','PD','MD')
 
-#sidVec <- c('c963f','2e114','fe7df','e6f3c',
-#            '8e907','08b13','e9c9b','41a73','68574',
-#            '01fee')
+sidVec <- c('c963f','2e114','fe7df','e6f3c',
+            '8e907','08b13','e9c9b','41a73','68574',
+            '01fee')
 
-#diseaseVec <- c('PD','MD','PD','PD','PD','MD',
-#                'PD','PD','PD','PD')
+diseaseVec <- c('PD','MD','PD','PD','PD','MD',
+                'PD','PD','PD','PD')
 
 
 
@@ -45,7 +45,7 @@ diseaseVec <- c('PD','PD','MD','PD','PD','PD','PD','MD',
 #sidVec <- c('9f852')
 #sidVec <- c('46c2a')
 
-log_data = FALSE
+log_data = TRUE
 box_data = FALSE
 trim_data = TRUE
 savePlot = 0
@@ -114,14 +114,15 @@ for (avgMeas in avgMeasVec) {
       uniqueStimLevel = as.double(unique(dataInt$stimLevelVec))
       
       if (sid == "2e114"){
-        mappingStimLevel =ordered(c(1,3,4))
+        mappingStimLevel =c(1,3,4)
         
       } else {
-        mappingStimLevel =ordered(c(1:length(uniqueStimLevel)))
+        mappingStimLevel =c(1:length(uniqueStimLevel))
       }
-      dataInt$mapStimLevel <- mapvalues(dataInt$stimLevelVec,
+      dataInt$mapStimLevel<- mapvalues(dataInt$stimLevelVec,
                                         from=sort(uniqueStimLevel),
                                         to=mappingStimLevel)
+      
       uniqueBlockLevel = unique(dataInt$blockVec)
       blockTypeTrim = blockType[uniqueBlockLevel]
       
@@ -141,7 +142,7 @@ for (avgMeas in avgMeasVec) {
         
       }
       
-      dataInt <- subset(dataInt,mapStimLevel>=3)
+      dataInt <- subset(dataInt,mapStimLevel>=1)
       
       if (log_data){
         dataInt$PPvec <- log(dataInt$PPvec)
@@ -552,7 +553,11 @@ for (avgMeas in avgMeasVec) {
   }
   
   fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + blockType + (1|subjectNum),data=dataList)
- # fit.lmmPP = lm(PPvec ~ mapStimLevel + disease  + chanInCond + blockType ,data=dataList)
+ 
+  ## this one is for only the highest stimulation level 
+  # fit.lmmPP = lmerTest::lmer(PPvec ~ disease  + chanInCond + blockType + (1|subjectNum),data=dataList)
+  
+  # fit.lmmPP = lm(PPvec ~ mapStimLevel + disease  + chanInCond + blockType ,data=dataList)
   
   #fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + disease + (1|sidVec:chanInCond),data=dataList)
   #fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + disease + (1|subjectNum),data=dataList)
@@ -713,6 +718,16 @@ for (avgMeas in avgMeasVec) {
   }else if(log_data){
     fit.effectSize = lmerTest::lmer(effectSize ~ meanPP + mapStimLevel + chanInCond + disease + blockType + (1|subjectNum),data=dataSubset)
   }
+  
+  # if(!log_data){
+  #   fit.effectSize = lmerTest::lmer(effectSize ~ log(meanPP) + chanInCond + disease + blockType + (1|subjectNum),data=dataSubset)
+  # }else if(log_data){
+  #   fit.effectSize = lmerTest::lmer(effectSize ~ meanPP + chanInCond + disease + blockType + (1|subjectNum),data=dataSubset)
+  # }
+  # 
+  emmeans(fit.effectSize, list(pairwise ~ blockType), adjust = "tukey")
+  
+  
   
   #fit.effectSize = lm(effectSize ~ meanPP + mapStimLevel + chanInCond + disease + blockType ,data=dataSubset)
   
