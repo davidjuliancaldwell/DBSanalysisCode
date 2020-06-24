@@ -44,9 +44,9 @@ objhl = flipud(findobj(plotObj, 'type', 'line')); % objects of legend of type pa
 set(gca,'fontsize',18)
 
 leg = legend([objhl(1),objhl(2),objhl(3),objhl(4),objhl(5),objhl(6),objhl(7),objhl(8),...
-    objhl(9),objhl(10),objhl(11),objhl(12)],...
+    objhl(9),objhl(10),objhl(11),objhl(12),objhl(13)],...
     {'subject 1','subject 2','subject 3','subject 4','subject 5','subject 6','subject 7',...
-    'subject 8','subject 9','subject 10','subject 11','subject 12'});
+    'subject 8','subject 9','subject 10','subject 11','subject 12','subject 13'});
 %save('exampleMNI.mat','locsStruct');
 %saveForMNI(files)
 
@@ -65,7 +65,7 @@ electrodes_interest = struct();
 electrodes_interest.x01fee = [5,8];
 electrodes_interest.x9f852 = [4,7];
 electrodes_interest.x2e114 = [4];
-electrodes_interest.x3d314 = [4,6];
+electrodes_interest.x3d413 = [4,6];
 electrodes_interest.x8e907 = [4,5];
 electrodes_interest.x08b13 = [6];
 electrodes_interest.x9f852 = [4,7];
@@ -76,7 +76,6 @@ electrodes_interest.xa23ed = [5];
 electrodes_interest.xc963f = [6];
 electrodes_interest.xe6f3c = [6];
 electrodes_interest.xe9c9b = [6];
-electrodes_interest.xa23ed = [5];
 electrodes_interest.xfe7df = [6];
 
 names_struct_elec = fieldnames(electrodes_interest);
@@ -84,7 +83,7 @@ names_struct_elec = fieldnames(electrodes_interest);
 for i = 1:length(names_struct)
     
     subj_name_orig = names_struct{i};
-    split_name = strsplit(subj_name,'_');
+    split_name = strsplit(subj_name_orig,'_');
     subj_name = split_name{1};
     
     TF = contains(names_struct_elec,subj_name);
@@ -116,11 +115,11 @@ objhl = flipud(findobj(plotObj, 'type', 'line')); % objects of legend of type pa
 set(gca,'fontsize',18)
 
 leg = legend([objhl(1),objhl(2),objhl(3),objhl(4),objhl(5),objhl(6),objhl(7),objhl(8),...
-    objhl(9),objhl(10),objhl(11),objhl(12)],...
+    objhl(9),objhl(10),objhl(11),objhl(12),objhl(13)],...
     {'subject 1','subject 2','subject 3','subject 4','subject 5','subject 6','subject 7',...
-    'subject 8','subject 9','subject 10','subject 11','subject 12'});
+    'subject 8','subject 9','subject 10','subject 11','subject 12','subject 13'});
 
-title('Channels with sizeable CEPs')
+%title('Channels with sizeable CEPs')
 %save('exampleMNI.mat','locsStruct');
 %saveForMNI(files)
 
@@ -138,20 +137,18 @@ CT=cbrewer('qual', 'Dark2', length(names_struct));
 
 electrodes_interest = struct();
 electrodes_interest.x01fee = [6,7];
-electrodes_interest.x9f852 = [4,7];
 electrodes_interest.x2e114 = [5,6];
-electrodes_interest.x3d314 = [5,6,7,8];
+electrodes_interest.x3d413 = [5,6,7,8];
 electrodes_interest.x8e907 = [6,7];
 electrodes_interest.x08b13 = [7,8];
 electrodes_interest.x9f852 = [5,6];
 electrodes_interest.x41a73 = [6,7];
 electrodes_interest.x46c2a = [7,8];
 electrodes_interest.x68574 = [5,6];
-electrodes_interest.xa23ed = [6,6];
+electrodes_interest.xa23ed = [6,7];
 electrodes_interest.xc963f = [7,8];
 electrodes_interest.xe6f3c = [7,8];
 electrodes_interest.xe9c9b = [7,8];
-electrodes_interest.xa23ed = [5];
 electrodes_interest.xfe7df = [7,8];
 
 names_struct_elec = fieldnames(electrodes_interest);
@@ -159,7 +156,7 @@ names_struct_elec = fieldnames(electrodes_interest);
 for i = 1:length(names_struct)
     
     subj_name_orig = names_struct{i};
-    split_name = strsplit(subj_name,'_');
+    split_name = strsplit(subj_name_orig,'_');
     subj_name = split_name{1};
     
     TF = contains(names_struct_elec,subj_name);
@@ -191,10 +188,10 @@ objhl = flipud(findobj(plotObj, 'type', 'line')); % objects of legend of type pa
 set(gca,'fontsize',18)
 
 leg = legend([objhl(1),objhl(2),objhl(3),objhl(4),objhl(5),objhl(6),objhl(7),objhl(8),...
-    objhl(9),objhl(10),objhl(11),objhl(12)],...
+    objhl(9),objhl(10),objhl(11),objhl(12),objhl(13)],...
     {'subject 1','subject 2','subject 3','subject 4','subject 5','subject 6','subject 7',...
-    'subject 8','subject 9','subject 10','subject 11','subject 12'});
+    'subject 8','subject 9','subject 10','subject 11','subject 12','subject 13'});
 
-title('Stimulation Electrode Pairs')
+%title('Stimulation Electrode Pairs')
 %save('exampleMNI.mat','locsStruct');
 %saveForMNI(files)

@@ -37,7 +37,6 @@ diseaseVec <- c('PD','MD','PD','PD','PD','MD',
                 'PD','PD','PD','PD')
 
 
-
 # sidVec <- c('46c2a','c963f','2e114',
 #             '08b13','8e907','e9c9b','41a73','68574',
 #             '01fee')
@@ -65,6 +64,7 @@ for (avgMeas in avgMeasVec) {
   for (sid in sidVec){
     source(here("DBS_EP_PairedPulse","R_config_files",paste0("subj_",sid,".R")))
     
+    brodmann_areas <- read.csv(here("DBS_EP_PairedPulse","R_config_files",paste0(sid,'_MNIcoords_labelled.csv')),header=TRUE,sep = ",",stringsAsFactors=F)
     if (avgMeas) {
       dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_avg_5.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
     } else{
@@ -133,6 +133,9 @@ for (avgMeas in avgMeasVec) {
       dataInt$mapStimLevel = as.ordered(dataInt$mapStimLevel)
       dataInt$blockType = as.factor(dataInt$blockType)
       
+      # get which brodmann area label is for this electrode
+      dataInt$baLabel = as.factor(brodmann_areas$ba.label[chanInt])
+      dataInt$aalLabel = as.factor(brodmann_areas$aal.label[chanInt])
       #dataInt <- subset(dataInt, PPvec<1000)
       dataInt <- subset(dataInt, PPvec>30)
       
@@ -552,7 +555,7 @@ for (avgMeas in avgMeasVec) {
     
   }
   
-  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + blockType + (1|subjectNum),data=dataList)
+  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + blockType + aalLabel + (1|subjectNum),data=dataList)
  
   ## this one is for only the highest stimulation level 
   # fit.lmmPP = lmerTest::lmer(PPvec ~ disease  + chanInCond + blockType + (1|subjectNum),data=dataList)
@@ -573,6 +576,8 @@ for (avgMeas in avgMeasVec) {
   
   emmeans(fit.lmmPP, list(pairwise ~ blockType), adjust = "tukey")
   emmeans(fit.lmmPP, list(pairwise ~ mapStimLevel), adjust = "tukey")
+  emmeans(fit.lmmPP, list(pairwise ~ baLabel), adjust = "tukey")
+  
   
   emm_s.t <- emmeans(fit.lmmPP, pairwise ~ blockType | mapStimLevel)
   emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | blockType)
@@ -712,11 +717,11 @@ for (avgMeas in avgMeasVec) {
     
   }
   
-  dataSubset <- unique(dataList %>% select(effectSize,subjectNum,meanPP,mapStimLevel,disease,chanInCond,blockType) %>% filter(blockType != 'baseline'))
+  dataSubset <- unique(dataList %>% select(effectSize,subjectNum,meanPP,mapStimLevel,disease,chanInCond,blockType,baLabel) %>% filter(blockType != 'baseline'))
   if(!log_data){
-  fit.effectSize = lmerTest::lmer(effectSize ~ log(meanPP) + mapStimLevel + chanInCond + disease + blockType + (1|subjectNum),data=dataSubset)
+  fit.effectSize = lmerTest::lmer(effectSize ~ log(meanPP) + mapStimLevel + chanInCond + disease + blockType + baLabel + (1|subjectNum),data=dataSubset)
   }else if(log_data){
-    fit.effectSize = lmerTest::lmer(effectSize ~ meanPP + mapStimLevel + chanInCond + disease + blockType + (1|subjectNum),data=dataSubset)
+    fit.effectSize = lmerTest::lmer(effectSize ~ meanPP + mapStimLevel + chanInCond + disease + blockType + baLabel + (1|subjectNum),data=dataSubset)
   }
   
   # if(!log_data){
