@@ -37,9 +37,14 @@ diseaseVec <- c('PD','MD','PD','PD','PD','MD',
                 'PD','PD','PD','PD')
 
 
-# sidVec <- c('46c2a','c963f','2e114',
-#             '08b13','8e907','e9c9b','41a73','68574',
-#             '01fee')
+
+sidVec <- c('46c2a','c963f','2e114','fe7df','e6f3c','9f852',
+            '8e907','08b13','e9c9b','41a73','68574',
+            '01fee')
+
+
+diseaseVec <- c('PD','PD','MD','PD','PD','PD','PD','MD',
+                'PD','PD','PD','PD')
 
 #sidVec <- c('9f852')
 #sidVec <- c('46c2a')
@@ -47,6 +52,7 @@ diseaseVec <- c('PD','MD','PD','PD','PD','MD',
 log_data = TRUE
 box_data = FALSE
 trim_data = TRUE
+min_stim_level = 3
 savePlot = 0
 avgMeasVec = c(0)
 figWidth = 8 
@@ -134,18 +140,26 @@ for (avgMeas in avgMeasVec) {
       dataInt$blockType = as.factor(dataInt$blockType)
       
       # get which brodmann area label is for this electrode
-      dataInt$baLabel = as.factor(brodmann_areas$ba.label[chanInt])
-      dataInt$aalLabel = as.factor(brodmann_areas$aal.label[chanInt])
-      #dataInt <- subset(dataInt, PPvec<1000)
+      dataInt$baLabel = as.character(brodmann_areas$ba.label[chanInt])
+      dataInt$aalLabel = as.character(brodmann_areas$aal.label[chanInt])
+      
+      # get all to same side
+        dataInt$baLabel[dataInt$baLabel=='Right-PrimMotor (4)'] = 'Left-PrimMotor (4)'
+      dataInt$aalLabel[dataInt$aalLabel=='Postcentral_R'] = 'Postcentral_L'
+      
+      dataInt$baLabel = as.factor(dataInt$baLabel)
+      dataInt$aalLabel = as.factor(dataInt$aalLabel)
+ 
+      dataInt <- subset(dataInt, PPvec<1000)
       dataInt <- subset(dataInt, PPvec>30)
       
       if (trim_data){
-        dataInt <- dataInt %>% group_by(blockVec,blockType,mapStimLevel) %>% mutate(PPvecLabel = !is.element(seq_len(length(PPvec)),attr(Trim(PPvec,0.05,na.rm=FALSE),'trim')))
+        dataInt <- dataInt %>% group_by(blockVec,blockType,mapStimLevel) %>% mutate(PPvecLabel = !is.element(seq_len(length(PPvec)),attr(Trim(PPvec,0.025,na.rm=FALSE),'trim')))
         dataInt <- subset(dataInt,PPvecLabel==TRUE)
         
       }
       
-      dataInt <- subset(dataInt,mapStimLevel>=1)
+      dataInt <- subset(dataInt,mapStimLevel>=min_stim_level)
       
       if (log_data){
         dataInt$PPvec <- log(dataInt$PPvec)
@@ -162,7 +176,7 @@ for (avgMeas in avgMeasVec) {
 
         #if(!(is.data.frame(dataIntCompare) & (nrow(dataIntCompare)==0))){
 
-        # make sure each part of the comparison has at least 5 trials, otherwise exclude it 
+        # make sure each part of the comparison has at least 10 trials, otherwise exclude it 
         dataIntCompare <- dataIntCompare %>% group_by(mapStimLevel,blockVec) %>% mutate(enough = n()>=10)
         
         dataIntCompare <- dataIntCompare %>% group_by(mapStimLevel) %>% filter(all(enough) & length(unique(blockVec))>1)
@@ -574,9 +588,10 @@ for (avgMeas in avgMeasVec) {
   summary(glht(fit.lmmPP,linfct=mcp(blockType="Tukey")))
   summary(glht(fit.lmmPP,linfct=mcp(mapStimLevel="Tukey")))
   
+  emm_options(pbkrtest.limit = 10000)
   emmeans(fit.lmmPP, list(pairwise ~ blockType), adjust = "tukey")
   emmeans(fit.lmmPP, list(pairwise ~ mapStimLevel), adjust = "tukey")
-  emmeans(fit.lmmPP, list(pairwise ~ baLabel), adjust = "tukey")
+  emmeans(fit.lmmPP, list(pairwise ~ aalLabel), adjust = "tukey")
   
   
   emm_s.t <- emmeans(fit.lmmPP, pairwise ~ blockType | mapStimLevel)
@@ -717,7 +732,7 @@ for (avgMeas in avgMeasVec) {
     
   }
   
-  dataSubset <- unique(dataList %>% select(effectSize,subjectNum,meanPP,mapStimLevel,disease,chanInCond,blockType,baLabel) %>% filter(blockType != 'baseline'))
+  dataSubset <- unique(dataList %>% select(effectSize,subjectNum,meanPP,mapStimLevel,disease,chanInCond,blockType,baLabel,aalLabel) %>% filter(blockType != 'baseline'))
   if(!log_data){
   fit.effectSize = lmerTest::lmer(effectSize ~ log(meanPP) + mapStimLevel + chanInCond + disease + blockType + baLabel + (1|subjectNum),data=dataSubset)
   }else if(log_data){

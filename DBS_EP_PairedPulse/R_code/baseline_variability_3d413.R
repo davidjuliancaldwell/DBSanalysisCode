@@ -21,7 +21,10 @@ codeDir = here("DBS_EP_PairedPulse","R_code")
 
 sidVec = c("3d413")
 
-
+min_stim_level = 2
+log_data = TRUE
+box_data = FALSE
+trim_data = TRUE
 savePlot = 0
 avgMeasVec = c(0)
 figWidth = 8 
@@ -35,18 +38,19 @@ index = 1
 for (avgMeas in avgMeasVec) {
   for (sid in sidVec){
     source(here("DBS_EP_PairedPulse","R_config_files",paste0("subj_",sid,".R")))
+    brodmann_areas <- read.csv(here("DBS_EP_PairedPulse","R_config_files",paste0(sid,'_MNIcoords_labelled.csv')),header=TRUE,sep = ",",stringsAsFactors=F)
     
     if (avgMeas) {
       dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_avg.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
     } else{
-      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
+      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
     }
     
     # multiply by 1e6
     dataPP$PPvec = dataPP$PPvec*1e6
     dataPP$stimLevelVec = dataPP$stimLevelVec/1e3
-    dataPP <- subset(dataPP, PPvec<1500)
-    dataPP <- subset(dataPP, PPvec>25)
+    dataPP <- subset(dataPP, PPvec<1000)
+    dataPP <- subset(dataPP, PPvec>30)
     # change to factor 
     print(sid)
     
@@ -62,20 +66,54 @@ for (avgMeas in avgMeasVec) {
       # map stimulation levels to consistent ordering for between subject comparison
       uniqueStimLevel = as.double(unique(dataInt$stimLevelVec))
       
+      if (sid == "2e114"){
+        mappingStimLevel =c(1,3,4)
+        
+      } else {
+        mappingStimLevel =c(1:length(uniqueStimLevel))
+      }
+      dataInt$mapStimLevel<- mapvalues(dataInt$stimLevelVec,
+                                       from=sort(uniqueStimLevel),
+                                       to=mappingStimLevel)
       
-      mappingStimLevel =c(1:length(uniqueStimLevel))
-      
-      dataInt$mapStimLevel <- mapvalues(dataInt$stimLevelVec,
-                                        from=uniqueStimLevel,
-                                        to=mappingStimLevel)
       uniqueBlockLevel = unique(dataInt$blockVec)
+      blockTypeTrim = blockType[uniqueBlockLevel]
       
       dataInt$blockType <- mapvalues(dataInt$blockVec,
                                      from=uniqueBlockLevel,
-                                     to=blockType)
+                                     to=blockTypeTrim)
       
       dataInt$mapStimLevel = as.ordered(dataInt$mapStimLevel)
       dataInt$blockType = as.factor(dataInt$blockType)
+      
+      if (trim_data){
+        dataInt <- dataInt %>% group_by(blockVec,blockType,mapStimLevel) %>% mutate(PPvecLabel = !is.element(seq_len(length(PPvec)),attr(Trim(PPvec,0.025,na.rm=FALSE),'trim')))
+        dataInt <- subset(dataInt,PPvecLabel==TRUE)
+        
+      }
+      
+      dataInt <- subset(dataInt,mapStimLevel>=min_stim_level)
+      
+      if (log_data){
+        dataInt$PPvec <- log(dataInt$PPvec)
+      }
+      
+      if (box_data){
+        box_trans <- caret::BoxCoxTrans(dataInt$PPvec)
+        dataInt$PPvec <- predict(box_trans,dataInt$PPvec)
+      }
+      
+      # get which brodmann area label is for this electrode
+      dataInt$baLabel = as.character(brodmann_areas$ba.label[chanInt])
+      dataInt$aalLabel = as.character(brodmann_areas$aal.label[chanInt])
+      
+      # get all to same side
+      dataInt$baLabel[dataInt$baLabel=='Right-PrimMotor (4)'] = 'Left-PrimMotor (4)'
+      dataInt$aalLabel[dataInt$aalLabel=='Postcentral_R'] = 'Postcentral_L'
+      
+      dataInt$baLabel = as.factor(dataInt$baLabel)
+      dataInt$aalLabel = as.factor(dataInt$aalLabel)
+      
       dataIntCompare <- dataInt
       
       dataIntCompare = as_data_frame(dataIntCompare)
