@@ -851,74 +851,75 @@ for block = blocks
         end
         
         %%
-        [processedSig,templateDictCell,templateTrial,startInds,endInds] = analyFunc.template_subtract(epochUnNormed,'type',type,...
-            'fs',ECoGfs,'plotIt',plotIt,'pre',pre,'post',post,'stimChans',stimChans,...
-            'useFixedEnd',useFixedEnd,'fixedDistance',fixedDistance,...
-            'distanceMetricDbscan',distanceMetricDbscan,'distanceMetricSigMatch',distanceMetricSigMatch,...
-            'recoverExp',recoverExp,'normalize',normalize,'amntPreAverage',amntPreAverage,...
-            'minDuration',minDuration,'bracketRange',bracketRange,'threshVoltageCut',threshVoltageCut,...
-            'threshDiffCut',threshDiffCut,'onsetThreshold',onsetThreshold,'chanInt',chanInt,...
-            'minPts',minPts,'minClustSize',minClustSize,'outlierThresh',outlierThresh,'useProcrustes',useProcrustes);
-        %%
-        % visualization
-        % of note - more visualizations are created here, including what the
-        % templates look like on each channel, and what the discovered templates are
-        xlims = [-50 400];
-        %     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        average = 1;
-        modePlot = 'avg';
-        ylims = [-0.6 0.6];
-        vizFunc.small_multiples_time_series(processedSig,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylims,'modePlot',modePlot,'highlightRange',trainDuration)
-        
-        %%%%%% wavelet
-        fprintf(['-------Beginning wavelet analysis-------- \n'])
-        
-        timeRes = 0.01; % 10 ms bins
-        
-        [powerout,fMorlet,tMorlet,~] = analyFunc.waveletWrapper(processedSig,ECoGfs,timeRes,stimChans);
-        %
-        fprintf(['-------Ending wavelet analysis-------- \n'])
-        
-        % additional parameters
-        postStim = max(tEpoch);
-        sampsPostStim = round(postStim/1e3*ECoGfs);
-        
-        preStim = min(tEpoch);
-        sampsPreStim = round(preStim/1e3*ECoGfs);
-        
-        tMorlet = linspace(preStim,postStim,length(tMorlet))/1e3;
-        % normalize data
-        dataRef = powerout(:,tMorlet<-0.005 & tMorlet>-0.08,:,:);
-        dataRef = powerout(:,:,:,:);
-
-        %
-        [normalizedData] = analyFunc.normalize_spectrogram_wavelet(dataRef,powerout);
-        individual = 1;
-        average = 1;
-        
-        for chanInt = chanIntList
-            vizFunc.visualize_wavelet_channel_no_raw(normalizedData,tMorlet,fMorlet,processedSig,...
-                tEpoch/1e3,chanInt,individual,average,xlimsWave)
+        if tryArtifact
+            [processedSig,templateDictCell,templateTrial,startInds,endInds] = analyFunc.template_subtract(epochUnNormed,'type',type,...
+                'fs',ECoGfs,'plotIt',plotIt,'pre',pre,'post',post,'stimChans',stimChans,...
+                'useFixedEnd',useFixedEnd,'fixedDistance',fixedDistance,...
+                'distanceMetricDbscan',distanceMetricDbscan,'distanceMetricSigMatch',distanceMetricSigMatch,...
+                'recoverExp',recoverExp,'normalize',normalize,'amntPreAverage',amntPreAverage,...
+                'minDuration',minDuration,'bracketRange',bracketRange,'threshVoltageCut',threshVoltageCut,...
+                'threshDiffCut',threshDiffCut,'onsetThreshold',onsetThreshold,'chanInt',chanInt,...
+                'minPts',minPts,'minClustSize',minClustSize,'outlierThresh',outlierThresh,'useProcrustes',useProcrustes);
+            %%
+            % visualization
+            % of note - more visualizations are created here, including what the
+            % templates look like on each channel, and what the discovered templates are
+            xlims = [-50 400];
+            %     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            average = 1;
+            modePlot = 'avg';
+            ylims = [-0.6 0.6];
+            vizFunc.small_multiples_time_series(processedSig,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylims,'modePlot',modePlot,'highlightRange',trainDuration)
+            
+            %%%%%% wavelet
+            fprintf(['-------Beginning wavelet analysis-------- \n'])
+            
+            timeRes = 0.01; % 10 ms bins
+            
+            [powerout,fMorlet,tMorlet,~] = analyFunc.waveletWrapper(processedSig,ECoGfs,timeRes,stimChans);
+            %
+            fprintf(['-------Ending wavelet analysis-------- \n'])
+            
+            % additional parameters
+            postStim = max(tEpoch);
+            sampsPostStim = round(postStim/1e3*ECoGfs);
+            
+            preStim = min(tEpoch);
+            sampsPreStim = round(preStim/1e3*ECoGfs);
+            
+            tMorlet = linspace(preStim,postStim,length(tMorlet))/1e3;
+            % normalize data
+            dataRef = powerout(:,tMorlet<-0.005 & tMorlet>-0.08,:,:);
+            dataRef = powerout(:,:,:,:);
+            
+            %
+            [normalizedData] = analyFunc.normalize_spectrogram_wavelet(dataRef,powerout);
+            individual = 1;
+            average = 1;
+            
+            for chanInt = chanIntList
+                vizFunc.visualize_wavelet_channel_no_raw(normalizedData,tMorlet,fMorlet,processedSig,...
+                    tEpoch/1e3,chanInt,individual,average,xlimsWave)
+            end
+            
+            for chanInt = chanIntList
+                vizFunc.visualize_wavelet_channel(normalizedData,tMorlet,fMorlet,processedSig,...
+                    tEpoch/1e3,epochUnNormed,chanInt,individual,average,xlimsWave)
+            end
+            
+            for chanInt = chanIntList
+                vizFunc.visualize_wavelet_channel_no_raw_not_normalized(powerout,tMorlet,fMorlet,processedSig,...
+                    tEpoch/1e3,chanInt,individual,average,xlimsWave)
+            end
+            %         %
+            %         for chanInt = chanIntList
+            %             vizFunc.visualize_wavelet_channel_small(normalizedData,tMorlet,fMorlet,processedSig,...
+            %                 tEpoch,dataInt,chanInt,individual,average)
+            %       end
+            %
+            ylimsSpect = [5 300];
+            vizFunc.small_multiples_spectrogram(normalizedData,tMorlet,fMorlet,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylimsSpect);
         end
-        
-        for chanInt = chanIntList
-            vizFunc.visualize_wavelet_channel(normalizedData,tMorlet,fMorlet,processedSig,...
-                tEpoch/1e3,epochUnNormed,chanInt,individual,average,xlimsWave)
-        end
-        
-        for chanInt = chanIntList
-            vizFunc.visualize_wavelet_channel_no_raw_not_normalized(powerout,tMorlet,fMorlet,processedSig,...
-                tEpoch/1e3,chanInt,individual,average,xlimsWave)
-        end
-        %         %
-        %         for chanInt = chanIntList
-        %             vizFunc.visualize_wavelet_channel_small(normalizedData,tMorlet,fMorlet,processedSig,...
-        %                 tEpoch,dataInt,chanInt,individual,average)
-        %       end
-        %
-        ylimsSpect = [5 300];
-        vizFunc.small_multiples_spectrogram(normalizedData,tMorlet,fMorlet,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylimsSpect);
-        
         
         count = count + 1;
         

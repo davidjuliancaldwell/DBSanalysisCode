@@ -569,7 +569,7 @@ for (avgMeas in avgMeasVec) {
     
   }
   
-  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + blockType + aalLabel + (1|subjectNum),data=dataList)
+  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + blockType + baLabel + (1|subjectNum),data=dataList)
  
   ## this one is for only the highest stimulation level 
   # fit.lmmPP = lmerTest::lmer(PPvec ~ disease  + chanInCond + blockType + (1|subjectNum),data=dataList)
@@ -591,7 +591,7 @@ for (avgMeas in avgMeasVec) {
   emm_options(pbkrtest.limit = 10000)
   emmeans(fit.lmmPP, list(pairwise ~ blockType), adjust = "tukey")
   emmeans(fit.lmmPP, list(pairwise ~ mapStimLevel), adjust = "tukey")
-  emmeans(fit.lmmPP, list(pairwise ~ aalLabel), adjust = "tukey")
+  emmeans(fit.lmmPP, list(pairwise ~ baLabel), adjust = "tukey")
   
   
   emm_s.t <- emmeans(fit.lmmPP, pairwise ~ blockType | mapStimLevel)
