@@ -43,7 +43,7 @@ sidVec <- c('46c2a','c963f','2e114','fe7df','e6f3c','9f852',
             '01fee')
 
 
-diseaseVec <- c('PD','PD','MD','PD','PD','PD','PD','MD',
+diseaseVec <- c('MD','PD','MD','PD','PD','PD','PD','MD',
                 'PD','PD','PD','PD')
 
 #sidVec <- c('9f852')
@@ -53,7 +53,7 @@ log_data = TRUE
 box_data = FALSE
 trim_data = TRUE
 min_stim_level = 3
-savePlot = 0
+savePlot = 1
 avgMeasVec = c(0)
 figWidth = 8 
 figHeight = 6 
