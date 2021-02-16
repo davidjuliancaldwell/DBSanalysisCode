@@ -47,13 +47,14 @@ diseaseVec <- c('MD','PD','MD','PD','PD','PD','PD','MD',
                 'PD','PD','PD','PD')
 
 #sidVec <- c('9f852')
-#sidVec <- c('46c2a')
-
+#sidVec <- c('e6f3c')
+#diseaseVec <- c('PD')
+repeatedMeasures = FALSE # if true, does repeated measures analysis, if false, does more of ANCOVA style analysis
 log_data = TRUE
 box_data = FALSE
 trim_data = TRUE
 min_stim_level = 3
-savePlot = 1
+savePlot = 0
 avgMeasVec = c(0)
 figWidth = 8 
 figHeight = 6 
@@ -129,12 +130,17 @@ for (avgMeas in avgMeasVec) {
                                         from=sort(uniqueStimLevel),
                                         to=mappingStimLevel)
       
-      uniqueBlockLevel = unique(dataInt$blockVec)
-      blockTypeTrim = blockType[uniqueBlockLevel]
+     # uniqueBlockLevel = unique(dataInt$blockVec)
+     # blockTypeTrim = blockType[uniqueBlockLevel]
       
-      dataInt$blockType <- mapvalues(dataInt$blockVec,
-                                     from=uniqueBlockLevel,
-                                     to=blockTypeTrim)
+     # dataInt$blockType <- mapvalues(dataInt$blockVec,
+      #                               from=uniqueBlockLevel,
+       #                              to=blockTypeTrim)
+      
+      
+       dataInt$blockType <- mapvalues(dataInt$blockVec,
+                                     from=blockIntPlot,
+                                    to=blockType)
       
       dataInt$mapStimLevel = as.ordered(dataInt$mapStimLevel)
       dataInt$blockType = as.factor(dataInt$blockType)
@@ -144,7 +150,7 @@ for (avgMeas in avgMeasVec) {
       dataInt$aalLabel = as.character(brodmann_areas$aal.label[chanInt])
       
       # get all to same side
-        dataInt$baLabel[dataInt$baLabel=='Right-PrimMotor (4)'] = 'Left-PrimMotor (4)'
+      dataInt$baLabel[dataInt$baLabel=='Right-PrimMotor (4)'] = 'Left-PrimMotor (4)'
       dataInt$aalLabel[dataInt$aalLabel=='Postcentral_R'] = 'Postcentral_L'
       
       dataInt$baLabel = as.factor(dataInt$baLabel)
@@ -197,6 +203,15 @@ for (avgMeas in avgMeasVec) {
         
         dataIntCompare = as_data_frame(dataIntCompare)
         dataIntCompare$index = index
+        
+        name <- unique(dataIntCompare %>% filter(blockType!='baseline')%>%select(blockType))
+        name <- as.character(name$blockType)
+        
+        dataIntCompare$overallBlockType <- name
+        dataIntCompare <- dataIntCompare %>% mutate(pre_post = case_when(blockType == name ~ 'post',
+          blockType=='baseline' ~'pre'
+        ))
+        
         dataList[[index]] = dataIntCompare
         blockList[[index]] = comparison
         
@@ -341,8 +356,12 @@ for (avgMeas in avgMeasVec) {
   dataList <- do.call(rbind,dataList)
   #blockList <- do.call(rbind,blockList)
   
-  dataList <- dataList %>% filter(blockType %in% c('baseline','A/B 25','A/B 200','A/A 200'))
-  
+  if (repeatedMeasures){
+    dataList <- dataList %>% filter((blockType %in% c('baseline','A/B 25','A/B 200','A/A 200')) & (overallBlockType %in% c('A/B 25','A/B 200','A/A 200')))
+  }
+  else {
+    dataList <- dataList %>% filter(blockType %in% c('baseline','A/B 25','A/B 200','A/A 200'))
+  }
   #plot
   grouped <- group_by(dataList, sidVec, chanVec, blockType,mapStimLevel,disease)
   dataListSummarize <- summarise(grouped,meanPerc = mean(percentDiff),sdPerc = sd(percentDiff),
@@ -568,9 +587,23 @@ for (avgMeas in avgMeasVec) {
     ggsave(paste0("diff_scale_each_subj_abs_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   }
+  if (repeatedMeasures){
+  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + overallBlockType*pre_post + baLabel + (1|subjectNum),data=dataList)
+  emmeans(fit.lmmPP, list(pairwise ~ overallBlockType), adjust = "tukey")
   
+  emm_s.t <- emmeans(fit.lmmPP, pairwise ~ overallBlockType| mapStimLevel)
+  emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | overallBlockType)
+  
+  
+  }
+  else {
   fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + blockType + baLabel + (1|subjectNum),data=dataList)
- 
+  emmeans(fit.lmmPP, list(pairwise ~ blockType), adjust = "tukey")
+  
+  emm_s.t <- emmeans(fit.lmmPP, pairwise ~ blockType | mapStimLevel)
+  emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | blockType)
+  
+  }
   ## this one is for only the highest stimulation level 
   # fit.lmmPP = lmerTest::lmer(PPvec ~ disease  + chanInCond + blockType + (1|subjectNum),data=dataList)
   
@@ -588,15 +621,12 @@ for (avgMeas in avgMeasVec) {
   summary(glht(fit.lmmPP,linfct=mcp(blockType="Tukey")))
   summary(glht(fit.lmmPP,linfct=mcp(mapStimLevel="Tukey")))
   
-  emm_options(pbkrtest.limit = 10000)
-  emmeans(fit.lmmPP, list(pairwise ~ blockType), adjust = "tukey")
+  #emm_options(pbkrtest.limit = 10000)
+
   emmeans(fit.lmmPP, list(pairwise ~ mapStimLevel), adjust = "tukey")
   emmeans(fit.lmmPP, list(pairwise ~ baLabel), adjust = "tukey")
   
-  
-  emm_s.t <- emmeans(fit.lmmPP, pairwise ~ blockType | mapStimLevel)
-  emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | blockType)
-  
+
   anova(fit.lmmPP)
   tab_model(fit.lmmPP)
 

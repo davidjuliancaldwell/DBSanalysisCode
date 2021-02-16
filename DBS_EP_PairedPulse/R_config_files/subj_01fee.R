@@ -19,8 +19,12 @@ blockNames <- c(
   `11` = "post DBS 2"
   )
 
+#blockType = c('baseline','baseline','A/B 100','baseline',
+#              'A/A 100','baseline','A/B 200','baseline',
+ #             'during DBS','post DBS','baseline')
+
+
 blockType = c('baseline','baseline','A/B 100','baseline',
-              'A/A 100','baseline','A/B 200','baseline',
-              'during DBS','post DBS','baseline')
+              'A/A 100','baseline','A/B 200','baseline')
 
 whichCompareVec = list(c(2,3),c(4,5),c(6,7))

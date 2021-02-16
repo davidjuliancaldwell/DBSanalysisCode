@@ -21,6 +21,8 @@ codeDir = here("DBS_EP_PairedPulse","R_code")
 
 sidVec = c("a23ed")
 
+
+repeatedMeasures = FALSE # if true, does repeated measures analysis, if false, does more of ANCOVA style analysis
 min_stim_level = 2
 log_data = TRUE
 box_data = FALSE
@@ -88,12 +90,17 @@ for (avgMeas in avgMeasVec) {
                                        from=sort(uniqueStimLevel),
                                        to=mappingStimLevel)
       
-      uniqueBlockLevel = unique(dataInt$blockVec)
-      blockTypeTrim = blockType[uniqueBlockLevel]
+      #uniqueBlockLevel = unique(dataInt$blockVec)
+      #blockTypeTrim = blockType[uniqueBlockLevel]
+      
+      #dataInt$blockType <- mapvalues(dataInt$blockVec,
+      #                               from=uniqueBlockLevel,
+      #                               to=blockTypeTrim)
+      
       
       dataInt$blockType <- mapvalues(dataInt$blockVec,
-                                     from=uniqueBlockLevel,
-                                     to=blockTypeTrim)
+                                     from=blockIntPlot,
+                                     to=blockType)
       
       dataInt$mapStimLevel = as.ordered(dataInt$mapStimLevel)
       dataInt$blockType = as.factor(dataInt$blockType)
@@ -125,6 +132,15 @@ for (avgMeas in avgMeasVec) {
         
         dataIntCompare = as_data_frame(dataIntCompare)
         dataIntCompare$index = index
+        
+        
+        name <- unique(dataIntCompare %>% filter(blockType!='baseline')%>%select(blockType))
+        name <- as.character(name$blockType)
+        
+        dataIntCompare$overallBlockType <- name
+        dataIntCompare <- dataIntCompare %>% mutate(pre_post = case_when(blockType == name ~ 'post',
+                                                                         blockType=='baseline' ~'pre'
+        ))
         dataList[[index]] = dataIntCompare
         blockList[[index]] = comparison
         
@@ -299,18 +315,35 @@ for (avgMeas in avgMeasVec) {
       
     }  
     
+    if (repeatedMeasures){
+      fit.lmmPP = lm(PPvec ~ mapStimLevel + overallBlockType*pre_post,data=dataList)
+      emmeans(fit.lmmPP, list(pairwise ~ overallBlockType), adjust = "tukey")
+      
+      emm_s.t <- emmeans(fit.lmmPP, pairwise ~ overallBlockType | mapStimLevel)
+      
+      emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | overallBlockType)
+    }
+    else{}
+
     fit.lmmPP = lm(PPvec ~ mapStimLevel + blockType,data=dataList)
+    emmeans(fit.lmmPP, list(pairwise ~ blockType), adjust = "tukey")
     
+    emm_s.t <- emmeans(fit.lmmPP, pairwise ~ blockType | mapStimLevel)
+    
+    emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | blockType)
+    
+    }
     summary(fit.lmmPP)
     # plot(fit.lm)
     summary(glht(fit.lmmPP,linfct=mcp(blockType="Tukey")))
+    summary(glht(fit.lmmPP,linfct=mcp(overallBlockType="Tukey")))
+    
+    
     summary(glht(fit.lmmPP,linfct=mcp(mapStimLevel="Tukey")))
     
-    emmeans(fit.lmmPP, list(pairwise ~ blockType), adjust = "tukey")
-    emmeans(fit.lmmPP, list(pairwise ~ mapStimLevel), adjust = "tukey")
     
-    emm_s.t <- emmeans(fit.lmmPP, pairwise ~ blockType | mapStimLevel)
-    emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | blockType)
+    emmeans(fit.lmmPP, list(pairwise ~ mapStimLevel), adjust = "tukey")
+  
     
     anova(fit.lmmPP)
     tab_model(fit.lmmPP)
@@ -340,14 +373,5 @@ for (avgMeas in avgMeasVec) {
     
   }
 }
-  
-  ggplotColours <- function(n = 6, h = c(0, 360) + 15){
-    if ((diff(h) %% 360) < 1) h[2] <- h[2] - 360/n
-    hcl(h = (seq(h[1], h[2], length = n)), c = 100, l = 65)
-  }
-  y <- 1:3
-  barplot(y, col = ggplotColours(n = 3))
-  y <- 1:4
-  barplot(y, col = ggplotColours(n = 4))
-  ggplotColours(n=4)
+
   

@@ -76,12 +76,17 @@ for (avgMeas in avgMeasVec) {
                                        from=sort(uniqueStimLevel),
                                        to=mappingStimLevel)
       
-      uniqueBlockLevel = unique(dataInt$blockVec)
-      blockTypeTrim = blockType[uniqueBlockLevel]
+     # uniqueBlockLevel = unique(dataInt$blockVec)
+     # blockTypeTrim = blockType[uniqueBlockLevel]
+      
+     # dataInt$blockType <- mapvalues(dataInt$blockVec,
+     #                                from=uniqueBlockLevel,
+     #                                to=blockTypeTrim)
+      
       
       dataInt$blockType <- mapvalues(dataInt$blockVec,
-                                     from=uniqueBlockLevel,
-                                     to=blockTypeTrim)
+                                     from=blockIntPlot,
+                                     to=blockType)
       
       dataInt$mapStimLevel = as.ordered(dataInt$mapStimLevel)
       dataInt$blockType = as.factor(dataInt$blockType)
@@ -118,6 +123,7 @@ for (avgMeas in avgMeasVec) {
       
       dataIntCompare = as_data_frame(dataIntCompare)
       dataIntCompare$index = index
+      
       dataList[[index]] = dataIntCompare
 
       fit.lm    = lm(PPvec ~ mapStimLevel + blockVec + mapStimLevel*blockVec,data=dataIntCompare)
@@ -185,6 +191,7 @@ if (savePlot && !avgMeas) {
 # fit models
 
 fit.lmm = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + (1|chanVec),data=dataList)
+
 
 fit.lmm2 = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + blockType:mapStimLevel + (1|chanVec),data=dataList)
 
