@@ -20,5 +20,5 @@ blockNames <- c(
 blockType = c('baseline','baseline','A/B 200 5','baseline','baseline',
               'A/B 200','baseline','A/A 200','baseline')
 
-whichCompareVec = list(c(5,6),c(7,8))
+whichCompareVec = list(c(2,3),c(5,6),c(7,8))
 

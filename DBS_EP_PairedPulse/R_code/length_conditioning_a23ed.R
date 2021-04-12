@@ -22,7 +22,7 @@ codeDir = here("DBS_EP_PairedPulse","R_code")
 sidVec = c("a23ed")
 
 
-repeatedMeasures = FALSE # if true, does repeated measures analysis, if false, does more of ANCOVA style analysis
+repeatedMeasures = TRUE # if true, does repeated measures analysis, if false, does more of ANCOVA style analysis
 min_stim_level = 2
 log_data = TRUE
 box_data = FALSE
@@ -322,8 +322,10 @@ for (avgMeas in avgMeasVec) {
       emm_s.t <- emmeans(fit.lmmPP, pairwise ~ overallBlockType | mapStimLevel)
       
       emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | overallBlockType)
-    }
-    else{}
+      summary(glht(fit.lmmPP,linfct=mcp(overallBlockType="Tukey")))
+      
+      }
+    else{
 
     fit.lmmPP = lm(PPvec ~ mapStimLevel + blockType,data=dataList)
     emmeans(fit.lmmPP, list(pairwise ~ blockType), adjust = "tukey")
@@ -331,12 +333,11 @@ for (avgMeas in avgMeasVec) {
     emm_s.t <- emmeans(fit.lmmPP, pairwise ~ blockType | mapStimLevel)
     
     emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | blockType)
+    summary(glht(fit.lmmPP,linfct=mcp(blockType="Tukey")))
     
     }
     summary(fit.lmmPP)
     # plot(fit.lm)
-    summary(glht(fit.lmmPP,linfct=mcp(blockType="Tukey")))
-    summary(glht(fit.lmmPP,linfct=mcp(overallBlockType="Tukey")))
     
     
     summary(glht(fit.lmmPP,linfct=mcp(mapStimLevel="Tukey")))

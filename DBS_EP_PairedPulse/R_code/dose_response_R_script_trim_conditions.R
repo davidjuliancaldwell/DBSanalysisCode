@@ -49,7 +49,7 @@ diseaseVec <- c('MD','PD','MD','PD','PD','PD','PD','MD',
 #sidVec <- c('9f852')
 #sidVec <- c('e6f3c')
 #diseaseVec <- c('PD')
-repeatedMeasures = FALSE # if true, does repeated measures analysis, if false, does more of ANCOVA style analysis
+repeatedMeasures = TRUE # if true, does repeated measures analysis, if false, does more of ANCOVA style analysis
 log_data = TRUE
 box_data = FALSE
 trim_data = TRUE
@@ -183,8 +183,14 @@ for (avgMeas in avgMeasVec) {
         #if(!(is.data.frame(dataIntCompare) & (nrow(dataIntCompare)==0))){
 
         # make sure each part of the comparison has at least 10 trials, otherwise exclude it 
-        dataIntCompare <- dataIntCompare %>% group_by(mapStimLevel,blockVec) %>% mutate(enough = n()>=10)
-        
+        if (avgMeas){
+          dataIntCompare <- dataIntCompare %>% group_by(mapStimLevel,blockVec) %>% mutate(enough = n()>=2)
+          
+        }
+        else {
+          dataIntCompare <- dataIntCompare %>% group_by(mapStimLevel,blockVec) %>% mutate(enough = n()>=10)
+          
+        }
         dataIntCompare <- dataIntCompare %>% group_by(mapStimLevel) %>% filter(all(enough) & length(unique(blockVec))>1)
         
         if(!(empty(dataIntCompare))){   
@@ -593,6 +599,7 @@ for (avgMeas in avgMeasVec) {
   
   emm_s.t <- emmeans(fit.lmmPP, pairwise ~ overallBlockType| mapStimLevel)
   emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | overallBlockType)
+  summary(glht(fit.lmmPP,linfct=mcp(overallBlockType="Tukey")))
   
   
   }
@@ -602,6 +609,7 @@ for (avgMeas in avgMeasVec) {
   
   emm_s.t <- emmeans(fit.lmmPP, pairwise ~ blockType | mapStimLevel)
   emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | blockType)
+  summary(glht(fit.lmmPP,linfct=mcp(blockType="Tukey")))
   
   }
   ## this one is for only the highest stimulation level 
@@ -618,7 +626,6 @@ for (avgMeas in avgMeasVec) {
   plot(fit.lmmPP)
  qqnorm(resid(fit.lmmPP))
  qqline(resid(fit.lmmPP))
-  summary(glht(fit.lmmPP,linfct=mcp(blockType="Tukey")))
   summary(glht(fit.lmmPP,linfct=mcp(mapStimLevel="Tukey")))
   
   #emm_options(pbkrtest.limit = 10000)
