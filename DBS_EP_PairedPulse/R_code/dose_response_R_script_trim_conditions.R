@@ -601,7 +601,10 @@ for (avgMeas in avgMeasVec) {
   emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | overallBlockType)
   summary(glht(fit.lmmPP,linfct=mcp(overallBlockType="Tukey")))
   
-  
+  emm_pairwise <- emmeans(fit.lmmPP,~overallBlockType*pre_post)
+  contrast(emm_pairwise,interaction="pairwise")
+  eff_size(emm_pairwise,sigma=sigma(fit.lmmPP),edf=df.residual(fit.lmmPP))
+  emmip(fit.lmmPP,overallBlockType~pre_post)
   }
   else {
   fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + blockType + baLabel + (1|subjectNum),data=dataList)

@@ -137,7 +137,7 @@ for (avgMeas in avgMeasVec) {
         name <- unique(dataIntCompare %>% filter(blockType!='baseline')%>%select(blockType))
         name <- as.character(name$blockType)
         
-        dataIntCompare$overallBlockType <- name
+        dataIntCompare$overallBlockType <- as.factor(name)
         dataIntCompare <- dataIntCompare %>% mutate(pre_post = case_when(blockType == name ~ 'post',
                                                                          blockType=='baseline' ~'pre'
         ))
@@ -319,11 +319,16 @@ for (avgMeas in avgMeasVec) {
       fit.lmmPP = lm(PPvec ~ mapStimLevel + overallBlockType*pre_post,data=dataList)
       emmeans(fit.lmmPP, list(pairwise ~ overallBlockType), adjust = "tukey")
       
+      emm_pairwise <- emmeans(fit.lmmPP,~overallBlockType*pre_post)
+      contrast(emm_pairwise,interaction="pairwise")
+      eff_size(emm_pairwise,sigma=sigma(fit.lmmPP),edf=df.residual(fit.lmmPP))
+      emmip(fit.lmmPP,overallBlockType~pre_post)
+      
       emm_s.t <- emmeans(fit.lmmPP, pairwise ~ overallBlockType | mapStimLevel)
       
       emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | overallBlockType)
       summary(glht(fit.lmmPP,linfct=mcp(overallBlockType="Tukey")))
-      
+
       }
     else{
 
