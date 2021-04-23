@@ -14,6 +14,7 @@ library('lmerTest')
 library('sjPlot')
 library('emmeans')
 library("dplyr")
+library("DescTools")
 
 rootDir = here()
 dataDir = here("DBS_EP_PairedPulse","R_data")
@@ -22,11 +23,11 @@ codeDir = here("DBS_EP_PairedPulse","R_code")
 sidVec = c("3d413")
 
 min_stim_level = 2
-log_data = TRUE
+log_data = FALSE
 box_data = FALSE
 trim_data = TRUE
 savePlot = 0
-avgMeasVec = c(0)
+avgMeasVec = c(1)
 figWidth = 8 
 figHeight = 4
 
@@ -41,9 +42,9 @@ for (avgMeas in avgMeasVec) {
     brodmann_areas <- read.csv(here("DBS_EP_PairedPulse","R_config_files",paste0(sid,'_MNIcoords_labelled.csv')),header=TRUE,sep = ",",stringsAsFactors=F)
     
     if (avgMeas) {
-      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_avg.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
+      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new_pk_pk_avg_5.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
     } else{
-      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
+      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new_pk_pk.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
     }
     
     # multiply by 1e6
@@ -59,7 +60,7 @@ for (avgMeas in avgMeasVec) {
       blockType = blockTypeVec[[index]]
       blockIntPlot = blockIntPlotVec[[index]]
       # select data of interest 
-      dataInt <- na.exclude(subset(dataPP,(chanVec == chanInt) & (blockVec %in% blockIntPlot)))
+      dataInt <- subset(dataPP,(chanVec == chanInt) & (blockVec %in% blockIntPlot))
       dataInt$blockVec = as.factor(dataInt$blockVec)
       dataInt$chanVec = as.factor(dataInt$chanVec)
       
@@ -91,8 +92,11 @@ for (avgMeas in avgMeasVec) {
       dataInt$mapStimLevel = as.ordered(dataInt$mapStimLevel)
       dataInt$blockType = as.factor(dataInt$blockType)
       
+      
+      dataInt <- na.exclude(dataInt)
+      
       if (trim_data){
-        dataInt <- dataInt %>% group_by(blockVec,blockType,mapStimLevel) %>% mutate(PPvecLabel = !is.element(seq_len(length(PPvec)),attr(Trim(PPvec,0.025,na.rm=FALSE),'trim')))
+        dataInt <- dataInt %>% group_by(blockVec,blockType,mapStimLevel) %>% mutate(PPvecLabel = !is.element(seq_len(length(PPvec)),attr(Trim(PPvec,0.025,na.rm=TRUE),'trim')))
         dataInt <- subset(dataInt,PPvecLabel==TRUE)
         
       }

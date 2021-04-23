@@ -13,7 +13,8 @@ library('multcomp')
 library('lmerTest')
 library('sjPlot')
 library('emmeans')
-library("dplyr")
+library('dplyr')
+library('DescTools')
 
 rootDir = here()
 dataDir = here("DBS_EP_PairedPulse","R_data")
@@ -24,7 +25,7 @@ sidVec = c("a23ed")
 
 repeatedMeasures = TRUE # if true, does repeated measures analysis, if false, does more of ANCOVA style analysis
 min_stim_level = 2
-log_data = TRUE
+log_data = FALSE
 box_data = FALSE
 trim_data = TRUE
 savePlot = 0
@@ -75,7 +76,7 @@ for (avgMeas in avgMeasVec) {
     for (chanInt in chanIntVec){
       
       # select data of interest 
-      dataInt <- na.exclude(subset(dataPP,(chanVec == chanInt) & (blockVec %in% blockIntPlot)))
+      dataInt <- subset(dataPP,(chanVec == chanInt) & (blockVec %in% blockIntPlot))
       
       # map stimulation levels to consistent ordering for between subject comparison
       uniqueStimLevel = as.double(unique(dataInt$stimLevelVec))
@@ -104,6 +105,8 @@ for (avgMeas in avgMeasVec) {
       
       dataInt$mapStimLevel = as.ordered(dataInt$mapStimLevel)
       dataInt$blockType = as.factor(dataInt$blockType)
+      
+      dataInt <- na.exclude(dataInt)
       
       if (trim_data){
         dataInt <- dataInt %>% group_by(blockVec,blockType,mapStimLevel) %>% mutate(PPvecLabel = !is.element(seq_len(length(PPvec)),attr(Trim(PPvec,0.025,na.rm=FALSE),'trim')))
@@ -319,7 +322,7 @@ for (avgMeas in avgMeasVec) {
       fit.lmmPP = lm(PPvec ~ mapStimLevel + overallBlockType*pre_post,data=dataList)
       emmeans(fit.lmmPP, list(pairwise ~ overallBlockType), adjust = "tukey")
       
-      emm_pairwise <- emmeans(fit.lmmPP,~overallBlockType*pre_post)
+      emm_pairwise <- emmeans(fit.lmmPP,~overallBlockType*pre_post,adjust="tukey")
       contrast(emm_pairwise,interaction="pairwise")
       eff_size(emm_pairwise,sigma=sigma(fit.lmmPP),edf=df.residual(fit.lmmPP))
       emmip(fit.lmmPP,overallBlockType~pre_post)
@@ -328,6 +331,22 @@ for (avgMeas in avgMeasVec) {
       
       emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | overallBlockType)
       summary(glht(fit.lmmPP,linfct=mcp(overallBlockType="Tukey")))
+      
+      contrast(emm_pairwise,interaction="pairwise")
+      eff_size(emm_pairwise,sigma=sigma(fit.lmmPP),edf=df.residual(fit.lmmPP))
+      marginal_means_plot <- emmip(fit.lmmPP,overallBlockType~pre_post)
+      marginal_means_plot + labs(x = expression(paste("Pre versus Post Conditioning")),y=expression(paste("Linear Prediction log(",mu,"V)")),color="Experimental Condition",title = paste0("Estimated Marginal Means by Conditioning Length and Pre versus Post"))
+
+      
+      if (savePlot && !avgMeas) {
+        ggsave(paste0("emmip_a23ed.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+        ggsave(paste0("emmip_a23ed.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+        
+      } else if (savePlot && avgMeas){
+        ggsave(paste0("emmip_avg_a23ed.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+        ggsave(paste0("emmip_avg_a23ed.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+        
+      }
 
       }
     else{

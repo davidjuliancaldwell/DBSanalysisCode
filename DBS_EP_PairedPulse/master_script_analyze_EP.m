@@ -5,12 +5,12 @@ Z_ConstantsDBS_PairedPulse;
 matlab_dir = 'MATLAB_Converted';
 experiment = 'EP_Measurement';
 
-avgTrialsVec = [0]';
-%avgTrialsVec = [1]';
-numAvg = 5;
+avgTrialsVec = [0,1]';
+%avgTrialsVec = [0 1]';
+numAvg = 3;
 
 savePlot = 0;
-saveData = 0;
+saveData = 1;
 screenBadChans = 0;
 plotCondAvg = 0;
 
@@ -21,21 +21,29 @@ tryArtifact = 0;
 sidVecIterate = {'46c2a','9f852','8e907','08b13'};
 sidVecIterate = {'08b13'};
 sidVecIterate = {'c963f'};
-sidVecIterate = {'2e114'};
-sidVecIterate = {'3d413'};
-sidVecIterate = {'a23ed'};
-sidVecIterate = {'fe7df','e6f3c'};
-sidVecIterate = {'e6f3c'};
-sidVecIterate = {'46c2a','9f852','8e907','08b13'};
-sidVecIterate = {'9f852'};
-
+% sidVecIterate = {'2e114'};
+% sidVecIterate = {'3d413'};
+% sidVecIterate = {'a23ed'};
+% sidVecIterate = {'fe7df','e6f3c'};
+% sidVecIterate = {'e6f3c'};
+% sidVecIterate = {'46c2a','9f852','8e907','08b13'};
+% sidVecIterate = {'9f852'};
+% 
 sidVecIterate = {'46c2a','c963f','2e114','3d413','fe7df','e6f3c',...
     '9f852','8e907','08b13','e9c9b','41a73','68574',...
     '01fee','a23ed'};
 
-sidVecIterate = {'46c2a'};
+sidVecIterate = {'e6f3c',...
+    '9f852','8e907','08b13','e9c9b','41a73','68574',...
+    '01fee','a23ed'};
 
-%sidVecIterate = {'2e114','3d413','fe7df','e6f3c',...
+%sidVecIterate = {'68574'}
+%sidVecIterate = {'3d413'}
+
+%sidVecIterate = {'46c2a'};
+sidVecIterate = {'01fee'};
+
+% sidVecIterate = {'2e114','3d413','fe7df','e6f3c',...
 %    '9f852','8e907','08b13','e9c9b','41a73','68574',...
 %    '01fee','a23ed'};
 
@@ -225,10 +233,10 @@ for avgTrials = avgTrialsVec'
         %% save data for statistical analysis in table form
         
         if saveData && ~avgTrials
-            writetable(T,[sid '_PairedPulseData_new.csv'],'Delimiter',',','QuoteStrings',true)
+            writetable(T,[sid '_PairedPulseData_new_pk_pk.csv'],'Delimiter',',','QuoteStrings',true)
             %    save([sid '_PairedPulseData.mat'],'signalPPblockST','chanIntList','blocks','sid','tBegin','tEnd','blockLabel','stimLevelUniq','legendText')
         elseif saveData && avgTrials
-            writetable(T,[sid '_PairedPulseData_avg_10.csv'],'Delimiter',',','QuoteStrings',true)
+            writetable(T,[sid '_PairedPulseData_new_pk_pk_avg_3.csv'],'Delimiter',',','QuoteStrings',true)
             %  save([sid '_PairedPulseData_avg.mat'],'signalPPblockST','chanIntList','blocks','sid','tBegin','tEnd','blockLabel','stimLevelUniq','legendText')
         end
         

@@ -6,6 +6,7 @@ function [signalPP,pkLocs,trLocs] =  extract_PP_peak_to_peak_single_trial(ucondi
 % David.J.Caldwell
 % 6.19.2018
 
+plotIt = 0;
 signalPP = {};
 pkLocs = {};
 trLocs = {};
@@ -85,13 +86,15 @@ for jj = 1:length(ucondition)
             
             
             
-            %
-            %             if ii == chanInt && jj == max(length(ucondition))
-            %                 figure
-            %                 plot(tempSignalExtract)
-            %                 vline(pk_loc)
-            %                 vline(tr_loc)
-            %             end
+            if plotIt
+                if ii == chanInt && (jj == max(length(ucondition)) || jj == (max(length(ucondition)) - 1) || jj == (max(length(ucondition)) - 2))
+                    figure
+                    plot(tempSignalExtract)
+                    vline(pk_loc)
+                    vline(tr_loc)
+                    title(['Chan ' num2str(chanInt) ' Trial ' num2str(iii) ' Condition ' num2str(jj)])
+                end
+            end
             
         end
     end

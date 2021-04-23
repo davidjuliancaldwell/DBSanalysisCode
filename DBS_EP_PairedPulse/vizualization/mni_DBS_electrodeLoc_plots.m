@@ -14,7 +14,9 @@ hold on
 locs_struct = load(fullfile(imaging_dir,'David_MNI_noBS.mat'));
 names_struct = fieldnames(locs_struct);
 
-CT=cbrewer('qual', 'Dark2', length(names_struct));
+%CT=cbrewer('qual', 'Dark2', length(names_struct));
+%CT = brewermap(length(names_struct),'Dark2');
+CT = distinguishable_colors(length(names_struct));
 
 newOrder = [6,10,3,13,11,9,8,2,12,5,7,1,4];
 
@@ -62,7 +64,9 @@ hold on
 locs_struct = load(fullfile(imaging_dir,'David_MNI_noBS.mat'));
 names_struct = fieldnames(locs_struct);
 
-CT=cbrewer('qual', 'Dark2', length(names_struct));
+%CT=cbrewer('qual', 'Dark2', length(names_struct));
+%CT = brewermap(length(names_struct),'Set3');
+CT = distinguishable_colors(length(names_struct));
 
 electrodes_interest = struct();
 electrodes_interest.x01fee = [5,8];
@@ -72,7 +76,7 @@ electrodes_interest.x3d413 = [4,6];
 electrodes_interest.x8e907 = [4,5];
 electrodes_interest.x08b13 = [6];
 electrodes_interest.x9f852 = [4,7];
-electrodes_interest.x41a73 = [5,8];
+electrodes_interest.x41a73 = [5];
 electrodes_interest.x46c2a = [6];
 electrodes_interest.x68574 = [4,7];
 electrodes_interest.xa23ed = [5];
@@ -92,7 +96,7 @@ for i = newOrder
     TF = contains(names_struct_elec,subj_name);
     
     electrodes_interest_specific = electrodes_interest.(subj_name);
-
+    
     if sum(TF)
         locs = locs_struct.(names_struct{i});
         
@@ -127,7 +131,7 @@ leg = legend([objhl(1),objhl(2),objhl(3),objhl(4),objhl(5),objhl(6),objhl(7),obj
 %saveForMNI(files)
 
 
-%% show where stim electrodes are 
+%% show where stim electrodes are
 
 figure
 PlotCortex('MNI')
@@ -136,7 +140,10 @@ hold on
 locs_struct = load(fullfile(imaging_dir,'David_MNI_noBS.mat'));
 names_struct = fieldnames(locs_struct);
 
-CT=cbrewer('qual', 'Dark2', length(names_struct));
+%CT=cbrewer('qual', 'Dark2', length(names_struct));
+%CT = brewermap(length(names_struct),'Dark2');
+CT = distinguishable_colors(length(names_struct));
+
 
 electrodes_interest = struct();
 electrodes_interest.x01fee = [6,7];
@@ -165,7 +172,7 @@ for i = newOrder
     TF = contains(names_struct_elec,subj_name);
     
     electrodes_interest_specific = electrodes_interest.(subj_name);
-
+    
     if sum(TF)
         locs = locs_struct.(names_struct{i});
         

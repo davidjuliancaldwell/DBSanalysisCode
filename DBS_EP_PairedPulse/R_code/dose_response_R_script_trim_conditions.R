@@ -47,15 +47,15 @@ diseaseVec <- c('MD','PD','MD','PD','PD','PD','PD','MD',
                 'PD','PD','PD','PD')
 
 #sidVec <- c('9f852')
-#sidVec <- c('e6f3c')
+#sidVec <- c('41a73')
 #diseaseVec <- c('PD')
 repeatedMeasures = TRUE # if true, does repeated measures analysis, if false, does more of ANCOVA style analysis
 log_data = TRUE
 box_data = FALSE
-trim_data = TRUE
+trim_data = FALSE
 min_stim_level = 3
 savePlot = 0
-avgMeasVec = c(0)
+avgMeasVec = c(1)
 figWidth = 8 
 figHeight = 6 
 
@@ -73,9 +73,9 @@ for (avgMeas in avgMeasVec) {
     
     brodmann_areas <- read.csv(here("DBS_EP_PairedPulse","R_config_files",paste0(sid,'_MNIcoords_labelled.csv')),header=TRUE,sep = ",",stringsAsFactors=F)
     if (avgMeas) {
-      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_avg_5.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
+      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new_pk_pk_avg_5.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
     } else{
-      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
+      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new_pk_pk.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
     }
     
     if (sid == "2e114"){
@@ -110,7 +110,7 @@ for (avgMeas in avgMeasVec) {
     for (chanInt in chanIntVec){
       
       # select data of interest 
-      dataInt <- na.exclude(subset(dataPP,(chanVec == chanInt) & (blockVec %in% blockIntPlot)))
+      dataInt <- subset(dataPP,(chanVec == chanInt) & (blockVec %in% blockIntPlot))
       
       # map linear subject numbering, rather than using the total subject # order from each subj_ setup file
       
@@ -123,7 +123,10 @@ for (avgMeas in avgMeasVec) {
       if (sid == "2e114"){
         mappingStimLevel =c(1,3,4)
         
-      } else {
+      } else if (sid == "41a73" | sid == "68574"){
+        mappingStimLevel = c(1,3,4,0)
+      }
+      else {
         mappingStimLevel =c(1:length(uniqueStimLevel))
       }
       dataInt$mapStimLevel<- mapvalues(dataInt$stimLevelVec,
@@ -138,7 +141,7 @@ for (avgMeas in avgMeasVec) {
        #                              to=blockTypeTrim)
       
       
-       dataInt$blockType <- mapvalues(dataInt$blockVec,
+      dataInt$blockType <- mapvalues(dataInt$blockVec,
                                      from=blockIntPlot,
                                     to=blockType)
       
@@ -158,6 +161,8 @@ for (avgMeas in avgMeasVec) {
  
       dataInt <- subset(dataInt, PPvec<1000)
       dataInt <- subset(dataInt, PPvec>30)
+      
+      dataInt <- na.exclude(dataInt)
       
       if (trim_data){
         dataInt <- dataInt %>% group_by(blockVec,blockType,mapStimLevel) %>% mutate(PPvecLabel = !is.element(seq_len(length(PPvec)),attr(Trim(PPvec,0.025,na.rm=FALSE),'trim')))
@@ -203,7 +208,7 @@ for (avgMeas in avgMeasVec) {
                  percentDiff = 100*(PPvec - mean(PPvec[blockVec==comparison[1]]))/mean(PPvec[blockVec==comparison[1]]) ) 
         
         dataIntCompare <- dataIntCompare %>% 
-          group_by(mapStimLevel,chanVec,blockType,mapStimLevel) %>% 
+          group_by(mapStimLevel,chanVec,blockType) %>% 
           mutate(
             meanPP = mean(PPvec) ) 
         
@@ -601,10 +606,25 @@ for (avgMeas in avgMeasVec) {
   emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | overallBlockType)
   summary(glht(fit.lmmPP,linfct=mcp(overallBlockType="Tukey")))
   
-  emm_pairwise <- emmeans(fit.lmmPP,~overallBlockType*pre_post)
+  emm_pairwise <- emmeans(fit.lmmPP,~overallBlockType*pre_post,adjust="Tukey")
   contrast(emm_pairwise,interaction="pairwise")
   eff_size(emm_pairwise,sigma=sigma(fit.lmmPP),edf=df.residual(fit.lmmPP))
-  emmip(fit.lmmPP,overallBlockType~pre_post)
+  marginal_means_plot <- emmip(fit.lmmPP,overallBlockType~pre_post)
+  marginal_means_plot <- marginal_means_plot + aes(x = factor(pre_post, level=c('pre','post'))) + labs(x = expression(paste("Pre versus Post Conditioning")),y=expression(paste("Linear Prediction log(",mu,"V)")),color="Experimental Condition",title = paste0("Estimated Marginal Means by Conditioning and Status")) +
+    scale_color_brewer(palette="Dark2") +
+    scale_fill_brewer(palette="Dark2") 
+
+  
+  if (savePlot && !avgMeas) {
+    ggsave(paste0("emmip.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("emmip.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    
+  } else if (savePlot && avgMeas){
+    ggsave(paste0("emmip_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("emmip_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    
+  }
+  
   }
   else {
   fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + blockType + baLabel + (1|subjectNum),data=dataList)

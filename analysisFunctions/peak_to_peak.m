@@ -26,74 +26,81 @@ end;
 
 % add in peak separation - this is in samples
 
-[ppks,plats]=findpeaks(signal,'minpeakprominence',5e-7,'MinPeakDistance',60);
-[npks,nlats]=findpeaks(-signal,'minpeakprominence',5e-7,'MinPeakDistance',60);
+[ppks,plats]=findpeaks(signal,'minpeakprominence',1e-5,'MinPeakDistance',60);
+[npks,nlats]=findpeaks(-signal,'minpeakprominence',1e-5,'MinPeakDistance',60);
 
+[amp_pos,ix_pos]=max(ppks);
+[amp_neg,ix_neg]=max(npks);
 
-% change from 35 to 90 , 2.7.2019
+amp = abs(amp_pos)+abs(amp_neg);
+tr_loc = nlats(ix_neg);
+pk_loc = plats(ix_pos);
 
-falling=[];
-falling_pk=[];
-falling_tr=[];
-for ii=1:length(plats)
-    nix=find(nlats>plats(ii),1);
-    if ~isempty(nix)
-        falling(length(falling)+1)=...
-            ppks(ii)+npks(nix);
-        falling_pk(length(falling_pk)+1)=...
-            plats(ii);
-        falling_tr(length(falling_tr)+1)=...
-            nlats(nix);
-    end;
-end
-rising=[];
-rising_tr=[];
-rising_pk=[];
-for ii=1:length(nlats)
-    pix=find(plats>nlats(ii),1);
-    if ~isempty(pix)
-        rising(length(rising)+1)=...
-            npks(ii)+ppks(pix);
-        rising_tr(length(rising_tr)+1)=...
-            nlats(ii);
-        rising_pk(length(rising_pk)+1)=...
-            plats(pix);
-        
-    end;
-end;
-
-switch opt
-    case 'abs'
-        %Absolute maximum peak to peak
-        pk2pk=[falling rising];
-        [amp,ix]=max(pk2pk);
-        pks=[falling_pk rising_pk];
-        trs=[falling_tr rising_tr];
-        pk_loc=pks(ix);
-        tr_loc=trs(ix);
-        
-    case 'rising'
-        %Only rising peak to peak
-        [amp,ix]=max(rising);
-        pk_loc=rising_pk(ix);
-        tr_loc=rising_tr(ix);
-        
-    case 'falling'
-        %Only falling peak to peak
-        [amp,ix]=max(falling);
-        pk_loc=falling_pk(ix);
-        tr_loc=falling_tr(ix);
-        
-    otherwise
-        %For any other parameter value same as abs
-        pk2pk=[falling rising];
-        [amp,ix]=max(pk2pk);
-        pks=[falling_pk rising_pk];
-        trs=[falling_tr rising_tr];
-        pk_loc=pks(ix);
-        tr_loc=trs(ix);
-        
-end;
+% 
+% % change from 35 to 90 , 2.7.2019
+% 
+% falling=[];
+% falling_pk=[];
+% falling_tr=[];
+% for ii=1:length(plats)
+%     nix=find(nlats>plats(ii),1);
+%     if ~isempty(nix)
+%         falling(length(falling)+1)=...
+%             ppks(ii)+npks(nix);
+%         falling_pk(length(falling_pk)+1)=...
+%             plats(ii);
+%         falling_tr(length(falling_tr)+1)=...
+%             nlats(nix);
+%     end;
+% end
+% rising=[];
+% rising_tr=[];
+% rising_pk=[];
+% for ii=1:length(nlats)
+%     pix=find(plats>nlats(ii),1);
+%     if ~isempty(pix)
+%         rising(length(rising)+1)=...
+%             npks(ii)+ppks(pix);
+%         rising_tr(length(rising_tr)+1)=...
+%             nlats(ii);
+%         rising_pk(length(rising_pk)+1)=...
+%             plats(pix);
+%         
+%     end;
+% end;
+% 
+% switch opt
+%     case 'abs'
+%         %Absolute maximum peak to peak
+%         pk2pk=[falling rising];
+%         [amp,ix]=max(pk2pk);
+%         pks=[falling_pk rising_pk];
+%         trs=[falling_tr rising_tr];
+%         pk_loc=pks(ix);
+%         tr_loc=trs(ix);
+%         
+%     case 'rising'
+%         %Only rising peak to peak
+%         [amp,ix]=max(rising);
+%         pk_loc=rising_pk(ix);
+%         tr_loc=rising_tr(ix);
+%         
+%     case 'falling'
+%         %Only falling peak to peak
+%         [amp,ix]=max(falling);
+%         pk_loc=falling_pk(ix);
+%         tr_loc=falling_tr(ix);
+%         
+%     otherwise
+%         %For any other parameter value same as abs
+%         pk2pk=[falling rising];
+%         [amp,ix]=max(pk2pk);
+%         pks=[falling_pk rising_pk];
+%         trs=[falling_tr rising_tr];
+%         pk_loc=pks(ix);
+%         tr_loc=trs(ix);
+%         
+% end;
 
 
 end

@@ -15,5 +15,5 @@ blockNames <- c(
   `8` = "asleep",
   `10` = "asleep"
 )
-blockTypeVec = list(c("asleep","awake","awake","awake","awake"),c("asleep","awake","awake","awake","awake"))
+blockTypeVec = list(c("asleep","awake","awake","asleep","asleep"),c("asleep","awake","awake","asleep","asleep"))
 blockIntPlot = list(c(1,3,5,7,9),c(2,4,6,8,10))

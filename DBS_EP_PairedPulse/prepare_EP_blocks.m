@@ -146,47 +146,65 @@ for block = blocks
             tBegin = 2.1; % ms was 2.5 for 42
             tEnd = 35; % ms % was 35 for 426
             
+                        tBegin = 5; % ms was 2.5 for 42
+            tEnd = 50; % ms % was 35 for 426
+            
             switch block
                 % 1st baseline - patient was under/waking up
                 case 1
                     stimChans = [7 8];
-                    
+                   badTrialLocations = [28 161 177 184 221 224 226];
+                   badTrials = 1;
                     % 1st baseline - patient was under/waking up
                 case 2
                     stimChans = [6 5];
-                    
+                    badTrialLocations = [ 27 60 68 84 98 113 145 204 223 230 233  ];
+                    badTrials = 1;
                     % 2nd baseline, patient awake
                 case 3
                     stimChans = [7 8];
-                    
+                    badTrials = 1;
+                    badTrialLocations = [72 108 121 144 170 177 193 211];
                     % 2nd baseline, patient awake
                     % pain meds added
                 case 4
                     stimChans = [6 5];
-                    
+                    badTrialLocations = [165 217];
+                    badTrials = 1;
                     % 3nd baseline, patient awake, during CT scan
                 case 5
                     stimChans = [7 8];
-                    
+                    badTrialLocations = [117 218];
+                    badTrials = 1;
                     % 3nd baseline, patient awake
                 case 6
                     stimChans = [6 5];
-                    
+                    badTrialLocations = [33 109 119 150 229];
+                    badTrials = 1;
                     %4th baseline, going under
                 case 7
                     stimChans = [7 8];
+                    badTrials = 1;
+                    badTrialLocations = [1 2 3 20 28 33 43 44 48 58 59 60 75 78 93 94 95 97 99 101 102 103 104 105 106 147 157 191 198 206 240];
                     
                     %4th baseline, going under
                 case 8
                     stimChans = [6 5];
-                    
+                    badTrials = 1;
+
+                    badTrialLocations = [7 45 86 197 223];
                     %5th baseline, under
                 case 9
                     stimChans = [7 8];
-                    
+                    badTrials = 1;
+
+                    badTrialLocations = [98 116 161 183];
                     %5th baseline, under
                 case 10
                     stimChans = [6 5];
+                    badTrials = 1;
+
+                    badTrialLocations = [20 23 76 80 100 108 111 230 240];
                     
             end
             
@@ -628,6 +646,9 @@ for block = blocks
             
             tBegin = 2; % ms
             tEnd = 65; % ms
+            
+                      tBegin = 2; % ms
+            tEnd = 35; % ms
             switch block
                 % baseline pre stim 1
                 case 1
@@ -764,19 +785,26 @@ for block = blocks
     stimLevelUniq = unique(stimLevel(stimLevel>0))';
     stimLevelCell = {};
     
+    fac = ECoGfs/tactFs;
+    preSamps = round(10*ECoGfs/1e3);
+    postSamps = round(50*ECoGfs/1e3);
+    tEpoch = [-preSamps:postSamps-1]/ECoGfs*1e3;
+    
     if screenBadChans
-        figure
-        index = 1;
-        stimCommandTimesNew = round((29+stimCommandTimes)*fac);
-        epochTemp = getEpochSignal(ECoG,stimCommandTimesNew-preSamps,stimCommandTimesNew+postSamps);
-        for jj=1:size(epochTemp,3)
-            subplot(15,16,index)
-            plot(tEpoch,epochTemp(:,5,jj))
-            ylim([-1e-3 1e-3])
-            title(num2str(index))
-            index = index + 1;
+        for chanInt = chanIntList
+            figure
+            index = 1;
+            stimCommandTimesNew = round((29+stimCommandTimes)*fac);
+            epochTemp = getEpochSignal(ECoG,stimCommandTimesNew-preSamps,stimCommandTimesNew+postSamps);
+            for jj=1:size(epochTemp,3)
+                subplot(15,16,index)
+                plot(tEpoch,epochTemp(:,chanInt,jj))
+                ylim([-1e-3 1e-3])
+                title(num2str(index))
+                index = index + 1;
+            end
+            sgtitle(['Block ' num2str(block) ' Channel ' num2str(chanInt)])
         end
-        suptitle(['Block ' num2str(block)])
     end
     
     if exist('badTrials','var')
@@ -784,7 +812,6 @@ for block = blocks
         stimCommandTimes(badTrialLocations) = [];
     end
     
-    fac = ECoGfs/tactFs;
     
     % adjust for when no stimuli were delivered when the stim level was
     % changed
@@ -801,9 +828,6 @@ for block = blocks
     
     stimLevelUniq = stimLevelUniq(~isnan(stimLevelUniq));
     
-    preSamps = round(100*ECoGfs/1e3);
-    postSamps = round(490*ECoGfs/1e3);
-    tEpoch = [-preSamps:postSamps-1]/ECoGfs*1e3;
     
     % seems to be 29 sample delay between stim command and when the ECoG
     % data starts to move
