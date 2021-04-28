@@ -22,14 +22,14 @@ for chanInt = chanIntList
         h = flipud(findobj(gca,'Type','line'));
         legend(h,legendText)
         
-        if length(h) == 2
-            percentChange = 100*(signalPPblock{2}(chanInt,condInt) - signalPPblock{1}(chanInt,condInt))/signalPPblock{1}(chanInt,condInt);
-            text(10,120,{['percent change in peak to peak'], ['amplitude = ' num2str(percentChange) ' %']},'fontsize',14)
+        %if length(h) == 2
+        %    percentChange = 100*(signalPPblock{2}(chanInt,condInt) - signalPPblock{1}(chanInt,condInt))/signalPPblock{1}(chanInt,condInt);
+        %    text(10,120,{['percent change in peak to peak'], ['amplitude = ' num2str(percentChange) ' %']},'fontsize',14)
+        %    
+        %    [~,p] = ttest2(signalPPblockST{1}{condInt}(chanInt,:),signalPPblockST{2}{condInt}(chanInt,:));
+        %    text(10,180,['p value = ' num2str(p)],'fontsize',14)
             
-            [~,p] = ttest2(signalPPblockST{1}{condInt}(chanInt,:),signalPPblockST{2}{condInt}(chanInt,:));
-            text(10,180,['p value = ' num2str(p)],'fontsize',14)
-            
-        end
+        %end
         title(['comparison of conditions, Channel = ' num2str(chanInt) ' , test voltage = ' num2str(stimLevelUniq(condInt)) ' \muA'])
         set(gca,'fontsize',14)
         if savePlot

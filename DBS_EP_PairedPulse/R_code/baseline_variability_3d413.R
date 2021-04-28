@@ -23,7 +23,7 @@ codeDir = here("DBS_EP_PairedPulse","R_code")
 sidVec = c("3d413")
 
 min_stim_level = 2
-log_data = FALSE
+log_data = TRUE
 box_data = FALSE
 trim_data = TRUE
 savePlot = 0
@@ -42,16 +42,16 @@ for (avgMeas in avgMeasVec) {
     brodmann_areas <- read.csv(here("DBS_EP_PairedPulse","R_config_files",paste0(sid,'_MNIcoords_labelled.csv')),header=TRUE,sep = ",",stringsAsFactors=F)
     
     if (avgMeas) {
-      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new_pk_pk_avg_5.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
+      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new_rms_pk_pk_avg_3.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
     } else{
-      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new_pk_pk.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
+      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new_rms_pk_pk.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
     }
     
     # multiply by 1e6
-    dataPP$PPvec = dataPP$PPvec*1e6
+    dataPP$PPvec = dataPP$rmsVec*1e6
     dataPP$stimLevelVec = dataPP$stimLevelVec/1e3
-    dataPP <- subset(dataPP, PPvec<1000)
-    dataPP <- subset(dataPP, PPvec>30)
+    #dataPP <- subset(dataPP, PPvec<1000)
+    #dataPP <- subset(dataPP, PPvec>30)
     # change to factor 
     print(sid)
     

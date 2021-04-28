@@ -149,6 +149,9 @@ for block = blocks
                         tBegin = 5; % ms was 2.5 for 42
             tEnd = 50; % ms % was 35 for 426
             
+            tBegin = 5;
+            tEnd = 35;
+            
             switch block
                 % 1st baseline - patient was under/waking up
                 case 1
@@ -706,6 +709,9 @@ for block = blocks
             
             tBegin = 3; % ms
             tEnd = 30; % ms
+            
+            tBegin = 5;
+            tEnd = 50;
             switch block
                 % baseline pre stim 1
                 case 1
@@ -786,9 +792,12 @@ for block = blocks
     stimLevelCell = {};
     
     fac = ECoGfs/tactFs;
-    preSamps = round(10*ECoGfs/1e3);
-    postSamps = round(50*ECoGfs/1e3);
+    preSamps = round(500*ECoGfs/1e3);
+    postSamps = round(100*ECoGfs/1e3);
     tEpoch = [-preSamps:postSamps-1]/ECoGfs*1e3;
+    
+    baselineNormalize = 1;
+    baselineWindow = [-200 -10];
     
     if screenBadChans
         for chanInt = chanIntList
@@ -980,6 +989,11 @@ for block = blocks
     signalPPblockSTfromAvg{blockCount} = signalPPfromAvg;
     pkLocsBlockSTfromAvg{blockCount} = pkLocsFromAvg;
     trLocsBlockSTfromAvg{blockCount} = trLocsFromAvg;
+        
+    [signalRMS] =  extract_rms_single_trial(stimLevelUniq,epochsEP,tEpoch,...
+        stimChans,tBegin,tEnd,rerefMode,chanReref,0,avgTrials,numAvg,chanIntTemp,baselineNormalize,baselineWindow);
+    
+    signalRMSblock{blockCount} = signalRMS;
     
     % make labels to keep track of each trial
     for counter = 1:size(signalPP,2)

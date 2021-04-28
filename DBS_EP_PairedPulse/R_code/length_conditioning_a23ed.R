@@ -29,7 +29,7 @@ log_data = FALSE
 box_data = FALSE
 trim_data = TRUE
 savePlot = 0
-avgMeasVec = c(0)
+avgMeasVec = c(1)
 figWidth = 8 
 figHeight = 4
 
@@ -51,16 +51,16 @@ for (avgMeas in avgMeasVec) {
                   'A/B 200 ms 15 minutes','baseline','A/A 200','baseline')
     
     if (avgMeas) {
-      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_avg.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
+      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new_rms_pk_pk_avg_3.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
     } else{
-      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
+      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new_rms_pk_pk.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
     }
     
     # multiply by 1e6
-    dataPP$PPvec = dataPP$PPvec*1e6
+    dataPP$PPvec = dataPP$rmsVec*1e6
     dataPP$stimLevelVec = dataPP$stimLevelVec/1e3
-    dataPP <- subset(dataPP, PPvec<1000)
-    dataPP <- subset(dataPP, PPvec>30)
+    #dataPP <- subset(dataPP, PPvec<1000)
+    #dataPP <- subset(dataPP, PPvec>30)
     
     # denote which channel was in the conditioning pair 
     

@@ -52,10 +52,10 @@ diseaseVec <- c('MD','PD','MD','PD','PD','PD','PD','MD',
 repeatedMeasures = TRUE # if true, does repeated measures analysis, if false, does more of ANCOVA style analysis
 log_data = TRUE
 box_data = FALSE
-trim_data = FALSE
+trim_data = TRUE
 min_stim_level = 3
 savePlot = 0
-avgMeasVec = c(1)
+avgMeasVec = c(0)
 figWidth = 8 
 figHeight = 6 
 
@@ -75,7 +75,7 @@ for (avgMeas in avgMeasVec) {
     if (avgMeas) {
       dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new_pk_pk_avg_5.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
     } else{
-      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new_pk_pk.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
+      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new_rms_pk_pk.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
     }
     
     if (sid == "2e114"){
@@ -85,7 +85,7 @@ for (avgMeas in avgMeasVec) {
     
     # multiply by 1e6
     # here is where we use the column from the average one
-    dataPP$PPvec = dataPP$PPvec*1e6
+    dataPP$PPvec = dataPP$rmsVec*1e6
     dataPP$stimLevelVec = dataPP$stimLevelVec/1e3
     
 
@@ -159,8 +159,8 @@ for (avgMeas in avgMeasVec) {
       dataInt$baLabel = as.factor(dataInt$baLabel)
       dataInt$aalLabel = as.factor(dataInt$aalLabel)
  
-      dataInt <- subset(dataInt, PPvec<1000)
-      dataInt <- subset(dataInt, PPvec>30)
+     # dataInt <- subset(dataInt, PPvec<1000)
+      #dataInt <- subset(dataInt, PPvec>30)
       
       dataInt <- na.exclude(dataInt)
       
