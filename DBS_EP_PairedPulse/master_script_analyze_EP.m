@@ -9,7 +9,7 @@ avgTrialsVec = [0]';
 %avgTrialsVec = [0 1]';
 numAvg = 3;
 
-savePlot = 0;
+savePlot = 1;
 saveData = 0;
 screenBadChans = 0;
 plotCondAvg = 0;
@@ -241,6 +241,10 @@ for avgTrials = avgTrialsVec'
         end
         
         clearvars signalPPblockST signalPPblockSTfromAvg
+        
+        if savePlot
+            close all
+        end
         
     end
 end

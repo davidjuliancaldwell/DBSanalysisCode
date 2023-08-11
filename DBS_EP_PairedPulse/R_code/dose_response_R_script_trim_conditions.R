@@ -17,6 +17,7 @@ library("dplyr")
 library('effectsize')
 library('caret')
 library('DescTools')
+library('glmmTMB')
 
 rootDir = here()
 dataDir = here("DBS_EP_PairedPulse","R_data")
@@ -257,13 +258,13 @@ for (avgMeas in avgMeasVec) {
       print(p)
       
       if (savePlot && !avgMeas) {
-        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_chan_",chanInt,"_scatter_lm.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_chan_",chanInt,"_scatter_lm.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_chan_",chanInt,"_scatter_lm_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_chan_",chanInt,"_scatter_lm_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
         
       }
       else if (savePlot && avgMeas){
-        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_chan_",chanInt,"_scatter_lm_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_chan_",chanInt,"_scatter_lm_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_chan_",chanInt,"_scatter_lm_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+        ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_chan_",chanInt,"_scatter_lm_avg_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
         
       }
       
@@ -311,10 +312,10 @@ for (avgMeas in avgMeasVec) {
       # #  print(p3)
       # # 
       # #  if (savePlot && !avgMeas) {
-      # #    ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_sameModel.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+      # #    ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_sameModel_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
       # #  }
       # #  else if (savePlot && avgMeas){
-      # #    ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_sameModel_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+      # #    ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_sameModel_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
       # # 
       # #  }
       # 
@@ -343,10 +344,10 @@ for (avgMeas in avgMeasVec) {
       # print(p4)
       # 
       # if (savePlot && !avgMeas) {
-      #   ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_diffModel.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+      #   ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_diffModel_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
       # } 
       # else if (savePlot && avgMeas) {
-      #   ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_diffModel_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+      #   ggsave(paste0("subj_", subjectNum, "_ID_", sid,"_scatter_diffModel_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
       # }
       # 
       # xtra ss test
@@ -384,12 +385,12 @@ for (avgMeas in avgMeasVec) {
   print(p3)
   
   if (savePlot && !avgMeas) {
-    ggsave(paste0("across_subj_percent.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_percent.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_percent_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_percent_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
-    ggsave(paste0("across_subj_percent_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_percent_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_percent_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_percent_avg_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   }
   
@@ -399,12 +400,12 @@ for (avgMeas in avgMeasVec) {
   print(p4)
   
   if (savePlot && !avgMeas) {
-    ggsave(paste0("across_subj_abs.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_abs.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_abs_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_abs_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
-    ggsave(paste0("across_subj_abs_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_abs_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_abs_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_abs_avg_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   }
   
@@ -414,12 +415,12 @@ for (avgMeas in avgMeasVec) {
   print(p5)
   
   if (savePlot && !avgMeas) {
-    ggsave(paste0("across_subj_mean_perc.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_mean_perc.eps"), units="in", width=figWidth, height=figHeight, device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_mean_perc_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_perc_AUC.eps"), units="in", width=figWidth, height=figHeight, device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
-    ggsave(paste0("across_subj_mean_perc_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_mean_perc_avg.eps"), units="in", width=figWidth, height=figHeight, device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_mean_perc_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_perc_avg_AUC.eps"), units="in", width=figWidth, height=figHeight, device=cairo_ps, fallback_resolution=600)
     
   }
   
@@ -430,12 +431,12 @@ for (avgMeas in avgMeasVec) {
   print(p6)
   
   if (savePlot && !avgMeas) {
-    ggsave(paste0("across_subj_mean_abs.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_mean_abs.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_mean_abs_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
-    ggsave(paste0("across_subj_mean_abs_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_mean_abs_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_mean_abs_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_avg_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   }
   
@@ -445,12 +446,12 @@ for (avgMeas in avgMeasVec) {
          color="Experimental Condition",title = paste0("EP Magnitude"))
   print(p7)
   if (savePlot && !avgMeas) {
-    ggsave(paste0("across_subj_PP.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_PP.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_PP_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_PP_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
-    ggsave(paste0("across_subj_PP_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_PP_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_PP_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_PP_avg_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   }
 
@@ -460,12 +461,12 @@ for (avgMeas in avgMeasVec) {
   print(p8)
   
   if (savePlot && !avgMeas) {
-    ggsave(paste0("across_subj_mean_PP.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_mean_PP.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_mean_PP_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_PP_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
-    ggsave(paste0("across_subj_mean_PP_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_mean_PP_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_mean_PP_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_PP_avg_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   }  
   
@@ -477,12 +478,12 @@ for (avgMeas in avgMeasVec) {
   # print(p11)
   # 
   # if (savePlot && !avgMeas) {
-  #   ggsave(paste0("across_subj_mean_abs_box.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-  #   ggsave(paste0("across_subj_mean_abs_box.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+  #   ggsave(paste0("across_subj_mean_abs_box_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+  #   ggsave(paste0("across_subj_mean_abs_box_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
   # 
   # } else if (savePlot && avgMeas){
-  #   ggsave(paste0("across_subj_mean_abs_box_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-  #   ggsave(paste0("across_subj_mean_abs_box_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+  #   ggsave(paste0("across_subj_mean_abs_box_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+  #   ggsave(paste0("across_subj_mean_abs_box_avg_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
   # 
   # }
   
@@ -498,14 +499,36 @@ for (avgMeas in avgMeasVec) {
   print(p11)
   
   if (savePlot && !avgMeas) {
-    ggsave(paste0("across_subj_mean_abs_box_all_subjs.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_mean_abs_box_all_subjs.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_mean_abs_box_all_subjs_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_box_all_subjs_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
-    ggsave(paste0("across_subj_mean_abs_box_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_mean_abs_box_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_mean_abs_box_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_box_avg_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   }
+  
+  # box plot
+  
+  figWidth = 8
+  figHeight = 4
+  goodVecBlock <- c("A/B 25","A/B 200","A/A 200")
+  p11 <- ggplot(data =  dataListSummarize%>% filter(blockType %in% goodVecBlock), aes(x = blockType, y = meanPerc,color=blockType)) +
+    geom_boxplot(notch=TRUE,outlier.shape=NA)  + geom_jitter(shape=16, position=position_jitter(0.2),aes(alpha = mapStimLevel)) +
+    labs(x = expression(paste("Experimental Condition")),y=expression(paste("Absolute Difference from Baseline Peak-To-Peak (",mu,"V)")),color="Experimental Condition",alpha="Ordered Stim Level",title = paste0("EP Difference from Baseline by Conditioning Protocol")) +
+    scale_color_brewer(palette="Dark2")
+  print(p11)
+  
+  if (savePlot && !avgMeas) {
+    ggsave(paste0("across_subj_mean_perc_box_all_subjs_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_perc_box_all_subjs_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    
+  } else if (savePlot && avgMeas){
+    ggsave(paste0("across_subj_mean_perc_box_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_perc_box_avg_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    
+  }
+  
   dataBarInt = dataList%>% filter(blockType %in% goodVecBlock)
   groupedAll <- group_by(dataBarInt,blockType)
   dataListSummarizeBar <- summarise(groupedAll,meanPerc = mean(percentDiff),sdPerc = sd(percentDiff),
@@ -525,12 +548,12 @@ for (avgMeas in avgMeasVec) {
   print(p12)
   
   if (savePlot && !avgMeas) {
-    ggsave(paste0("across_subj_mean_abs_bar_standarderror.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_mean_abs_bar_standarderror.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_mean_abs_bar_standarderror_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_bar_standarderror_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
-    ggsave(paste0("across_subj_mean_abs_bar_standarderror_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_mean_abs_bar_standarderror_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_mean_abs_bar_standarderror_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_bar_standarderror_avg_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   }
   
@@ -546,12 +569,12 @@ for (avgMeas in avgMeasVec) {
   print(p14)
   
   if (savePlot && !avgMeas) {
-    ggsave(paste0("across_subj_mean_abs_bar.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_mean_abs_bar.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_mean_abs_bar_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_bar_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
-    ggsave(paste0("across_subj_mean_abs_bar_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_mean_abs_bar_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_mean_abs_bar_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_bar_avg_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   }
   
@@ -570,12 +593,12 @@ for (avgMeas in avgMeasVec) {
   print(p13)
   
   if (savePlot && !avgMeas) {
-    ggsave(paste0("across_subj_mean_abs_bar_dots.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_mean_abs_bar_dots.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_mean_abs_bar_dots_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_bar_dots_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
-    ggsave(paste0("across_subj_mean_abs_bar_dots_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_mean_abs_bar_dots_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_mean_abs_bar_dots_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_mean_abs_bar_dots_avg_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   }
 
@@ -590,16 +613,28 @@ for (avgMeas in avgMeasVec) {
   print(p9)
   
   if (savePlot && !avgMeas) {
-    ggsave(paste0("diff_scale_each_subj_abs.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("diff_scale_each_subj_abs.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("diff_scale_each_subj_abs_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("diff_scale_each_subj_abs_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
-    ggsave(paste0("diff_scale_each_subj_abs_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("diff_scale_each_subj_abs_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("diff_scale_each_subj_abs_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("diff_scale_each_subj_abs_avg_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   }
   if (repeatedMeasures){
-  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + overallBlockType*pre_post + baLabel + (1|subjectNum),data=dataList)
+  #fit.lmmPP = lme(PPvec ~ mapStimLevel + disease  + chanInCond + overallBlockType*pre_post + baLabel,random =~ 1|subjectNum/chanVec,data=dataList)
+    dataList$uniqueSubjChan = with(dataList, interaction(subjectNum, chanVec) )
+    
+  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + overallBlockType*pre_post + baLabel + (1|subjectNum/chanVec),data=dataList)
+  
+  #fit.cn_time_3 = glmmTMB(cn_3 ~ time_point + (1|id) + ar1(time_point + 0|id), data=data_file_stats_long3,family=binomial)
+  fit.lmmPP = glmmTMB(PPvec ~ mapStimLevel + overallBlockType*pre_post + (pre_post|subjectNum/chanVec) + ar1(pre_post + 0|subjectNum/chanVec),data=dataList)
+  
+  #fit.lmmPP = lmerTest::lmer(PPvec ~ overallBlockType*pre_post + (overallBlockType*pre_post|subjectNum/chanVec),data=dataList)
+  
+  #fit.lmmPP = lme(PPvec ~ overallBlockType*pre_post,random=~ overallBlockType*pre_post|subjectNum/chanVec,data=dataList)
+  
+  
   emmeans(fit.lmmPP, list(pairwise ~ overallBlockType), adjust = "tukey")
   
   emm_s.t <- emmeans(fit.lmmPP, pairwise ~ overallBlockType| mapStimLevel)
@@ -616,18 +651,18 @@ for (avgMeas in avgMeasVec) {
 
   
   if (savePlot && !avgMeas) {
-    ggsave(paste0("emmip.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("emmip.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("emmip_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("emmip_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
-    ggsave(paste0("emmip_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("emmip_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("emmip_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("emmip_avg_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   }
   
   }
   else {
-  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + blockType + baLabel + (1|subjectNum),data=dataList)
+  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + blockType + baLabel + (1|subjectNum/chanVec),data=dataList)
   emmeans(fit.lmmPP, list(pairwise ~ blockType), adjust = "tukey")
   
   emm_s.t <- emmeans(fit.lmmPP, pairwise ~ blockType | mapStimLevel)
@@ -665,24 +700,24 @@ for (avgMeas in avgMeasVec) {
     
     figHeight = 4
     figWidth = 8
-    png("pairedPulse_resid_PP_trim_allSubjs.png",width=figWidth,height=figHeight,units="in",res=600)
+    png("pairedPulse_resid_PP_trim_allSubjs_AUC.png",width=figWidth,height=figHeight,units="in",res=600)
     plot(fit.lmmPP)
     dev.off()
     
     setEPS()
-    postscript("pairedPulse_resid_PP_trim_allSubjs.eps",width=figWidth,height=figHeight)
+    postscript("pairedPulse_resid_PP_trim_allSubjs_AUC.eps",width=figWidth,height=figHeight)
     plot(fit.lmmPP)
     dev.off()
     
     figHeight = 4
     figWidth = 8
-    png("pairedPulse_qq_PP__trim_allSubjs.png",width=figWidth,height=figHeight,units="in",res=600)
+    png("pairedPulse_qq_PP__trim_allSubjs_AUC.png",width=figWidth,height=figHeight,units="in",res=600)
     qqnorm(resid(fit.lmmPP))
     qqline(resid(fit.lmmPP))  #summary(fit.lmm2)
     dev.off()
     
     setEPS()
-    postscript("pairedPulse_qq_PP_trim_allSubjs.eps",width=figWidth,height=figHeight)
+    postscript("pairedPulse_qq_PP_trim_allSubjs_AUC.eps",width=figWidth,height=figHeight)
     qqnorm(resid(fit.lmmPP))
     qqline(resid(fit.lmmPP))  #summary(fit.lmm2)
     dev.off()
@@ -691,24 +726,24 @@ for (avgMeas in avgMeasVec) {
     
     figHeight = 4
     figWidth = 8
-    png("pairedPulse_resid_PP_allSubjs_avg.png",width=figWidth,height=figHeight,units="in",res=600)
+    png("pairedPulse_resid_PP_allSubjs_avg_AUC.png",width=figWidth,height=figHeight,units="in",res=600)
     plot(fit.lmmPP)
     dev.off()
     
     setEPS()
-    postscript("pairedPulse_resid_PP_allSubjs_avg.eps",width=figWidth,height=figHeight)
+    postscript("pairedPulse_resid_PP_allSubjs_avg_AUC.eps",width=figWidth,height=figHeight)
     plot(fit.lmmPP)
     dev.off()
     
     figHeight = 4
     figWidth = 8
-    png("pairedPulse_qq_PP_allSubjs_avg.png",width=figWidth,height=figHeight,units="in",res=600)
+    png("pairedPulse_qq_PP_allSubjs_avg_AUC.png",width=figWidth,height=figHeight,units="in",res=600)
     qqnorm(resid(fit.lmmPP))
     qqline(resid(fit.lmmPP))  #summary(fit.lmm2)
     dev.off()
     
     setEPS()
-    postscript("pairedPulse_qq_PP_allSubjs_avg.eps",width=figWidth,height=figHeight)
+    postscript("pairedPulse_qq_PP_allSubjs_avg_AUC.eps",width=figWidth,height=figHeight)
     qqnorm(resid(fit.lmmPP))
     qqline(resid(fit.lmmPP))  #summary(fit.lmm2)
     dev.off()
@@ -742,24 +777,24 @@ for (avgMeas in avgMeasVec) {
     
     figHeight = 4
     figWidth = 8
-    png("pairedPulse_resid_diff_allSubjs.png",width=figWidth,height=figHeight,units="in",res=600)
+    png("pairedPulse_resid_diff_allSubjs_AUC.png",width=figWidth,height=figHeight,units="in",res=600)
     plot(fit.lmmdiff)
     dev.off()
     
     setEPS()
-    postscript("pairedPulse_resid_diff_allSubjs.eps",width=figWidth,height=figHeight)
+    postscript("pairedPulse_resid_diff_allSubjs_AUC.eps",width=figWidth,height=figHeight)
     plot(fit.lmmdiff)
     dev.off()
     
     figHeight = 4
     figWidth = 8
-    png("pairedPulse_qq_diff_allSubjs.png",width=figWidth,height=figHeight,units="in",res=600)
+    png("pairedPulse_qq_diff_allSubjs_AUC.png",width=figWidth,height=figHeight,units="in",res=600)
     qqnorm(resid(fit.lmmdiff))
     qqline(resid(fit.lmmdiff))  #summary(fit.lmm2)
     dev.off()
     
     setEPS()
-    postscript("pairedPulse_qq_diff_allSubjs.eps",width=figWidth,height=figHeight)
+    postscript("pairedPulse_qq_diff_allSubjs_AUC.eps",width=figWidth,height=figHeight)
     qqnorm(resid(fit.lmmdiff))
     qqline(resid(fit.lmmdiff))  #summary(fit.lmm2)
     dev.off()
@@ -768,31 +803,31 @@ for (avgMeas in avgMeasVec) {
     
     figHeight = 4
     figWidth = 8
-    png("pairedPulse_qq_resid_diff_allSubjs_avg.png",width=figWidth,height=figHeight,units="in",res=600)
+    png("pairedPulse_qq_resid_diff_allSubjs_avg_AUC.png",width=figWidth,height=figHeight,units="in",res=600)
     plot(fit.lmmdiff)
     dev.off()
     
     setEPS()
-    postscript("pairedPulse_resid_diff_allSubjs_avg.eps",width=figWidth,height=figHeight)
+    postscript("pairedPulse_resid_diff_allSubjs_avg_AUC.eps",width=figWidth,height=figHeight)
     plot(fit.lmmdiff)
     dev.off()
     
     figHeight = 4
     figWidth = 8
-    png("pairedPulse_qq_diff_allSubjs_avg.png",width=figWidth,height=figHeight,units="in",res=600)
+    png("pairedPulse_qq_diff_allSubjs_avg_AUC.png",width=figWidth,height=figHeight,units="in",res=600)
     qqnorm(resid(fit.lmmdiff))
     qqline(resid(fit.lmmdiff))  #summary(fit.lmm2)
     dev.off()
     
     setEPS()
-    postscript("pairedPulse_qq_diff_allSubjs_avg.eps",width=figWidth,height=figHeight)
+    postscript("pairedPulse_qq_diff_allSubjs_avg_AUC.eps",width=figWidth,height=figHeight)
     qqnorm(resid(fit.lmmdiff))
     qqline(resid(fit.lmmdiff))  #summary(fit.lmm2)
     dev.off()
     
   }
   
-  dataSubset <- unique(dataList %>% select(effectSize,subjectNum,meanPP,mapStimLevel,disease,chanInCond,blockType,baLabel,aalLabel) %>% filter(blockType != 'baseline'))
+  dataSubset <- unique(dataList %>% select(effectSize,subjectNum,meanPP,mapStimLevel,disease,chanInCond,blockType,baLabel,aalLabel,chanVec,pre_post,overallBlockType) %>% filter(blockType != 'baseline'))
   if(!log_data){
   fit.effectSize = lmerTest::lmer(effectSize ~ log(meanPP) + mapStimLevel + chanInCond + disease + blockType + baLabel + (1|subjectNum),data=dataSubset)
   }else if(log_data){
@@ -806,8 +841,6 @@ for (avgMeas in avgMeasVec) {
   # }
   # 
   emmeans(fit.effectSize, list(pairwise ~ blockType), adjust = "tukey")
-  
-  
   
   #fit.effectSize = lm(effectSize ~ meanPP + mapStimLevel + chanInCond + disease + blockType ,data=dataSubset)
   
@@ -825,12 +858,12 @@ for (avgMeas in avgMeasVec) {
     scale_color_brewer(palette="Dark2") + scale_alpha_discrete(range=c(0.5,1))
   print(pEffect)
   if (savePlot && !avgMeas) {
-    ggsave(paste0("across_subj_effect_trim_all_subjs.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_effect_trim_all_subjs.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_effect_trim_all_subjs_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_effect_trim_all_subjs_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   } else if (savePlot && avgMeas){
-    ggsave(paste0("across_subj_effect_trim_avg.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("across_subj_effect_trim_avg.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
+    ggsave(paste0("across_subj_effect_trim_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(paste0("across_subj_effect_trim_avg_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
     
   }
   
@@ -838,24 +871,24 @@ for (avgMeas in avgMeasVec) {
     
     figHeight = 4
     figWidth = 8
-    png("pairedPulse_resid_effectSize_allSubjs.png",width=figWidth,height=figHeight,units="in",res=600)
+    png("pairedPulse_resid_effectSize_allSubjs_AUC.png",width=figWidth,height=figHeight,units="in",res=600)
     plot(fit.effectSize)
     dev.off()
     
     setEPS()
-    postscript("pairedPulse_resid_effectSize_allSubjs.eps",width=figWidth,height=figHeight)
+    postscript("pairedPulse_resid_effectSize_allSubjs_AUC.eps",width=figWidth,height=figHeight)
     plot(fit.effectSize)
     dev.off()
     
     figHeight = 4
     figWidth = 8
-    png("pairedPulse_qq_effectSize_allSubjs.png",width=figWidth,height=figHeight,units="in",res=600)
+    png("pairedPulse_qq_effectSize_allSubjs_AUC.png",width=figWidth,height=figHeight,units="in",res=600)
     qqnorm(resid(fit.effectSize))
     qqline(resid(fit.effectSize))  #summary(fit.lmm2)
     dev.off()
     
     setEPS()
-    postscript("pairedPulse_qq_effectSize_allSubjs.eps",width=figWidth,height=figHeight)
+    postscript("pairedPulse_qq_effectSize_allSubjs_AUC.eps",width=figWidth,height=figHeight)
     qqnorm(resid(fit.effectSize))
     qqline(resid(fit.effectSize))  #summary(fit.lmm2)
     dev.off()
@@ -864,24 +897,24 @@ for (avgMeas in avgMeasVec) {
     
     figHeight = 4
     figWidth = 8
-    png("pairedPulse_resid_effectSize_allSubjs_avg.png",width=figWidth,height=figHeight,units="in",res=600)
+    png("pairedPulse_resid_effectSize_allSubjs_avg_AUC.png",width=figWidth,height=figHeight,units="in",res=600)
     plot(fit.effectSize)
     dev.off()
     
     setEPS()
-    postscript("pairedPulse_resid_effectSize_allSubjs_avg.eps",width=figWidth,height=figHeight)
+    postscript("pairedPulse_resid_effectSize_allSubjs_avg_AUC.eps",width=figWidth,height=figHeight)
     plot(fit.lmmPP)
     dev.off()
     
     figHeight = 4
     figWidth = 8
-    png("pairedPulse_qq_effectSize_allSubjs_avg.png",width=figWidth,height=figHeight,units="in",res=600)
+    png("pairedPulse_qq_effectSize_allSubjs_avg_AUC.png",width=figWidth,height=figHeight,units="in",res=600)
     qqnorm(resid(fit.lmmPP))
     qqline(resid(fit.lmmPP))  #summary(fit.lmm2)
     dev.off()
     
     setEPS()
-    postscript("pairedPulse_qq_effectSize_allSubjs_avg.eps",width=figWidth,height=figHeight)
+    postscript("pairedPulse_qq_effectSize_allSubjs_avg_AUC.eps",width=figWidth,height=figHeight)
     qqnorm(resid(fit.lmmPP))
     qqline(resid(fit.lmmPP))  #summary(fit.lmm2)
     dev.off()
