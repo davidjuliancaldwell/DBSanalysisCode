@@ -1,4 +1,3 @@
-setwd('C:/Users/david/SharedCode/DBSanalysisCode')
 
 library('plyr')
 library('here')

@@ -1,5 +1,3 @@
-setwd('C:/Users/david/SharedCode/DBSanalysisCode')
-
 library('plyr')
 library('here')
 library('nlme')
@@ -15,10 +13,13 @@ library('sjPlot')
 library('emmeans')
 library("dplyr")
 library("DescTools")
+library('effectsize')
 
 rootDir = here()
 dataDir = here("DBS_EP_PairedPulse","R_data")
 codeDir = here("DBS_EP_PairedPulse","R_code")
+outputDir = here("DBS_EP_PairedPulse","R_output")
+dir.create(outputDir, showWarnings = FALSE)
 
 sidVec = c("3d413")
 
@@ -26,9 +27,9 @@ min_stim_level = 2
 log_data = TRUE
 box_data = FALSE
 trim_data = TRUE
-savePlot = 0
+savePlot = 1
 avgMeasVec = c(1)
-figWidth = 8 
+figWidth = 8
 figHeight = 4
 
 dataList = list()
@@ -36,19 +37,18 @@ blockList = list()
 conditionList = list()
 index = 1
 
+oldwd <- getwd()
+setwd(outputDir)
+
 for (avgMeas in avgMeasVec) {
   for (sid in sidVec){
     source(here("DBS_EP_PairedPulse","R_config_files",paste0("subj_",sid,".R")))
     brodmann_areas <- read.csv(here("DBS_EP_PairedPulse","R_config_files",paste0(sid,'_MNIcoords_labelled.csv')),header=TRUE,sep = ",",stringsAsFactors=F)
     
-    if (avgMeas) {
-      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new_rms_pk_pk_avg_3.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
-    } else{
-      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new_rms_pk_pk.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
-    }
-    
-    # multiply by 1e6
-    dataPP$PPvec = dataPP$rmsVec*1e6
+    dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_avg_5.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="character"))
+
+    # PPvec is in volts, convert to microvolts
+    dataPP$PPvec = dataPP$PPvec*1e6
     dataPP$stimLevelVec = dataPP$stimLevelVec/1e3
     #dataPP <- subset(dataPP, PPvec<1000)
     #dataPP <- subset(dataPP, PPvec>30)
@@ -130,7 +130,7 @@ for (avgMeas in avgMeasVec) {
       
       dataList[[index]] = dataIntCompare
 
-      fit.lm    = lm(PPvec ~ mapStimLevel + blockVec + mapStimLevel*blockVec,data=dataIntCompare)
+      #fit.lm    = lm(PPvec ~ mapStimLevel + blockVec + mapStimLevel*blockVec,data=dataIntCompare)
       fit.lm    = lm(PPvec ~ mapStimLevel + blockVec,data=dataIntCompare)
       
       summary(fit.lm)
@@ -178,7 +178,7 @@ labelVec <- c("4" = "Channel 4","6" = "Channel 6")
 #dataListFactorized$stimLevelVec = as.factor(dataListFactorized$stimLevelVec)
 p3 <- ggplot(dataList, aes(x=stimLevelVec, y=PPvec,color=blockType)) +
   geom_point(position=position_jitterdodge(dodge.width=0.250)) +geom_smooth(method=lm) + facet_grid(. ~chanVec, labeller = labeller(chanVec = labelVec))+
-  labs(x = expression(paste("Stimulation Current (mA)")),y=expression(paste("Peak to peak magnitude (",mu,"V)")),
+  labs(x = expression(paste("Stimulation Current (mA)")),y=expression(paste("log Peak to Peak Magnitude (",mu,"V)")),
        color="Experimental Condition",title = paste0("Anesthesia Effect on EP Magnitude"))
 print(p3)
 
@@ -192,29 +192,24 @@ if (savePlot && !avgMeas) {
   
 }
 
-# fit models
+# fit models on trial-level data with block RE to handle pseudoreplication
+# (1|blockVec) absorbs within-block correlation (10 blocks, sufficient for RE)
+# chanVec as fixed effect (only 2 channels, too few for RE)
 
-fit.lmm = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + (1|chanVec),data=dataList)
+fit.lmm1 = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + chanVec + (1|blockVec), data=dataList)
+fit.lmm2 = lmerTest::lmer(PPvec ~ mapStimLevel + blockType * mapStimLevel + chanVec + (1|blockVec), data=dataList)
 
+summary(fit.lmm1)
+summary(glht(fit.lmm1,linfct=mcp(blockType="Tukey")))
+summary(glht(fit.lmm1,linfct=mcp(mapStimLevel="Tukey")))
 
-fit.lmm2 = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + blockType:mapStimLevel + (1|chanVec),data=dataList)
+emmeans(fit.lmm1, list(pairwise ~ blockType), adjust = "tukey")
+emmeans(fit.lmm1, list(pairwise ~ mapStimLevel), adjust = "tukey")
 
-summary(fit.lmm)
-# plot(fit.lm)
-summary(glht(fit.lmm,linfct=mcp(blockType="Tukey")))
-summary(glht(fit.lmm,linfct=mcp(mapStimLevel="Tukey")))
-
-emmeans(fit.lmm, list(pairwise ~ blockType), adjust = "tukey")
-emmeans(fit.lmm, list(pairwise ~ mapStimLevel), adjust = "tukey")
-
-#emm_s.t <- emmeans(fit.lmm, pairwise ~ blockType | mapStimLevel)
-#emm_s.t <- emmeans(fit.lmm, pairwise ~ mapStimLevel | blocktype)
-
-anova(fit.lmm)
-tab_model(fit.lmm)
+anova(fit.lmm1)
+tab_model(fit.lmm1)
 
 summary(fit.lmm2)
-# plot(fit.lm)
 summary(glht(fit.lmm2,linfct=mcp(blockType="Tukey")))
 summary(glht(fit.lmm2,linfct=mcp(mapStimLevel="Tukey")))
 
@@ -222,22 +217,68 @@ emmeans(fit.lmm2, list(pairwise ~ blockType), adjust = "tukey")
 emmeans(fit.lmm2, list(pairwise ~ mapStimLevel), adjust = "tukey")
 
 emm_s.t <- emmeans(fit.lmm2, pairwise ~ blockType | mapStimLevel)
-emm_s.t <- emmeans(fit.lmm2, pairwise ~ mapStimLevel | blocktype)
+emm_s.t <- emmeans(fit.lmm2, pairwise ~ mapStimLevel | blockType)
 
 anova(fit.lmm2)
 tab_model(fit.lmm2)
 
+#########
+# model comparison
 
+anova(fit.lmm1, fit.lmm2)
+lrtest(fit.lmm1, fit.lmm2)
+AIC(fit.lmm1, fit.lmm2)
+BIC(fit.lmm1, fit.lmm2)
 
 #########
-# make some plots!
+# Effect size analysis (appropriate for single-subject design)
+# Cohen's d per (channel, stim_level): awake vs asleep
+# NOTE: PPvec is log-transformed (log_data=TRUE), so d is on log scale
 
-anova(fit.lmm, fit.lmm2)
-# Likelihood ratio test
+es_list <- list()
+es_idx <- 1
+for (chan in unique(dataList$chanVec)) {
+  chanData <- dataList %>% filter(chanVec == chan)
+  for (sl in unique(chanData$mapStimLevel)) {
+    slData <- chanData %>% filter(mapStimLevel == sl)
+    awake <- slData$PPvec[slData$blockType == "awake"]
+    asleep <- slData$PPvec[slData$blockType == "asleep"]
+    if (length(awake) >= 5 & length(asleep) >= 5) {
+      d <- cohens_d(awake, asleep)
+      es_list[[es_idx]] <- data.frame(
+        chanVec = chan,
+        mapStimLevel = sl,
+        effect.size = d$Cohens_d,
+        CI_low = d$CI_low,
+        CI_high = d$CI_high
+      )
+      es_idx <- es_idx + 1
+    }
+  }
+}
+es_df <- do.call(rbind, es_list)
 
-lrtest(fit.lmm, fit.lmm2)
+# --- Effect size bar plot: awake vs asleep by stim level and channel ---
+p_es <- ggplot(es_df, aes(x = mapStimLevel, y = effect.size, fill = chanVec)) +
+  geom_col(position = position_dodge(width = 0.7), width = 0.6) +
+  geom_errorbar(aes(ymin = CI_low, ymax = CI_high),
+                position = position_dodge(width = 0.7), width = 0.2) +
+  geom_hline(yintercept = c(-0.8, -0.5, -0.2, 0, 0.2, 0.5, 0.8),
+             linetype = "dashed", color = "grey50", linewidth = 0.3) +
+  labs(x = "Stimulation Level",
+       y = "Cohen's d (95% CI)",
+       fill = "Channel",
+       title = "Effect Size: Awake vs Asleep by Stimulation Level",
+       subtitle = "Computed on log-transformed EP magnitude") +
+  theme_bw(base_size = 14)
+print(p_es)
 
-# aic
-AIC(fit.lmm, fit.lmm2)
+if (savePlot) {
+  ggsave(paste0("subj_3d413_effect_size_awake_asleep.png"),
+         plot = p_es, units = "in", width = figWidth, height = figHeight, dpi = 600)
+  ggsave(paste0("subj_3d413_effect_size_awake_asleep.eps"),
+         plot = p_es, units = "in", width = figWidth, height = figHeight,
+         device = cairo_ps, fallback_resolution = 600)
+}
 
-BIC(fit.lmm, fit.lmm2)
+setwd(oldwd)

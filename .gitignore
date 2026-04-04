@@ -8,3 +8,4 @@
 *.pdf
 *.Rhistory
 *.RData
+*.DS_store

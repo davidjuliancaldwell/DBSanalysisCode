@@ -1,5 +1,3 @@
-setwd('C:/Users/david/SharedCode/DBSanalysisCode')
-
 library('plyr')
 library('here')
 library('nlme')
@@ -17,51 +15,36 @@ library("dplyr")
 library('effectsize')
 library('caret')
 library('DescTools')
-library('glmmTMB')
+#library('glmmTMB') # no longer used after switching to lmer
 
 rootDir = here()
 dataDir = here("DBS_EP_PairedPulse","R_data")
 codeDir = here("DBS_EP_PairedPulse","R_code")
-
-sidVec <- c('46c2a','c963f','2e114','fe7df','e6f3c','9f852',
-            '8e907','08b13','e9c9b','41a73','68574',
-            '01fee','a23ed')
-
-diseaseVec <- c('PD','PD','MD','PD','PD','PD','PD','MD',
-                'PD','PD','PD','PD','MD')
-
-sidVec <- c('c963f','2e114','fe7df','e6f3c',
-            '8e907','08b13','e9c9b','41a73','68574',
-            '01fee')
-
-diseaseVec <- c('PD','MD','PD','PD','PD','MD',
-                'PD','PD','PD','PD')
-
-
+outputDir = here("DBS_EP_PairedPulse","R_output")
+dir.create(outputDir, showWarnings = FALSE)
 
 sidVec <- c('46c2a','c963f','2e114','fe7df','e6f3c','9f852',
             '8e907','08b13','e9c9b','41a73','68574',
             '01fee')
 
-
+# NOTE: 46c2a classified as MD (verify against clinical records)
 diseaseVec <- c('MD','PD','MD','PD','PD','PD','PD','MD',
                 'PD','PD','PD','PD')
-
-#sidVec <- c('9f852')
-#sidVec <- c('41a73')
-#diseaseVec <- c('PD')
 repeatedMeasures = TRUE # if true, does repeated measures analysis, if false, does more of ANCOVA style analysis
 log_data = TRUE
 box_data = FALSE
 trim_data = TRUE
 min_stim_level = 3
-savePlot = 0
+savePlot = 1
 avgMeasVec = c(0)
 figWidth = 8 
 figHeight = 6 
 
+oldwd <- getwd()
+setwd(outputDir)
+
 for (avgMeas in avgMeasVec) {
-  
+
   dataList = list()
   blockList = list()
   conditionList = list()
@@ -73,20 +56,15 @@ for (avgMeas in avgMeasVec) {
     source(here("DBS_EP_PairedPulse","R_config_files",paste0("subj_",sid,".R")))
     
     brodmann_areas <- read.csv(here("DBS_EP_PairedPulse","R_config_files",paste0(sid,'_MNIcoords_labelled.csv')),header=TRUE,sep = ",",stringsAsFactors=F)
-    if (avgMeas) {
-      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new_pk_pk_avg_5.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
-    } else{
-      dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_new_rms_pk_pk.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
-    }
-    
+    dataPP <- read.table(here("DBS_EP_PairedPulse","R_data",paste0(sid,'_PairedPulseData_avg_5.csv')),header=TRUE,sep = ",",stringsAsFactors=F, colClasses=c("stimLevelVec"="numeric","sidVec"="factor"))
+
     if (sid == "2e114"){
       goodVec = c(1000,2500,3500)
       dataPP <- dataPP %>% filter(stimLevelVec %in% goodVec)
     }
-    
-    # multiply by 1e6
-    # here is where we use the column from the average one
-    dataPP$PPvec = dataPP$rmsVec*1e6
+
+    # PPvec is in volts, convert to microvolts
+    dataPP$PPvec = dataPP$PPvec*1e6
     dataPP$stimLevelVec = dataPP$stimLevelVec/1e3
     
 
@@ -370,10 +348,28 @@ for (avgMeas in avgMeasVec) {
   
   if (repeatedMeasures){
     dataList <- dataList %>% filter((blockType %in% c('baseline','A/B 25','A/B 200','A/A 200')) & (overallBlockType %in% c('A/B 25','A/B 200','A/A 200')))
+    dataList$overallBlockType <- as.factor(dataList$overallBlockType)
   }
   else {
     dataList <- dataList %>% filter(blockType %in% c('baseline','A/B 25','A/B 200','A/A 200'))
   }
+
+  # Aggregate to cell means to avoid trial-level pseudoreplication.
+  # Each row becomes the mean across trials within a
+  # (subject, channel, block, stim-level) cell.
+  dataListAgg <- dataList %>%
+    group_by(subjectNum, chanVec, mapStimLevel, blockVec, blockType,
+             overallBlockType, pre_post, disease, chanInCond, baLabel,
+             aalLabel, sidVec, index) %>%
+    summarise(PPvec = mean(PPvec),
+              absDiff = mean(absDiff),
+              percentDiff = mean(percentDiff),
+              effectSize = first(effectSize),
+              meanPP = first(meanPP),
+              stimLevelVec = first(stimLevelVec),
+              n_trials = n(),
+              .groups = "drop")
+
   #plot
   grouped <- group_by(dataList, sidVec, chanVec, blockType,mapStimLevel,disease)
   dataListSummarize <- summarise(grouped,meanPerc = mean(percentDiff),sdPerc = sd(percentDiff),
@@ -622,47 +618,163 @@ for (avgMeas in avgMeasVec) {
     
   }
   if (repeatedMeasures){
-  #fit.lmmPP = lme(PPvec ~ mapStimLevel + disease  + chanInCond + overallBlockType*pre_post + baLabel,random =~ 1|subjectNum/chanVec,data=dataList)
-    dataList$uniqueSubjChan = with(dataList, interaction(subjectNum, chanVec) )
-    
-  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + overallBlockType*pre_post + baLabel + (1|subjectNum/chanVec),data=dataList)
-  
-  #fit.cn_time_3 = glmmTMB(cn_3 ~ time_point + (1|id) + ar1(time_point + 0|id), data=data_file_stats_long3,family=binomial)
-  fit.lmmPP = glmmTMB(PPvec ~ mapStimLevel + overallBlockType*pre_post + (pre_post|subjectNum/chanVec) + ar1(pre_post + 0|subjectNum/chanVec),data=dataList)
-  
-  #fit.lmmPP = lmerTest::lmer(PPvec ~ overallBlockType*pre_post + (overallBlockType*pre_post|subjectNum/chanVec),data=dataList)
-  
-  #fit.lmmPP = lme(PPvec ~ overallBlockType*pre_post,random=~ overallBlockType*pre_post|subjectNum/chanVec,data=dataList)
-  
-  
+
+  # --- Approach 1: Cell-mean aggregation ---
+  # One row per (subject, channel, block, stim_level). Eliminates trial-level
+  # pseudoreplication by averaging ~28 trials per cell. 84 rows from 4621.
+  fit.lmmPP.agg = lmerTest::lmer(PPvec ~ mapStimLevel + disease + chanInCond +
+    overallBlockType*pre_post + baLabel + (1|subjectNum/chanVec), data=dataListAgg)
+
+  # --- Approach 2: Trial-level with block random effect (full) ---
+  # Keeps individual trials but adds block-level RE to absorb within-block
+  # correlation. Each block is unique to a subject:channel pair, so this
+  # single term implicitly captures the full subject/channel/block hierarchy.
+  fit.lmmPP.block = lmerTest::lmer(PPvec ~ mapStimLevel + disease + chanInCond +
+    overallBlockType*pre_post + baLabel + (1|subjectNum:chanVec:blockVec), data=dataList)
+
+  # --- Approach 3: Trial-level with block RE, reduced fixed effects ---
+  # Drops disease and baLabel (underpowered: 12 subjects for disease,
+  # 16 channels for 2-df baLabel). Subject/channel-level confounds are
+  # absorbed by the block RE instead.
+  fit.lmmPP.block.reduced = lmerTest::lmer(PPvec ~ mapStimLevel + chanInCond +
+    overallBlockType*pre_post + (1|subjectNum:chanVec:blockVec), data=dataList)
+
+  # --- Compare approaches ---
+  cat("\n=== Approach 1: Cell-mean aggregation ===\n")
+  cat("Observations:", nobs(fit.lmmPP.agg), "\n")
+  print(summary(fit.lmmPP.agg))
+  cat("\n=== Approach 2: Block RE (full) ===\n")
+  cat("Observations:", nobs(fit.lmmPP.block), "\n")
+  print(summary(fit.lmmPP.block))
+  cat("\n=== Approach 3: Block RE (reduced - no disease/baLabel) ===\n")
+  cat("Observations:", nobs(fit.lmmPP.block.reduced), "\n")
+  print(summary(fit.lmmPP.block.reduced))
+  cat("\n=== AIC comparison (Approaches 2 vs 3, same data) ===\n")
+  cat("Block RE full:   ", AIC(fit.lmmPP.block), "\n")
+  cat("Block RE reduced:", AIC(fit.lmmPP.block.reduced), "\n")
+
+  # Use reduced block RE as primary (no singular fit, proper pseudoreplication
+  # handling, drops underpowered subject/channel-level covariates)
+  fit.lmmPP = fit.lmmPP.block.reduced
+  # Conservative df for eff_size: number of block groups minus fixed-effect params
+  edf_conservative = ngrps(fit.lmmPP) - length(fixef(fit.lmmPP))
+  # Use asymptotic df for emmeans to avoid slow Satterthwaite on 6464 obs.
+  # All plots use t_crit from conservative df for honest CIs.
+  emm_options(lmer.df = "asymptotic")
+  t_crit <- qt(0.975, edf_conservative)
+
   emmeans(fit.lmmPP, list(pairwise ~ overallBlockType), adjust = "tukey")
-  
+
   emm_s.t <- emmeans(fit.lmmPP, pairwise ~ overallBlockType| mapStimLevel)
   emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel | overallBlockType)
   summary(glht(fit.lmmPP,linfct=mcp(overallBlockType="Tukey")))
-  
+
   emm_pairwise <- emmeans(fit.lmmPP,~overallBlockType*pre_post,adjust="Tukey")
   contrast(emm_pairwise,interaction="pairwise")
-  eff_size(emm_pairwise,sigma=sigma(fit.lmmPP),edf=df.residual(fit.lmmPP))
-  marginal_means_plot <- emmip(fit.lmmPP,overallBlockType~pre_post)
-  marginal_means_plot <- marginal_means_plot + aes(x = factor(pre_post, level=c('pre','post'))) + labs(x = expression(paste("Pre versus Post Conditioning")),y=expression(paste("Linear Prediction log(",mu,"V)")),color="Experimental Condition",title = paste0("Estimated Marginal Means by Conditioning and Status")) +
-    scale_color_brewer(palette="Dark2") +
-    scale_fill_brewer(palette="Dark2") 
+  # Effect sizes use conservative df (block groups - fixed params) since
+  # df.residual on block RE model returns naive trial-level df (~6400)
+  emm_effsize <- eff_size(emm_pairwise,sigma=sigma(fit.lmmPP),edf=edf_conservative)
 
-  
+  # --- Plot: Interaction (overallBlockType x pre_post) with CIs ---
+  # CIs=FALSE here; CIs are added manually below using t_crit for consistency
+  marginal_means_plot <- emmip(fit.lmmPP,overallBlockType~pre_post, CIs=FALSE)
+  marginal_means_plot <- marginal_means_plot +
+    aes(x = factor(pre_post, level=c('pre','post'))) +
+    labs(x = "Pre versus Post Conditioning",
+         y = expression(paste("Estimated Marginal Mean log(",mu,"V)")),
+         color = "Experimental Condition",
+         title = "Estimated Marginal Means by Conditioning and Status") +
+    scale_color_brewer(palette="Dark2") +
+    theme_bw()
+  print(marginal_means_plot)
+
+  # --- Plot: EMM for each condition with CIs ---
+  emm_condition <- emmeans(fit.lmmPP, ~ overallBlockType)
+  emm_condition_df <- as.data.frame(emm_condition)
+  p_emm_cond <- ggplot(emm_condition_df, aes(x=overallBlockType, y=emmean, color=overallBlockType)) +
+    geom_point(size=3) +
+    geom_errorbar(aes(ymin=emmean - t_crit*SE, ymax=emmean + t_crit*SE), width=0.2, linewidth=0.8) +
+    labs(x = "Experimental Condition",
+         y = expression(paste("Estimated Marginal Mean log(",mu,"V)")),
+         color = "Condition",
+         title = "Estimated Marginal Means by Conditioning Protocol") +
+    scale_color_brewer(palette="Dark2") +
+    theme_bw()
+  print(p_emm_cond)
+
+  # --- Plot: Pre-post contrast within each condition (95% CI) ---
+  emm_prepost <- emmeans(fit.lmmPP, ~ pre_post | overallBlockType)
+  prepost_contrasts <- contrast(emm_prepost, method="pairwise")
+  prepost_df <- as.data.frame(prepost_contrasts)
+  p_prepost <- ggplot(prepost_df, aes(x=overallBlockType, y=estimate, color=overallBlockType)) +
+    geom_point(size=3) +
+    geom_errorbar(aes(ymin=estimate - t_crit*SE, ymax=estimate + t_crit*SE), width=0.2, linewidth=0.8) +
+    geom_hline(yintercept=0, linetype="dashed", color="grey50") +
+    labs(x = "Experimental Condition",
+         y = expression(paste("Pre - Post Contrast log(",mu,"V)")),
+         color = "Condition",
+         title = "Pre vs Post Change by Conditioning Protocol (95% CI)") +
+    scale_color_brewer(palette="Dark2") +
+    theme_bw()
+  print(p_prepost)
+
+  # --- Plot: Effect sizes for pre-post contrasts ---
+  prepost_effsize <- eff_size(emm_prepost, sigma=sigma(fit.lmmPP), edf=edf_conservative)
+  prepost_effsize_df <- as.data.frame(prepost_effsize)
+  p_effsize <- ggplot(prepost_effsize_df, aes(x=overallBlockType, y=effect.size, color=overallBlockType)) +
+    geom_point(size=3) +
+    geom_errorbar(aes(ymin=effect.size - t_crit*SE, ymax=effect.size + t_crit*SE), width=0.2, linewidth=0.8) +
+    geom_hline(yintercept=0, linetype="dashed", color="grey50") +
+    labs(x = "Experimental Condition",
+         y = "Standardized Effect Size (d)",
+         color = "Condition",
+         title = "Effect Sizes: Pre vs Post by Conditioning Protocol (95% CI)",
+         subtitle = "Computed on log-transformed EP magnitude") +
+    scale_color_brewer(palette="Dark2") +
+    theme_bw()
+  print(p_effsize)
+
+  # --- Plot: Compare fixed effects across all three model approaches ---
+  extract_coefs <- function(fit, label) {
+    df <- as.data.frame(summary(fit)$coefficients)
+    df$term <- rownames(df)
+    df$model <- label
+    df
+  }
+  coef_both <- rbind(
+    extract_coefs(fit.lmmPP.agg, "1: Cell-mean (full)"),
+    extract_coefs(fit.lmmPP.block, "2: Block RE (full)"),
+    extract_coefs(fit.lmmPP.block.reduced, "3: Block RE (reduced)")
+  )
+  coef_both <- coef_both %>% filter(term != "(Intercept)")
+  p_compare <- ggplot(coef_both, aes(x=term, y=Estimate, color=model)) +
+    geom_point(position=position_dodge(width=0.6), size=2.5) +
+    geom_errorbar(aes(ymin=Estimate - t_crit*`Std. Error`, ymax=Estimate + t_crit*`Std. Error`),
+                  position=position_dodge(width=0.6), width=0.3) +
+    geom_hline(yintercept=0, linetype="dashed", color="grey50") +
+    labs(x = "", y = "Estimate (95% CI)", color = "Model",
+         title = "Fixed Effect Estimates: All Three Approaches") +
+    theme_bw() +
+    coord_flip()
+  print(p_compare)
+
   if (savePlot && !avgMeas) {
-    ggsave(paste0("emmip_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("emmip_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
-    
+    ggsave(plot=marginal_means_plot, paste0("emmip_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(plot=marginal_means_plot, paste0("emmip_AUC.eps"), units="in", width=figWidth, height=figHeight, device=cairo_ps, fallback_resolution=600)
+    ggsave(plot=p_emm_cond, paste0("emm_condition_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(plot=p_prepost, paste0("prepost_contrast_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(plot=p_effsize, paste0("prepost_effsize_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(plot=p_compare, paste0("model_comparison_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+
   } else if (savePlot && avgMeas){
-    ggsave(paste0("emmip_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
-    ggsave(paste0("emmip_avg_AUC.eps"), units="in", width=figWidth, height=figHeight,device=cairo_ps, fallback_resolution=600)
-    
+    ggsave(plot=marginal_means_plot, paste0("emmip_avg_AUC.png"), units="in", width=figWidth, height=figHeight, dpi=600)
+    ggsave(plot=marginal_means_plot, paste0("emmip_avg_AUC.eps"), units="in", width=figWidth, height=figHeight, device=cairo_ps, fallback_resolution=600)
+
   }
   
   }
   else {
-  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + blockType + baLabel + (1|subjectNum/chanVec),data=dataList)
+  fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + disease  + chanInCond + blockType + baLabel + (1|subjectNum/chanVec),data=dataListAgg)
   emmeans(fit.lmmPP, list(pairwise ~ blockType), adjust = "tukey")
   
   emm_s.t <- emmeans(fit.lmmPP, pairwise ~ blockType | mapStimLevel)
@@ -682,20 +794,25 @@ for (avgMeas in avgMeasVec) {
   
   summary(fit.lmmPP)
   plot(fit.lmmPP)
- qqnorm(resid(fit.lmmPP))
- qqline(resid(fit.lmmPP))
+  qqnorm(resid(fit.lmmPP))
+  qqline(resid(fit.lmmPP))
   summary(glht(fit.lmmPP,linfct=mcp(mapStimLevel="Tukey")))
-  
+
   #emm_options(pbkrtest.limit = 10000)
 
   emmeans(fit.lmmPP, list(pairwise ~ mapStimLevel), adjust = "tukey")
-  emmeans(fit.lmmPP, list(pairwise ~ baLabel), adjust = "tukey")
-  
+  #emmeans(fit.lmmPP, list(pairwise ~ baLabel), adjust = "tukey") # baLabel not in reduced model
+
 
   anova(fit.lmmPP)
   tab_model(fit.lmmPP)
 
-  
+  # Save side-by-side comparison of all three model approaches
+  tab_comparison <- tab_model(fit.lmmPP.agg, fit.lmmPP.block, fit.lmmPP.block.reduced,
+    show.re.var=TRUE, show.icc=TRUE, show.obs=TRUE,
+    dv.labels=c("Cell-mean (full)","Block RE (full)","Block RE (reduced)"))
+  writeLines(as.character(tab_comparison$page.complete), paste0(outputDir, "/tab_model_comparison.html"))
+
   if (savePlot && !avgMeas) {
     
     figHeight = 4
@@ -703,7 +820,7 @@ for (avgMeas in avgMeasVec) {
     png("pairedPulse_resid_PP_trim_allSubjs_AUC.png",width=figWidth,height=figHeight,units="in",res=600)
     plot(fit.lmmPP)
     dev.off()
-    
+
     setEPS()
     postscript("pairedPulse_resid_PP_trim_allSubjs_AUC.eps",width=figWidth,height=figHeight)
     plot(fit.lmmPP)
@@ -729,7 +846,7 @@ for (avgMeas in avgMeasVec) {
     png("pairedPulse_resid_PP_allSubjs_avg_AUC.png",width=figWidth,height=figHeight,units="in",res=600)
     plot(fit.lmmPP)
     dev.off()
-    
+
     setEPS()
     postscript("pairedPulse_resid_PP_allSubjs_avg_AUC.eps",width=figWidth,height=figHeight)
     plot(fit.lmmPP)
@@ -750,11 +867,14 @@ for (avgMeas in avgMeasVec) {
     
   }
   
+  # Reset emmeans df method for small-data models (Satterthwaite is fast on 120 rows)
+  emm_options(lmer.df = "satterthwaite")
+
   #fit.lmmdiff = lmerTest::lmer(absDiff ~ stimLevelVec + blockType + chanInCond + (1|sidVec),data=dataList)
-  fit.lmmdiff = lmerTest::lmer(absDiff ~ mapStimLevel + disease  + chanInCond + blockType + (1|subjectNum),data=dataList)
-  
-  
-  fit.lm = lm(absDiff ~ mapStimLevel + blockType + chanInCond ,data=dataList)
+  fit.lmmdiff = lmerTest::lmer(absDiff ~ mapStimLevel + chanInCond + blockType + (1|subjectNum/chanVec),data=dataListAgg)
+
+
+  fit.lm = lm(absDiff ~ mapStimLevel + blockType + chanInCond ,data=dataListAgg)
   
   summary(fit.lmmdiff)
   plot(fit.lmmdiff)
@@ -827,11 +947,11 @@ for (avgMeas in avgMeasVec) {
     
   }
   
-  dataSubset <- unique(dataList %>% select(effectSize,subjectNum,meanPP,mapStimLevel,disease,chanInCond,blockType,baLabel,aalLabel,chanVec,pre_post,overallBlockType) %>% filter(blockType != 'baseline'))
+  dataSubset <- dataListAgg %>% select(effectSize,subjectNum,meanPP,mapStimLevel,disease,chanInCond,blockType,baLabel,aalLabel,chanVec,pre_post,overallBlockType) %>% filter(blockType != 'baseline')
   if(!log_data){
-  fit.effectSize = lmerTest::lmer(effectSize ~ log(meanPP) + mapStimLevel + chanInCond + disease + blockType + baLabel + (1|subjectNum),data=dataSubset)
+  fit.effectSize = lmerTest::lmer(effectSize ~ log(meanPP) + mapStimLevel + chanInCond + blockType + (1|subjectNum),data=dataSubset)
   }else if(log_data){
-    fit.effectSize = lmerTest::lmer(effectSize ~ meanPP + mapStimLevel + chanInCond + disease + blockType + baLabel + (1|subjectNum),data=dataSubset)
+    fit.effectSize = lmerTest::lmer(effectSize ~ meanPP + mapStimLevel + chanInCond + blockType + (1|subjectNum),data=dataSubset)
   }
   
   # if(!log_data){
@@ -903,23 +1023,24 @@ for (avgMeas in avgMeasVec) {
     
     setEPS()
     postscript("pairedPulse_resid_effectSize_allSubjs_avg_AUC.eps",width=figWidth,height=figHeight)
-    plot(fit.lmmPP)
+    plot(fit.effectSize)
     dev.off()
-    
+
     figHeight = 4
     figWidth = 8
     png("pairedPulse_qq_effectSize_allSubjs_avg_AUC.png",width=figWidth,height=figHeight,units="in",res=600)
-    qqnorm(resid(fit.lmmPP))
-    qqline(resid(fit.lmmPP))  #summary(fit.lmm2)
+    qqnorm(resid(fit.effectSize))
+    qqline(resid(fit.effectSize))
     dev.off()
-    
+
     setEPS()
     postscript("pairedPulse_qq_effectSize_allSubjs_avg_AUC.eps",width=figWidth,height=figHeight)
-    qqnorm(resid(fit.lmmPP))
-    qqline(resid(fit.lmmPP))  #summary(fit.lmm2)
+    qqnorm(resid(fit.effectSize))
+    qqline(resid(fit.effectSize))
     dev.off()
     
   }
-  
+
 }
 
+setwd(oldwd)
