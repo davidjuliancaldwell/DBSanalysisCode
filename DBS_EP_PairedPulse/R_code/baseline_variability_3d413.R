@@ -178,7 +178,7 @@ labelVec <- c("4" = "Channel 4","6" = "Channel 6")
 #dataListFactorized$stimLevelVec = as.factor(dataListFactorized$stimLevelVec)
 p3 <- ggplot(dataList, aes(x=stimLevelVec, y=PPvec,color=blockType)) +
   geom_point(position=position_jitterdodge(dodge.width=0.250)) +geom_smooth(method=lm) + facet_grid(. ~chanVec, labeller = labeller(chanVec = labelVec))+
-  labs(x = expression(paste("Stimulation Current (mA)")),y=expression(paste("log Peak to Peak Magnitude (",mu,"V)")),
+  labs(x = expression(paste("Stimulation Current (mA)")),y=expression(paste("Peak to Peak Magnitude (",mu,"V)")),
        color="Experimental Condition",title = paste0("Anesthesia Effect on EP Magnitude"))
 print(p3)
 
@@ -279,6 +279,124 @@ if (savePlot) {
   ggsave(paste0("subj_3d413_effect_size_awake_asleep.eps"),
          plot = p_es, units = "in", width = figWidth, height = figHeight,
          device = cairo_ps, fallback_resolution = 600)
+}
+
+#########
+# Permutation tests (trial-level, per channel)
+# Shuffles awake/asleep labels across trials within each stim level
+# Stratified pooled test: independently permute within each stim level,
+#   then average per-stim-level median differences
+# Consistent with a23ed approach; note slight liberality due to ICC ~ 0.07
+# Uses median as test statistic
+
+set.seed(42)
+nPerm <- 10000
+
+# --- Per channel, per stim level ---
+perm_results <- data.frame(channel = character(), mapStimLevel = character(),
+                           obs_diff = numeric(), perm_p = numeric(),
+                           stringsAsFactors = FALSE)
+
+for (chan in unique(dataList$chanVec)) {
+  chanData <- dataList %>% filter(chanVec == chan)
+  for (sl in unique(chanData$mapStimLevel)) {
+    slData <- chanData %>% filter(mapStimLevel == sl)
+    obs_diff <- median(slData$PPvec[slData$blockType == "awake"]) -
+                median(slData$PPvec[slData$blockType == "asleep"])
+
+    labels <- slData$blockType
+    vals <- slData$PPvec
+    perm_diffs <- numeric(nPerm)
+    for (p in 1:nPerm) {
+      shuf <- sample(labels)
+      perm_diffs[p] <- median(vals[shuf == "awake"]) - median(vals[shuf == "asleep"])
+    }
+    p_val <- mean(abs(perm_diffs) >= abs(obs_diff))
+    perm_results <- rbind(perm_results,
+      data.frame(channel = as.character(chan), mapStimLevel = as.character(sl),
+                 obs_diff = obs_diff, perm_p = p_val))
+  }
+}
+
+cat("\n=== Permutation tests (median): awake vs asleep (per channel, per stim level) ===\n")
+print(perm_results)
+
+# --- Per channel, stratified pooled across stim levels ---
+# Independently permute within each stim level, then average the per-stim-level
+# median differences. Preserves stim level balance in every permutation.
+perm_stratified <- data.frame(channel = character(), obs_diff = numeric(),
+                              perm_p = numeric(), stringsAsFactors = FALSE)
+chan_perm_null <- list()
+
+for (chan in unique(dataList$chanVec)) {
+  chanData <- dataList %>% filter(chanVec == chan)
+  stim_levels <- sort(unique(chanData$mapStimLevel))
+
+  # Observed stratified statistic
+  obs_sl_diffs <- numeric(length(stim_levels))
+  for (j in seq_along(stim_levels)) {
+    slData <- chanData %>% filter(mapStimLevel == stim_levels[j])
+    obs_sl_diffs[j] <- median(slData$PPvec[slData$blockType == "awake"]) -
+                       median(slData$PPvec[slData$blockType == "asleep"])
+  }
+  obs_pooled <- mean(obs_sl_diffs)
+
+  # Permutation null: independently shuffle within each stim level
+  perm_pooled <- numeric(nPerm)
+  for (p in 1:nPerm) {
+    perm_sl_diffs <- numeric(length(stim_levels))
+    for (j in seq_along(stim_levels)) {
+      slData <- chanData %>% filter(mapStimLevel == stim_levels[j])
+      shuf <- sample(slData$blockType)
+      perm_sl_diffs[j] <- median(slData$PPvec[shuf == "awake"]) -
+                          median(slData$PPvec[shuf == "asleep"])
+    }
+    perm_pooled[p] <- mean(perm_sl_diffs)
+  }
+  pooled_p <- mean(abs(perm_pooled) >= abs(obs_pooled))
+
+  perm_stratified <- rbind(perm_stratified,
+    data.frame(channel = as.character(chan), obs_diff = obs_pooled, perm_p = pooled_p))
+  chan_perm_null[[as.character(chan)]] <- perm_pooled
+
+  cat(sprintf("\nChannel %s stratified pooled: obs = %.2f uV, p = %.4f\n",
+              chan, obs_pooled, pooled_p))
+}
+
+cat("\n=== Permutation tests (median): awake vs asleep (stratified pooled) ===\n")
+print(perm_stratified)
+
+# --- Null distribution histograms (per channel, stratified pooled) ---
+for (chan in unique(dataList$chanVec)) {
+  obs_val <- perm_stratified$obs_diff[perm_stratified$channel == as.character(chan)]
+  p_val <- perm_stratified$perm_p[perm_stratified$channel == as.character(chan)]
+  null_df <- data.frame(value = chan_perm_null[[as.character(chan)]])
+
+  p_perm <- ggplot(null_df, aes(x = value)) +
+    geom_histogram(aes(fill = abs(value) >= abs(obs_val)),
+                   bins = 60, color = "grey50", show.legend = FALSE) +
+    scale_fill_manual(values = c("FALSE" = "grey70", "TRUE" = "#C93312")) +
+    geom_vline(xintercept = obs_val, color = "#C93312", linewidth = 1.2) +
+    geom_vline(xintercept = -obs_val, color = "#C93312",
+               linewidth = 1.2, linetype = "dashed") +
+    annotate("text", x = obs_val, y = Inf, vjust = 2, hjust = -0.1,
+             label = sprintf("observed = %.1f uV\np = %.4f", obs_val, p_val),
+             color = "#C93312", size = 4) +
+    labs(x = expression(paste("Awake - Asleep  [", mu, "V]")),
+         y = "Count",
+         title = sprintf("Permutation Test: Awake vs Asleep (Channel %s, Stratified)", chan),
+         subtitle = sprintf("%s permutations, stratified by stim level (two-sided)",
+                            formatC(nPerm, format = "d", big.mark = ","))) +
+    theme_bw(base_size = 14)
+  print(p_perm)
+
+  if (savePlot) {
+    ggsave(sprintf("subj_3d413_perm_awake_asleep_chan%s.png", chan),
+           plot = p_perm, units = "in", width = 7, height = 4, dpi = 600)
+    ggsave(sprintf("subj_3d413_perm_awake_asleep_chan%s.eps", chan),
+           plot = p_perm, units = "in", width = 7, height = 4,
+           device = cairo_ps, fallback_resolution = 600)
+  }
 }
 
 setwd(oldwd)

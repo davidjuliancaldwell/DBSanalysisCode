@@ -563,21 +563,42 @@ for (avgMeas in avgMeasVec) {
     cat("\n=== Permutation test (median): 15-min effect minus 5-min effect ===\n")
     print(perm_interaction)
 
-    # --- Plot: permutation null distribution for the interaction ---
-    # Use the pooled (across stim levels) interaction
-    all_d5 <- dataList %>% filter(blockVec %in% comp5)
-    all_d15 <- dataList %>% filter(blockVec %in% comp15)
-    obs_diff5 <- median(all_d5$PPvec[all_d5$blockVec==comp5[2]]) - median(all_d5$PPvec[all_d5$blockVec==comp5[1]])
-    obs_diff15 <- median(all_d15$PPvec[all_d15$blockVec==comp15[2]]) - median(all_d15$PPvec[all_d15$blockVec==comp15[1]])
-    obs_pooled_int <- obs_diff15 - obs_diff5
+    # --- Plot: permutation null distribution for the interaction (stratified) ---
+    # Stratified: independently permute within each stim level, average
+    # per-stim-level differences, then compute interaction
+    stim_levels_int <- intersect(
+      unique(as.character((dataList %>% filter(blockVec %in% comp5))$mapStimLevel)),
+      unique(as.character((dataList %>% filter(blockVec %in% comp15))$mapStimLevel)))
+
+    obs_sl_diff5 <- numeric(length(stim_levels_int))
+    obs_sl_diff15 <- numeric(length(stim_levels_int))
+    for (j in seq_along(stim_levels_int)) {
+      sl <- stim_levels_int[j]
+      d5 <- dataList %>% filter(blockVec %in% comp5, mapStimLevel == sl)
+      d15 <- dataList %>% filter(blockVec %in% comp15, mapStimLevel == sl)
+      obs_sl_diff5[j] <- median(d5$PPvec[d5$blockVec == comp5[2]]) -
+                         median(d5$PPvec[d5$blockVec == comp5[1]])
+      obs_sl_diff15[j] <- median(d15$PPvec[d15$blockVec == comp15[2]]) -
+                          median(d15$PPvec[d15$blockVec == comp15[1]])
+    }
+    obs_pooled_int <- mean(obs_sl_diff15) - mean(obs_sl_diff5)
 
     perm_pooled <- numeric(nPerm)
     for (p in 1:nPerm) {
-      shuf5 <- sample(all_d5$blockVec)
-      shuf15 <- sample(all_d15$blockVec)
-      pd5 <- median(all_d5$PPvec[shuf5==comp5[2]]) - median(all_d5$PPvec[shuf5==comp5[1]])
-      pd15 <- median(all_d15$PPvec[shuf15==comp15[2]]) - median(all_d15$PPvec[shuf15==comp15[1]])
-      perm_pooled[p] <- pd15 - pd5
+      perm_d5 <- numeric(length(stim_levels_int))
+      perm_d15 <- numeric(length(stim_levels_int))
+      for (j in seq_along(stim_levels_int)) {
+        sl <- stim_levels_int[j]
+        d5 <- dataList %>% filter(blockVec %in% comp5, mapStimLevel == sl)
+        d15 <- dataList %>% filter(blockVec %in% comp15, mapStimLevel == sl)
+        shuf5 <- sample(d5$blockVec)
+        shuf15 <- sample(d15$blockVec)
+        perm_d5[j] <- median(d5$PPvec[shuf5 == comp5[2]]) -
+                      median(d5$PPvec[shuf5 == comp5[1]])
+        perm_d15[j] <- median(d15$PPvec[shuf15 == comp15[2]]) -
+                       median(d15$PPvec[shuf15 == comp15[1]])
+      }
+      perm_pooled[p] <- mean(perm_d15) - mean(perm_d5)
     }
     pooled_p <- mean(abs(perm_pooled) >= abs(obs_pooled_int))
 
@@ -594,7 +615,7 @@ for (avgMeas in avgMeasVec) {
       labs(x = expression(paste(Delta, " (15-min effect) - (5-min effect)  [",mu,"V]")),
            y = "Count",
            title = "Permutation Test: 15-min vs 5-min Conditioning Effect",
-           subtitle = sprintf("%s permutations (two-sided)", formatC(nPerm, format="d", big.mark=","))) +
+           subtitle = sprintf("%s permutations, stratified by stim level (two-sided)", formatC(nPerm, format="d", big.mark=","))) +
       theme_bw(base_size = 14)
     print(p_perm)
 
@@ -606,20 +627,32 @@ for (avgMeas in avgMeasVec) {
              device = cairo_ps, fallback_resolution = 600)
     }
 
-    # --- Per-condition permutation null distribution histograms ---
+    # --- Per-condition stratified permutation null distribution histograms ---
     for (comp_idx in seq_along(whichCompareVec)) {
       comparison <- whichCompareVec[[comp_idx]]
       compData <- dataList %>% filter(blockVec %in% comparison)
       cond_name <- as.character(unique(compData$overallBlockType))
+      comp_stim_levels <- sort(unique(as.character(compData$mapStimLevel)))
 
-      obs_diff <- median(compData$PPvec[compData$blockVec == comparison[2]]) -
-                  median(compData$PPvec[compData$blockVec == comparison[1]])
+      # Observed stratified statistic
+      obs_sl_diffs <- numeric(length(comp_stim_levels))
+      for (j in seq_along(comp_stim_levels)) {
+        slData <- compData %>% filter(mapStimLevel == comp_stim_levels[j])
+        obs_sl_diffs[j] <- median(slData$PPvec[slData$blockVec == comparison[2]]) -
+                           median(slData$PPvec[slData$blockVec == comparison[1]])
+      }
+      obs_diff <- mean(obs_sl_diffs)
 
       perm_diffs <- numeric(nPerm)
       for (p in 1:nPerm) {
-        shuf <- sample(compData$blockVec)
-        perm_diffs[p] <- median(compData$PPvec[shuf == comparison[2]]) -
-                         median(compData$PPvec[shuf == comparison[1]])
+        perm_sl_diffs <- numeric(length(comp_stim_levels))
+        for (j in seq_along(comp_stim_levels)) {
+          slData <- compData %>% filter(mapStimLevel == comp_stim_levels[j])
+          shuf <- sample(slData$blockVec)
+          perm_sl_diffs[j] <- median(slData$PPvec[shuf == comparison[2]]) -
+                              median(slData$PPvec[shuf == comparison[1]])
+        }
+        perm_diffs[p] <- mean(perm_sl_diffs)
       }
       p_val <- mean(abs(perm_diffs) >= abs(obs_diff))
 
@@ -636,7 +669,7 @@ for (avgMeas in avgMeasVec) {
         labs(x = expression(paste("Post - Baseline  [",mu,"V]")),
              y = "Count",
              title = paste0("Permutation Test: ", cond_name),
-             subtitle = sprintf("%s permutations (two-sided)", formatC(nPerm, format="d", big.mark=","))) +
+             subtitle = sprintf("%s permutations, stratified by stim level (two-sided)", formatC(nPerm, format="d", big.mark=","))) +
         theme_bw(base_size = 14)
       print(p_perm_cond)
 

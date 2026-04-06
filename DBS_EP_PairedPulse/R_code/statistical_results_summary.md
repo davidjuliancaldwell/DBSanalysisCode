@@ -112,7 +112,9 @@ All estimates and effect sizes are on the log(uV) scale. Cohen's d uses total SD
 
 ### Permutation Tests (Primary Analysis)
 
-10,000 permutations per test. Test statistic: difference of medians. Block labels shuffled within each stimulation level. Two-sided p-values.
+10,000 permutations per test. Test statistic: difference of medians. Block labels shuffled within each stimulation level. Two-sided p-values: `mean(abs(perm) >= abs(obs))`. Trial-level permutation is the only feasible approach (block-level gives C(2,1) = 2 arrangements per comparison, minimum p = 1.0).
+
+**Per-stim-level tests (permutation within each stim level):**
 
 **5-minute conditioning (post - baseline):**
 
@@ -130,7 +132,7 @@ All estimates and effect sizes are on the log(uV) scale. Cohen's d uses total SD
 | 3 | 84.2 | < 0.001 |
 | 4 | 68.5 | 0.001 |
 
-**Interaction: (15-min effect) - (5-min effect):**
+**Per-stim-level interaction: (15-min effect) - (5-min effect):**
 
 | Stim level | Observed interaction (uV) | p |
 |------------|--------------------------|---|
@@ -138,13 +140,21 @@ All estimates and effect sizes are on the log(uV) scale. Cohen's d uses total SD
 | 3 | 75.9 | 0.135 |
 | 4 | 49.2 | 0.176 |
 
+**Stratified pooled tests:** These pool across stim levels while preserving stim-level balance. Within each permutation iteration, labels are shuffled independently within each stim level, per-stim-level median differences are computed, then averaged. This avoids the problem with naive pooling, where random stim-level imbalance widens the null distribution and makes the test conservative.
+
+| Test | Observed (uV) | p |
+|------|---------------|------|
+| 5-min conditioning (stratified pooled) | 16.5 | 0.013 |
+| 15-min conditioning (stratified pooled) | 77.2 | < 0.0001 |
+| Interaction: 15-min minus 5-min (stratified pooled) | 60.7 | 0.0034 |
+
 ### Interpretation
 
-15-minute conditioning produces a large, robust increase in EP amplitude (~70-85 uV, p < 0.001 at all stimulation levels). 5-minute conditioning produces a smaller effect that is significant only at the highest stimulation level (p=0.045). The per-stim-level interaction tests (whether 15-min is larger than 5-min) are marginal to non-significant, limited by the small number of trials per cell (~10) available for the median statistic.
+15-minute conditioning produces a large, robust increase in EP amplitude (~70-85 uV, p < 0.001 at all stimulation levels). 5-minute conditioning produces a smaller effect that is significant only at the highest stimulation level per-stim-level (p=0.045) but reaches significance in the stratified pooled test (p=0.013). The stratified pooled interaction confirms that 15-min conditioning produces a significantly larger effect than 5-min (p=0.003), whereas the per-stim-level interaction tests are underpowered (~10 trials per cell).
 
 ### Caveats
 
-- Permutation tests shuffle individual trials between blocks, assuming trial exchangeability. Within-block temporal correlation (partially mitigated by 5-trial averaging) could make p-values anti-conservative.
+- Permutation tests shuffle individual trials between blocks, assuming trial exchangeability. Within-block temporal correlation (partially mitigated by 5-trial averaging) could make p-values anti-conservative. With only 2 blocks per comparison, within-block ICC cannot be estimated.
 - With 4 blocks, mixed-effects models have convergence issues. The permutation approach avoids model-based assumptions but shares the pseudoreplication concern.
 - Single-subject results do not generalize without replication.
 
@@ -155,24 +165,72 @@ All estimates and effect sizes are on the log(uV) scale. Cohen's d uses total SD
 ### Study Design
 
 - **Subject**: 1 (3d413)
-- **Channels**: 2 (channels 4 and 6)
-- **Blocks**: 10 (5 per channel: 3 asleep, 2 awake)
+- **Channels**: 2 (channels 4 and 6) -- independent experiments with separate blocks
+- **Blocks**: 10 (5 per channel: 3 asleep, 2 awake per channel)
+- **Total trials**: 356 (after 5-trial averaging, filtering stim level >= 2)
+- **Stim levels**: 3 (levels 2, 3, 4)
+- **Trials per (channel, stim level)**: ~58-60 (22-24 awake, 35-36 asleep)
 - **Data scale**: raw uV (`log_data = FALSE`; log produces skewness=-5.7 and kurtosis=65 for this subject due to near-zero EP values)
 - **No trimming** (`trim_data = FALSE`)
 
-### Model
+### LMM (Model-Based Analysis)
 
 ```
-PPvec ~ mapStimLevel + blockType + chanVec + (1|blockVec)
+fit.lmm1 = PPvec ~ mapStimLevel + blockType + chanVec + (1|blockVec)  # additive (primary)
+fit.lmm2 = PPvec ~ mapStimLevel + blockType * mapStimLevel + chanVec + (1|blockVec)  # interaction
 ```
 
-Trial-level data with block RE (10 groups -- sufficient for RE estimation). `chanVec` as fixed effect (only 2 channels). Additive model preferred over interaction model (blockType x mapStimLevel) by AIC and BIC. Not singular. Residuals: skewness=-0.5, excess kurtosis=2.9.
+Trial-level data with block RE (10 groups). `chanVec` as fixed effect (only 2 channels). Blocks are perfectly nested within channels (odd blocks = chan 6, even = chan 4); unique block IDs make `(1|blockVec)` implicitly handle this. Additive model preferred over interaction (LRT p = 0.89, AIC/BIC favor additive). Not singular. Random effects: block SD = 13.2, residual SD = 46.5, ICC = 0.074.
 
-Awake vs asleep (blockType): estimate=6.8 uV, SE=9.9, df=7.0, p=0.51. Not significant.
+**ANOVA (Type III, Satterthwaite):**
+
+| Effect | F | NumDF | DenDF | p |
+|--------|---|-------|-------|---|
+| mapStimLevel | 290.4 | 2 | 344 | < 2e-16 |
+| blockType (awake vs asleep) | 0.48 | 1 | 7.0 | 0.51 |
+| chanVec | 64.7 | 1 | 7.0 | 8.9e-05 |
+
+**Degrees of freedom:** Satterthwaite correctly assigns ~7 df for between-block effects (blockType, chanVec) and ~344 df for within-block effects (mapStimLevel). The between-block df = 10 blocks - 3 between-block params (intercept + blockType + chanVec) = 7. ICC > 0 confirms the RE is estimated successfully and df are not artificially inflated.
+
+Awake vs asleep (blockType): estimate = 6.8 uV, SE = 9.9, df = 7.0, t = 0.69, p = 0.51. **Not significant.**
+
+### Permutation Tests (Trial-Level, Stratified by Stim Level)
+
+Trial-level permutation tests per channel (channels are independent). 10,000 permutations. Test statistic: difference of medians (awake - asleep). Awake/asleep labels shuffled within each (channel, stim_level) stratum. Two-sided p-values: `mean(abs(perm) >= abs(obs))`.
+
+**Per channel, per stim level:**
+
+| Channel | Stim Level | Observed (uV) | p |
+|---------|-----------|---------------|------|
+| 6 | 2 | 12.7 | 0.52 |
+| 6 | 3 | 14.3 | 0.38 |
+| 6 | 4 | 18.6 | 0.27 |
+| 4 | 2 | -0.8 | 0.94 |
+| 4 | 3 | 12.7 | 0.25 |
+| 4 | 4 | 5.9 | 0.31 |
+
+**Stratified pooled (per channel):** Independently permutes within each stim level, averages per-stim-level median differences. Preserves stim-level balance in every permutation.
+
+| Channel | Observed (uV) | p |
+|---------|---------------|------|
+| 6 | 15.2 | 0.12 |
+| 4 | 5.9 | 0.21 |
+
+**Consistent with LMM:** No significant awake/asleep effect. Channel 6 shows a non-significant trend. Trial-level permutation is mildly liberal due to ICC ~ 0.07 (effective n inflation ~1.77x), but since results are clearly non-significant, this does not affect interpretation. Block-level permutation has insufficient resolution (C(5,2) = 10 per channel, minimum p = 0.10).
 
 ### Effect Sizes
 
 Cohen's d (awake vs asleep) computed per (channel, stim level) on trial-level data. Raw uV scale.
+
+---
+
+## Contrast Coding
+
+All scripts use R defaults: `as.ordered()` → polynomial contrasts (contr.poly), `as.factor()` → treatment contrasts (contr.treatment). No scripts override global contrast settings. Contrasts are per-variable in R — no resetting needed between variables.
+
+- **`mapStimLevel`** (`as.ordered`): polynomial contrasts (.L linear, .Q quadratic). Appropriate for ordinal dose-response. Type III F-test is contrast-invariant; only individual coefficient estimates (e.g., the linear trend) use polynomial decomposition.
+- **All other fixed-effect factors** (`as.factor`): treatment (dummy) contrasts. All 2-level factors (blockType, chanVec, pre_post, chanInCond) have 1 df — contrast type is irrelevant for the F-test.
+- **RE grouping factors** (subjectNum, blockVec): contrasts are unused — they only define grouping structure for random intercepts.
 
 ---
 
@@ -192,7 +250,8 @@ Cohen's d (awake vs asleep) computed per (channel, stim level) on trial-level da
 | Finding | Range of p across configurations | Status |
 |---------|--------------------------------|--------|
 | Conditioning protocol x pre/post interaction (multi-subject) | 0.05 - 0.45 | Exploratory |
-| 15-min vs 5-min interaction (a23ed) | 0.003 - 0.18 | Depends on statistic (mean vs median) and per-stim-level vs pooled |
+| 15-min vs 5-min interaction (a23ed) | 0.003 - 0.18 | Stratified pooled p=0.003; per-stim-level p=0.05-0.18. Depends on pooling strategy and stim level |
+| No awake/asleep effect (3d413) | 0.12 - 0.94 | Consistent across LMM (p=0.51) and permutation (per-channel pooled p=0.12, 0.21) |
 
 ### Key Analytic Decisions and Their Impact
 
@@ -205,3 +264,5 @@ Cohen's d (awake vs asleep) computed per (channel, stim level) on trial-level da
 | 3 vs 4 conditions | Both | 4 conditions (with A/A 25) uses 3 df for interaction vs 2; dilutes F-statistic |
 | Flat vs crossed RE | Both | Flat gives anti-conservative df for channel effects (37 vs 7); crossed is correct |
 | Permutation: mean vs median | Both | 15-min effect robust to both; interaction significant only with mean |
+| Permutation: stratified vs naive pooling | Both | Naive pooling mixes stim levels, widening null (conservative). Stratified pooling preserves stim-level balance, giving tighter null and cleaner inference. Stratified pooled interaction p=0.003 vs naive approach |
+| Trial-level vs block-level permutation (3d413) | Both | Block-level: C(5,2)=10 per channel, minimum p=0.10 (too coarse). Trial-level: adequate resolution but mildly liberal (ICC~0.07). Trial-level chosen |
