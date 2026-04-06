@@ -29,7 +29,7 @@ repeatedMeasures = TRUE # if true, does repeated measures analysis, if false, do
 min_stim_level = 2
 log_data = FALSE
 box_data = FALSE
-trim_data = TRUE
+trim_data = FALSE
 savePlot = 1
 avgMeasVec = c(1)
 figWidth = 8
@@ -198,15 +198,15 @@ for (avgMeas in avgMeasVec) {
     dataList <- do.call(rbind,dataList)
     #blockList <- do.call(rbind,blockList)
 
-    # Aggregate to cell means: one row per (block, stim_level)
+    # Aggregate to cell medians: one row per (block, stim_level)
     # to avoid trial-level pseudoreplication
     dataListAgg <- dataList %>%
       group_by(chanVec, blockVec, blockType, mapStimLevel, stimLevelVec,
                overallBlockType, pre_post, sidVec, index) %>%
-      summarise(PPvec = mean(PPvec), absDiff = mean(absDiff),
-                percentDiff = mean(percentDiff), n_trials = n(), .groups = "drop")
+      summarise(PPvec = median(PPvec), absDiff = median(absDiff),
+                percentDiff = median(percentDiff), n_trials = n(), .groups = "drop")
 
-    cat("Aggregated:", nrow(dataListAgg), "cell means from", nrow(dataList), "trials\n")
+    cat("Aggregated:", nrow(dataListAgg), "cell medians from", nrow(dataList), "trials\n")
 
     #plot
     grouped <- group_by(dataList, sidVec, chanVec, blockType,mapStimLevel)
@@ -494,6 +494,8 @@ for (avgMeas in avgMeasVec) {
     nPerm <- 10000
 
     # --- Test 1 & 2: post vs baseline within each conditioning length ---
+    # Uses median (robust to outliers) as the test statistic for both observed
+    # and permuted differences. Permutation framework is valid for any statistic.
     perm_results <- data.frame(condition=character(), mapStimLevel=character(),
                                obs_diff=numeric(), perm_p=numeric(), stringsAsFactors=FALSE)
 
@@ -506,15 +508,15 @@ for (avgMeas in avgMeasVec) {
         slData <- compData %>% filter(mapStimLevel == sl)
         pre_vals <- slData$PPvec[slData$blockVec == comparison[1]]
         post_vals <- slData$PPvec[slData$blockVec == comparison[2]]
-        obs_diff <- mean(post_vals) - mean(pre_vals)
+        obs_diff <- median(post_vals) - median(pre_vals)
 
         block_labels <- slData$blockVec
         all_vals <- slData$PPvec
         perm_diffs <- numeric(nPerm)
         for (p in 1:nPerm) {
           shuf <- sample(block_labels)
-          perm_diffs[p] <- mean(all_vals[shuf == comparison[2]]) -
-                           mean(all_vals[shuf == comparison[1]])
+          perm_diffs[p] <- median(all_vals[shuf == comparison[2]]) -
+                           median(all_vals[shuf == comparison[1]])
         }
         p_val <- mean(abs(perm_diffs) >= abs(obs_diff))
         perm_results <- rbind(perm_results,
@@ -523,7 +525,7 @@ for (avgMeas in avgMeasVec) {
       }
     }
 
-    cat("\n=== Permutation tests: post vs baseline (per condition, per stim level) ===\n")
+    cat("\n=== Permutation tests (median): post vs baseline (per condition, per stim level) ===\n")
     print(perm_results)
 
     # --- Test 3: difference of differences (15-min effect - 5-min effect) ---
@@ -541,16 +543,16 @@ for (avgMeas in avgMeasVec) {
       d5 <- dataList %>% filter(blockVec %in% comp5, mapStimLevel == sl)
       d15 <- dataList %>% filter(blockVec %in% comp15, mapStimLevel == sl)
 
-      diff5 <- mean(d5$PPvec[d5$blockVec == comp5[2]]) - mean(d5$PPvec[d5$blockVec == comp5[1]])
-      diff15 <- mean(d15$PPvec[d15$blockVec == comp15[2]]) - mean(d15$PPvec[d15$blockVec == comp15[1]])
+      diff5 <- median(d5$PPvec[d5$blockVec == comp5[2]]) - median(d5$PPvec[d5$blockVec == comp5[1]])
+      diff15 <- median(d15$PPvec[d15$blockVec == comp15[2]]) - median(d15$PPvec[d15$blockVec == comp15[1]])
       obs_int <- diff15 - diff5
 
       perm_ints <- numeric(nPerm)
       for (p in 1:nPerm) {
         shuf5 <- sample(d5$blockVec)
         shuf15 <- sample(d15$blockVec)
-        pdiff5 <- mean(d5$PPvec[shuf5 == comp5[2]]) - mean(d5$PPvec[shuf5 == comp5[1]])
-        pdiff15 <- mean(d15$PPvec[shuf15 == comp15[2]]) - mean(d15$PPvec[shuf15 == comp15[1]])
+        pdiff5 <- median(d5$PPvec[shuf5 == comp5[2]]) - median(d5$PPvec[shuf5 == comp5[1]])
+        pdiff15 <- median(d15$PPvec[shuf15 == comp15[2]]) - median(d15$PPvec[shuf15 == comp15[1]])
         perm_ints[p] <- pdiff15 - pdiff5
       }
       p_val <- mean(abs(perm_ints) >= abs(obs_int))
@@ -558,23 +560,23 @@ for (avgMeas in avgMeasVec) {
         data.frame(mapStimLevel=sl, obs_interaction=obs_int, perm_p=p_val))
     }
 
-    cat("\n=== Permutation test: 15-min effect minus 5-min effect ===\n")
+    cat("\n=== Permutation test (median): 15-min effect minus 5-min effect ===\n")
     print(perm_interaction)
 
     # --- Plot: permutation null distribution for the interaction ---
     # Use the pooled (across stim levels) interaction
     all_d5 <- dataList %>% filter(blockVec %in% comp5)
     all_d15 <- dataList %>% filter(blockVec %in% comp15)
-    obs_diff5 <- mean(all_d5$PPvec[all_d5$blockVec==comp5[2]]) - mean(all_d5$PPvec[all_d5$blockVec==comp5[1]])
-    obs_diff15 <- mean(all_d15$PPvec[all_d15$blockVec==comp15[2]]) - mean(all_d15$PPvec[all_d15$blockVec==comp15[1]])
+    obs_diff5 <- median(all_d5$PPvec[all_d5$blockVec==comp5[2]]) - median(all_d5$PPvec[all_d5$blockVec==comp5[1]])
+    obs_diff15 <- median(all_d15$PPvec[all_d15$blockVec==comp15[2]]) - median(all_d15$PPvec[all_d15$blockVec==comp15[1]])
     obs_pooled_int <- obs_diff15 - obs_diff5
 
     perm_pooled <- numeric(nPerm)
     for (p in 1:nPerm) {
       shuf5 <- sample(all_d5$blockVec)
       shuf15 <- sample(all_d15$blockVec)
-      pd5 <- mean(all_d5$PPvec[shuf5==comp5[2]]) - mean(all_d5$PPvec[shuf5==comp5[1]])
-      pd15 <- mean(all_d15$PPvec[shuf15==comp15[2]]) - mean(all_d15$PPvec[shuf15==comp15[1]])
+      pd5 <- median(all_d5$PPvec[shuf5==comp5[2]]) - median(all_d5$PPvec[shuf5==comp5[1]])
+      pd15 <- median(all_d15$PPvec[shuf15==comp15[2]]) - median(all_d15$PPvec[shuf15==comp15[1]])
       perm_pooled[p] <- pd15 - pd5
     }
     pooled_p <- mean(abs(perm_pooled) >= abs(obs_pooled_int))
@@ -610,14 +612,14 @@ for (avgMeas in avgMeasVec) {
       compData <- dataList %>% filter(blockVec %in% comparison)
       cond_name <- as.character(unique(compData$overallBlockType))
 
-      obs_diff <- mean(compData$PPvec[compData$blockVec == comparison[2]]) -
-                  mean(compData$PPvec[compData$blockVec == comparison[1]])
+      obs_diff <- median(compData$PPvec[compData$blockVec == comparison[2]]) -
+                  median(compData$PPvec[compData$blockVec == comparison[1]])
 
       perm_diffs <- numeric(nPerm)
       for (p in 1:nPerm) {
         shuf <- sample(compData$blockVec)
-        perm_diffs[p] <- mean(compData$PPvec[shuf == comparison[2]]) -
-                         mean(compData$PPvec[shuf == comparison[1]])
+        perm_diffs[p] <- median(compData$PPvec[shuf == comparison[2]]) -
+                         median(compData$PPvec[shuf == comparison[1]])
       }
       p_val <- mean(abs(perm_diffs) >= abs(obs_diff))
 

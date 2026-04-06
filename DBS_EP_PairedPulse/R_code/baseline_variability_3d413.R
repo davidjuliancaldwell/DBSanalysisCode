@@ -24,9 +24,9 @@ dir.create(outputDir, showWarnings = FALSE)
 sidVec = c("3d413")
 
 min_stim_level = 2
-log_data = TRUE
+log_data = FALSE
 box_data = FALSE
-trim_data = TRUE
+trim_data = FALSE
 savePlot = 1
 avgMeasVec = c(1)
 figWidth = 8

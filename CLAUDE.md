@@ -21,9 +21,9 @@ CSV Export → R Statistical Analysis → Figures
 
 - **`DBS_EP_PairedPulse/master_script_analyze_EP.m`** — Main paired pulse EP analysis. Set `sidVecIterate` to choose subjects, configure flags (`savePlot`, `saveData`, `screenBadChans`, `tryArtifact`), then run.
 - **`DBS_EP_PairedPulse/prepare_EP_blocks.m`** — Per-subject parameter config (large switch on `sid`). Defines `stimChans`, `tBegin/tEnd`, `badTrials`, `blockLabel` for each subject.
-- **`DBS_EP_PairedPulse/R_code/dose_response_R_script_trim_conditions.R`** — Main R statistical analysis across all subjects. Uses block-level random effects to handle pseudoreplication. Primary model: reduced block RE without disease/baLabel. See `R_code/code_review_dose_response.md` for full audit.
-- **`DBS_EP_PairedPulse/R_code/baseline_variability_3d413.R`** — Single-subject anesthesia variability (awake vs asleep). Block RE model + trial-level Cohen's d effect sizes.
-- **`DBS_EP_PairedPulse/R_code/length_conditioning_a23ed.R`** — Single-subject conditioning length (5 vs 15 min). Permutation tests (primary) + effect sizes + block RE models.
+- **`DBS_EP_PairedPulse/R_code/dose_response_R_script_trim_conditions.R`** — Main R statistical analysis across all subjects (N=9). Cell-median aggregation with crossed RE `(1|subjectNum/chanVec) + (1|subjectNum:blockVec)` on log-transformed EP amplitude. 4 conditioning protocols (A/A 200, A/A 25, A/B 200, A/B 25). See `R_code/code_review_dose_response.md` for full audit and `R_code/statistical_results_summary.md` for results with all numbers.
+- **`DBS_EP_PairedPulse/R_code/baseline_variability_3d413.R`** — Single-subject anesthesia variability (awake vs asleep). Block RE model + trial-level Cohen's d effect sizes. `trim_data = FALSE`, `log_data = FALSE` (log produces catastrophic non-normality for this subject).
+- **`DBS_EP_PairedPulse/R_code/length_conditioning_a23ed.R`** — Single-subject conditioning length (5 vs 15 min). Permutation tests with median statistic (primary) + effect sizes. `trim_data = FALSE`, `log_data = FALSE`.
 
 ## Architecture
 
@@ -61,6 +61,14 @@ Output CSVs go to `DBS_EP_PairedPulse/R_data/` (~128 files). R analysis output (
 - **`DBS_EP_PairedPulse/intraoperative/`** — Real-time EP visualization during surgery
 - **`ica_train_dbs.m` / `ica_artifact_remove_train_dbs.m`** — FastICA-based artifact removal (root level)
 - **`DBS_EP_PairedPulse/vizualization/`** — MNI coordinate and response plots using FreeSurfer surfaces
+
+## R Statistical Analysis Notes
+
+- **Primary model**: Cell-median aggregation (no trimming) with crossed RE on log-transformed EP amplitude. See `R_code/code_review_dose_response.md` for full audit and `R_code/statistical_results_summary.md` for results.
+- **Robustness strategy**: `trim_data = FALSE`, median aggregation across all scripts. `log_data = TRUE` (main only, required for crossed RE convergence) / `FALSE` (3d413 and a23ed, single-subject raw scale).
+- **Key documentation files**:
+  - `R_code/code_review_dose_response.md` — Statistical audit, model specifications, known limitations
+  - `R_code/statistical_results_summary.md` — All numbers for reviewers: ANOVA tables, effect sizes, CIs, sensitivity analysis
 
 ## R Dependencies
 
