@@ -23,7 +23,7 @@ dir.create(outputDir, showWarnings = FALSE)
 
 sidVec = c("3d413")
 
-min_stim_level = 2
+min_stim_level = 1
 log_data = FALSE
 box_data = FALSE
 trim_data = FALSE
@@ -50,8 +50,8 @@ for (avgMeas in avgMeasVec) {
     # PPvec is in volts, convert to microvolts
     dataPP$PPvec = dataPP$PPvec*1e6
     dataPP$stimLevelVec = dataPP$stimLevelVec/1e3
-    #dataPP <- subset(dataPP, PPvec<1000)
-    #dataPP <- subset(dataPP, PPvec>30)
+    dataPP <- subset(dataPP, PPvec<1000)
+    dataPP <- subset(dataPP, PPvec>30)
     # change to factor 
     print(sid)
     
@@ -192,43 +192,42 @@ if (savePlot && !avgMeas) {
   
 }
 
-# fit models on trial-level data with block RE to handle pseudoreplication
-# (1|blockVec) absorbs within-block correlation (10 blocks, sufficient for RE)
-# chanVec as fixed effect (only 2 channels, too few for RE)
+cat(sprintf("Trial-level observations: %d\n", nrow(dataList)))
 
-fit.lmm1 = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + chanVec + (1|blockVec), data=dataList)
-fit.lmm2 = lmerTest::lmer(PPvec ~ mapStimLevel + blockType * mapStimLevel + chanVec + (1|blockVec), data=dataList)
+# Trial-level lmer with uncorrelated random linear dose slope per block.
+# The random slope allows each block to have its own dose-response
+# steepness, fixing stim-level pseudoreplication (df drops from ~459
+# to ~23) while preserving correct ~7 df for awake/asleep.
+# stim_linpoly is the linear polynomial contrast from contr.poly().
+n_stim_levels <- nlevels(dataList$mapStimLevel)
+poly_lin <- contr.poly(n_stim_levels)[, 1]
+dataList$stim_linpoly <- poly_lin[as.numeric(dataList$mapStimLevel)]
 
-summary(fit.lmm1)
-summary(glht(fit.lmm1,linfct=mcp(blockType="Tukey")))
-summary(glht(fit.lmm1,linfct=mcp(mapStimLevel="Tukey")))
+fit.lmm1 = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + chanVec +
+  (1|blockVec) + (0+stim_linpoly|blockVec), data=dataList)
+fit.lmm2 = lmerTest::lmer(PPvec ~ mapStimLevel * blockType + chanVec +
+  (1|blockVec) + (0+stim_linpoly|blockVec), data=dataList)
+
+cat("\n=== Primary model: additive with random slope ===\n")
+print(summary(fit.lmm1))
+cat("\n=== ANOVA (additive) ===\n")
+print(anova(fit.lmm1, type=3))
 
 emmeans(fit.lmm1, list(pairwise ~ blockType), adjust = "tukey")
 emmeans(fit.lmm1, list(pairwise ~ mapStimLevel), adjust = "tukey")
 
-anova(fit.lmm1)
 tab_model(fit.lmm1)
 
-summary(fit.lmm2)
-summary(glht(fit.lmm2,linfct=mcp(blockType="Tukey")))
-summary(glht(fit.lmm2,linfct=mcp(mapStimLevel="Tukey")))
+cat("\n=== Interaction model ===\n")
+print(summary(fit.lmm2))
+cat("\n=== ANOVA (interaction) ===\n")
+print(anova(fit.lmm2, type=3))
 
-emmeans(fit.lmm2, list(pairwise ~ blockType), adjust = "tukey")
-emmeans(fit.lmm2, list(pairwise ~ mapStimLevel), adjust = "tukey")
-
-emm_s.t <- emmeans(fit.lmm2, pairwise ~ blockType | mapStimLevel)
-emm_s.t <- emmeans(fit.lmm2, pairwise ~ mapStimLevel | blockType)
-
-anova(fit.lmm2)
 tab_model(fit.lmm2)
 
-#########
-# model comparison
-
-anova(fit.lmm1, fit.lmm2)
-lrtest(fit.lmm1, fit.lmm2)
-AIC(fit.lmm1, fit.lmm2)
-BIC(fit.lmm1, fit.lmm2)
+cat("\n=== Model comparison: additive vs interaction ===\n")
+print(anova(fit.lmm1, fit.lmm2, refit=FALSE))
+print(AIC(fit.lmm1, fit.lmm2))
 
 #########
 # Effect size analysis (appropriate for single-subject design)
@@ -397,6 +396,109 @@ for (chan in unique(dataList$chanVec)) {
            plot = p_perm, units = "in", width = 7, height = 4,
            device = cairo_ps, fallback_resolution = 600)
   }
+}
+
+# --- Save manuscript-ready tables ---
+# tab_model HTML (Word-compatible)
+tab_3d413 <- tab_model(fit.lmm1, fit.lmm2, show.re.var=TRUE, show.icc=TRUE, show.obs=TRUE,
+  dv.labels=c("Additive (primary)", "Interaction"),
+  title="3d413: Awake vs Asleep (trial-level, random dose slope)")
+writeLines(as.character(tab_3d413$page.complete), paste0(outputDir, "/tab_model_3d413.html"))
+cat("Saved tab_model HTML to:", paste0(outputDir, "/tab_model_3d413.html"), "\n")
+
+# .docx with ANOVA, fixed effects, awake/asleep contrast, and permutation results
+if (requireNamespace("officer", quietly=TRUE) && requireNamespace("flextable", quietly=TRUE)) {
+  library(officer)
+  library(flextable)
+
+  fmt_p <- function(p) ifelse(p < 0.001, "< 0.001", sprintf("%.3f", p))
+  doc <- read_docx()
+
+  # ANOVA (lmerTest Type III with Satterthwaite df)
+  aov_tbl <- as.data.frame(anova(fit.lmm1, type=3))
+  aov_tbl$Effect <- rownames(aov_tbl)
+  aov_tbl <- aov_tbl[, c("Effect","Sum Sq","Mean Sq","NumDF","DenDF","F value","Pr(>F)")]
+  aov_tbl$`Sum Sq` <- round(aov_tbl$`Sum Sq`, 1)
+  aov_tbl$`Mean Sq` <- round(aov_tbl$`Mean Sq`, 1)
+  aov_tbl$DenDF <- round(aov_tbl$DenDF, 1)
+  aov_tbl$`F value` <- round(aov_tbl$`F value`, 2)
+  aov_tbl$p <- sapply(aov_tbl$`Pr(>F)`, fmt_p)
+  aov_tbl$`Pr(>F)` <- NULL
+  doc <- body_add_par(doc, "Table: ANOVA (3d413, additive model, random slope)", style="heading 2")
+  ft <- flextable(aov_tbl) |> autofit() |>
+    set_caption("Trial-level lmer with uncorrelated random linear dose slope per block")
+  doc <- body_add_flextable(doc, ft)
+  doc <- body_add_par(doc, "")
+
+  # Awake vs asleep emmeans
+  doc <- body_add_par(doc, "Table: Awake vs Asleep (3d413)", style="heading 2")
+  emm_bt <- emmeans(fit.lmm1, pairwise ~ blockType)
+  bt_tbl <- as.data.frame(emm_bt$contrasts)
+  bt_tbl$estimate <- round(bt_tbl$estimate, 2)
+  bt_tbl$SE <- round(bt_tbl$SE, 2)
+  bt_tbl$df <- round(bt_tbl$df, 1)
+  bt_tbl$t.ratio <- round(bt_tbl$t.ratio, 3)
+  bt_tbl$p.value <- sapply(bt_tbl$p.value, fmt_p)
+  ft <- flextable(bt_tbl) |> autofit() |>
+    set_caption("Awake vs asleep emmeans contrast from additive model")
+  doc <- body_add_flextable(doc, ft)
+  doc <- body_add_par(doc, "")
+  # Random effects
+  doc <- body_add_par(doc, "Table: Random Effects (3d413)", style="heading 2")
+  vc <- VarCorr(fit.lmm1)
+  ngrps <- summary(fit.lmm1)$ngrps
+  re_rows <- list()
+  for (nm in names(vc)) {
+    v <- vc[[nm]]
+    ng <- as.character(ngrps[nm])
+    re_rows[[length(re_rows)+1]] <- data.frame(
+      Component=nm, Term=rownames(as.matrix(v)),
+      Variance=round(diag(as.matrix(v)),2), SD=round(sqrt(diag(as.matrix(v))),2),
+      Groups=c(ng, rep("", ncol(as.matrix(v))-1)), stringsAsFactors=FALSE)
+  }
+  re_df <- do.call(rbind, re_rows)
+  re_df <- rbind(re_df, data.frame(Component="Residual", Term="",
+    Variance=round(sigma(fit.lmm1)^2,2), SD=round(sigma(fit.lmm1),2), Groups=""))
+  ft <- flextable(re_df) |> autofit() |>
+    set_caption("Random effects: block intercept + uncorrelated linear dose slope per block")
+  doc <- body_add_flextable(doc, ft)
+  doc <- body_add_par(doc, "")
+
+  # Fixed effects
+  fe_tbl <- as.data.frame(summary(fit.lmm1)$coefficients)
+  fe_tbl$Predictor <- rownames(fe_tbl)
+  fe_tbl <- fe_tbl[, c("Predictor","Estimate","Std. Error","df","t value","Pr(>|t|)")]
+  fe_tbl$Estimate <- round(fe_tbl$Estimate, 2)
+  fe_tbl$`Std. Error` <- round(fe_tbl$`Std. Error`, 2)
+  fe_tbl$df <- round(fe_tbl$df, 1)
+  fe_tbl$`t value` <- round(fe_tbl$`t value`, 2)
+  fe_tbl$p <- sapply(fe_tbl$`Pr(>|t|)`, fmt_p)
+  fe_tbl$`Pr(>|t|)` <- NULL
+  doc <- body_add_par(doc, "Table: Fixed Effects (3d413, additive model)", style="heading 2")
+  ft <- flextable(fe_tbl) |> autofit()
+  doc <- body_add_flextable(doc, ft)
+  doc <- body_add_par(doc, "Raw uV scale. Trial-level lmer with random dose slope per block.")
+  doc <- body_add_par(doc, "")
+
+  # Permutation results
+  doc <- body_add_par(doc, "Table: Permutation Tests (3d413)", style="heading 2")
+  perm_results$obs_diff <- round(perm_results$obs_diff, 2)
+  perm_results$perm_p <- sapply(perm_results$perm_p, fmt_p)
+  ft <- flextable(perm_results) |> autofit() |>
+    set_caption("Per channel, per stim level (10,000 permutations, median statistic)")
+  doc <- body_add_flextable(doc, ft)
+  doc <- body_add_par(doc, "")
+
+  doc <- body_add_par(doc, "Table: Stratified Pooled Permutation Tests (3d413)", style="heading 2")
+  perm_stratified$obs_diff <- round(perm_stratified$obs_diff, 2)
+  perm_stratified$perm_p <- sapply(perm_stratified$perm_p, fmt_p)
+  ft <- flextable(perm_stratified) |> autofit() |>
+    set_caption("Stratified pooled per channel (10,000 permutations)")
+  doc <- body_add_flextable(doc, ft)
+
+  docx_path <- paste0(outputDir, "/statistical_tables_3d413.docx")
+  print(doc, target=docx_path)
+  cat("Saved 3d413 manuscript tables to:", docx_path, "\n")
 }
 
 setwd(oldwd)

@@ -21,8 +21,8 @@ CSV Export → R Statistical Analysis → Figures
 
 - **`DBS_EP_PairedPulse/master_script_analyze_EP.m`** — Main paired pulse EP analysis. Set `sidVecIterate` to choose subjects, configure flags (`savePlot`, `saveData`, `screenBadChans`, `tryArtifact`), then run.
 - **`DBS_EP_PairedPulse/prepare_EP_blocks.m`** — Per-subject parameter config (large switch on `sid`). Defines `stimChans`, `tBegin/tEnd`, `badTrials`, `blockLabel` for each subject.
-- **`DBS_EP_PairedPulse/R_code/dose_response_R_script_trim_conditions.R`** — Main R statistical analysis across all subjects (N=9). Cell-median aggregation with crossed RE `(1|subjectNum/chanVec) + (1|subjectNum:blockVec)` on log-transformed EP amplitude. 4 conditioning protocols (A/A 200, A/A 25, A/B 200, A/B 25). See `R_code/code_review_dose_response.md` for full audit and `R_code/statistical_results_summary.md` for results with all numbers.
-- **`DBS_EP_PairedPulse/R_code/baseline_variability_3d413.R`** — Single-subject anesthesia variability (awake vs asleep). Block RE model + trial-level Cohen's d effect sizes. `trim_data = FALSE`, `log_data = FALSE` (log produces catastrophic non-normality for this subject).
+- **`DBS_EP_PairedPulse/R_code/dose_response_R_script_trim_conditions.R`** — Main R statistical analysis across all subjects (N=13). Cell-median aggregation with crossed RE + random linear dose slope per channel `(1+stim_linpoly|subjectNum:chanVec) + (1|subjectNum) + (1|subjectNum:blockVec)` on log-transformed EP amplitude. 4 conditioning protocols (A/A 200, A/A 25, A/B 200, A/B 25). 250 cell medians, 17 channels. Amplitude filter: 10-1000 uV. All stim levels included (`min_stim_level=1`). See `R_code/code_review_dose_response.md` for full audit and `R_code/statistical_results_summary.md` for results with all numbers.
+- **`DBS_EP_PairedPulse/R_code/baseline_variability_3d413.R`** — Single-subject anesthesia variability (awake vs asleep). Trial-level lmer with block RE + uncorrelated random linear dose slope `(1|blockVec) + (0+stim_linpoly|blockVec)`. Permutation tests (primary). `trim_data = FALSE`, `log_data = FALSE` (log produces catastrophic non-normality for this subject). Amplitude filter 10-1000 uV, all stim levels.
 - **`DBS_EP_PairedPulse/R_code/length_conditioning_a23ed.R`** — Single-subject conditioning length (5 vs 15 min). Permutation tests with median statistic (primary) + effect sizes. `trim_data = FALSE`, `log_data = FALSE`.
 
 ## Architecture
@@ -64,11 +64,16 @@ Output CSVs go to `DBS_EP_PairedPulse/R_data/` (~128 files). R analysis output (
 
 ## R Statistical Analysis Notes
 
-- **Primary model**: Cell-median aggregation (no trimming) with crossed RE on log-transformed EP amplitude. See `R_code/code_review_dose_response.md` for full audit and `R_code/statistical_results_summary.md` for results.
-- **Robustness strategy**: `trim_data = FALSE`, median aggregation across all scripts. `log_data = TRUE` (main only, required for crossed RE convergence) / `FALSE` (3d413 and a23ed, single-subject raw scale).
+- **Primary model**: Cell-median aggregation (n>=3 per cell, no trimming) with crossed RE + channel dose slope on log-transformed EP amplitude. 13 subjects (9 PD, 4 MD; includes a23ed 15-min sessions), 250 cell medians, 17 channels. Data regenerated from committed MATLAB code (2026-04-07). See `R_code/code_review_dose_response.md` for full audit and `R_code/statistical_results_summary.md` for results.
+- **Robustness strategy**: `trim_data = FALSE`, median aggregation across all scripts. `log_data = TRUE` (main only, required for crossed RE convergence) / `FALSE` (3d413 and a23ed, single-subject raw scale). Amplitude filter 10-1000 uV applied in R (MATLAB pipeline does not filter by magnitude).
+- **MATLAB data pipeline**: waveform averaging (5 trials) → windowing (tBegin-tEnd) → Savitzky-Golay smoothing (order 3, frame 91) → peak-to-peak extraction. No baseline normalization on PPvec. R uses `PPvec` column. Data regenerated via `DBS_EP_PairedPulse/regenerate_avg5_data.m`.
 - **Key documentation files**:
   - `R_code/code_review_dose_response.md` — Statistical audit, model specifications, known limitations
   - `R_code/statistical_results_summary.md` — All numbers for reviewers: ANOVA tables, effect sizes, CIs, sensitivity analysis
+  - `R_output/statistical_tables.docx` / `statistical_tables_3d413.docx` / `statistical_tables_a23ed.docx` — Manuscript-ready tables (extracted from models)
+  - `R_output/descriptive_stats_baseline_diff.docx` — Raw uV and percent differences from baseline
+  - `R_code/descriptive_stats_docx.R` — Script to regenerate descriptive stats
+  - `R_output/main_analysis_workspace.RData` — Saved R workspace with all model objects for quick loading
 
 ## R Dependencies
 

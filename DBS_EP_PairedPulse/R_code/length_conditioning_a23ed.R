@@ -26,7 +26,7 @@ sidVec = c("a23ed")
 
 
 repeatedMeasures = TRUE # if true, does repeated measures analysis, if false, does more of ANCOVA style analysis
-min_stim_level = 2
+min_stim_level = 1
 log_data = FALSE
 box_data = FALSE
 trim_data = FALSE
@@ -60,8 +60,8 @@ for (avgMeas in avgMeasVec) {
     # PPvec is in volts, convert to microvolts
     dataPP$PPvec = dataPP$PPvec*1e6
     dataPP$stimLevelVec = dataPP$stimLevelVec/1e3
-    #dataPP <- subset(dataPP, PPvec<1000)
-    #dataPP <- subset(dataPP, PPvec>30)
+    dataPP <- subset(dataPP, PPvec<1000)
+    dataPP <- subset(dataPP, PPvec>30)
     
     # denote which channel was in the conditioning pair 
     
@@ -602,6 +602,9 @@ for (avgMeas in avgMeasVec) {
     }
     pooled_p <- mean(abs(perm_pooled) >= abs(obs_pooled_int))
 
+    cat(sprintf("\n=== Stratified pooled interaction: observed = %.2f uV, p = %.4f ===\n",
+        obs_pooled_int, pooled_p))
+
     null_df <- data.frame(value = perm_pooled)
     p_perm <- ggplot(null_df, aes(x = value)) +
       geom_histogram(aes(fill = abs(value) >= abs(obs_pooled_int)),
@@ -655,6 +658,9 @@ for (avgMeas in avgMeasVec) {
         perm_diffs[p] <- mean(perm_sl_diffs)
       }
       p_val <- mean(abs(perm_diffs) >= abs(obs_diff))
+
+      cat(sprintf("=== Stratified pooled %s: observed = %.2f uV, p = %.4f ===\n",
+          cond_name, obs_diff, p_val))
 
       null_df_cond <- data.frame(value = perm_diffs)
       p_perm_cond <- ggplot(null_df_cond, aes(x = value)) +
@@ -713,6 +719,69 @@ for (avgMeas in avgMeasVec) {
     }
 
   }
+}
+
+# --- Save manuscript-ready tables ---
+# tab_model HTML (Word-compatible)
+tab_a23ed_primary <- tab_model(fit.lmmPP.full, fit.lmmPP.prepost,
+  show.re.var=TRUE, show.icc=TRUE, show.obs=TRUE,
+  dv.labels=c("Full interaction", "Pre/post only"),
+  title="a23ed: Conditioning Length LMM Results")
+writeLines(as.character(tab_a23ed_primary$page.complete), paste0(outputDir, "/tab_model_a23ed.html"))
+cat("Saved tab_model HTML to:", paste0(outputDir, "/tab_model_a23ed.html"), "\n")
+
+# .docx with model summaries and permutation results
+if (requireNamespace("officer", quietly=TRUE) && requireNamespace("flextable", quietly=TRUE)) {
+  library(officer)
+  library(flextable)
+
+  fmt_p <- function(p) ifelse(p < 0.001, "< 0.001", sprintf("%.3f", p))
+  doc <- read_docx()
+
+  # Fixed effects (full model)
+  fe_tbl <- as.data.frame(summary(fit.lmmPP.full)$coefficients)
+  fe_tbl$Predictor <- rownames(fe_tbl)
+  fe_tbl <- fe_tbl[, c("Predictor","Estimate","Std. Error","df","t value","Pr(>|t|)")]
+  fe_tbl$Estimate <- round(fe_tbl$Estimate, 2)
+  fe_tbl$`Std. Error` <- round(fe_tbl$`Std. Error`, 2)
+  fe_tbl$df <- round(fe_tbl$df, 1)
+  fe_tbl$`t value` <- round(fe_tbl$`t value`, 2)
+  fe_tbl$p <- sapply(fe_tbl$`Pr(>|t|)`, fmt_p)
+  fe_tbl$`Pr(>|t|)` <- NULL
+  doc <- body_add_par(doc, "Table: Fixed Effects (a23ed, full interaction model)", style="heading 2")
+  ft <- flextable(fe_tbl) |> autofit() |>
+    set_caption("Mixed model with convergence warnings (4 blocks insufficient for RE). Permutation tests are primary.")
+  doc <- body_add_flextable(doc, ft)
+  doc <- body_add_par(doc, "Raw uV scale. Mixed models included for completeness; permutation tests are primary inference.")
+  doc <- body_add_par(doc, "")
+
+  # Permutation: per-condition, per-stim-level
+  doc <- body_add_par(doc, "Table: Permutation Tests - Per Condition Per Stim Level (a23ed)", style="heading 2")
+  perm_results$obs_diff <- round(perm_results$obs_diff, 2)
+  perm_results$perm_p <- sapply(perm_results$perm_p, fmt_p)
+  ft <- flextable(perm_results) |> autofit() |>
+    set_caption("10,000 permutations, difference of medians, two-sided")
+  doc <- body_add_flextable(doc, ft)
+  doc <- body_add_par(doc, "")
+
+  # Permutation: per-stim-level interaction
+  doc <- body_add_par(doc, "Table: Permutation Tests - Interaction (15-min minus 5-min, a23ed)", style="heading 2")
+  perm_interaction$obs_interaction <- round(perm_interaction$obs_interaction, 2)
+  perm_interaction$perm_p <- sapply(perm_interaction$perm_p, fmt_p)
+  ft <- flextable(perm_interaction) |> autofit() |>
+    set_caption("Per-stim-level interaction: (15-min effect) - (5-min effect)")
+  doc <- body_add_flextable(doc, ft)
+  doc <- body_add_par(doc, "")
+
+  # Stratified pooled results (from plot annotations — recompute here)
+  doc <- body_add_par(doc, "Table: Stratified Pooled Permutation Tests (a23ed)", style="heading 2")
+  doc <- body_add_par(doc, sprintf("Stratified pooled interaction: observed = %.1f uV, p = %.4f",
+    obs_pooled_int, pooled_p))
+  doc <- body_add_par(doc, "Stratified pooled per-condition results are shown in the null distribution histograms.")
+
+  docx_path <- paste0(outputDir, "/statistical_tables_a23ed.docx")
+  print(doc, target=docx_path)
+  cat("Saved a23ed manuscript tables to:", docx_path, "\n")
 }
 
 setwd(oldwd)
