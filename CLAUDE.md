@@ -21,7 +21,7 @@ CSV Export → R Statistical Analysis → Figures
 
 - **`DBS_EP_PairedPulse/master_script_analyze_EP.m`** — Main paired pulse EP analysis. Set `sidVecIterate` to choose subjects, configure flags (`savePlot`, `saveData`, `screenBadChans`, `tryArtifact`), then run.
 - **`DBS_EP_PairedPulse/prepare_EP_blocks.m`** — Per-subject parameter config (large switch on `sid`). Defines `stimChans`, `tBegin/tEnd`, `badTrials`, `blockLabel` for each subject.
-- **`DBS_EP_PairedPulse/R_code/dose_response_R_script_trim_conditions.R`** — Main R statistical analysis across all subjects (N=13). Cell-median aggregation with crossed RE + random linear dose slope per channel `(1+stim_linpoly|subjectNum:chanVec) + (1|subjectNum) + (1|subjectNum:blockVec)` on log-transformed EP amplitude. 4 conditioning protocols (A/A 200, A/A 25, A/B 200, A/B 25). 250 cell medians, 17 channels. Amplitude filter: 10-1000 uV. All stim levels included (`min_stim_level=1`). See `R_code/code_review_dose_response.md` for full audit and `R_code/statistical_results_summary.md` for results with all numbers.
+- **`DBS_EP_PairedPulse/R_code/dose_response_R_script_trim_conditions.R`** — Main R statistical analysis across all subjects (N=13). Cell-median aggregation with crossed RE + random linear dose slope per channel `(1+stim_linpoly|subjectNum:chanVec) + (1|subjectNum) + (1|subjectNum:blockVec)` on log-transformed EP amplitude. 4 conditioning protocols (A/A 200, A/A 25, A/B 200, A/B 25). 262 cell medians, 17 channels. Amplitude filter: 10-1000 uV. All stim levels included (`min_stim_level=1`); all subjects mapped to ordered levels 1-4. See `R_code/code_review_dose_response.md` for full audit and `R_code/statistical_results_summary.md` for results with all numbers.
 - **`DBS_EP_PairedPulse/R_code/baseline_variability_3d413.R`** — Single-subject anesthesia variability (awake vs asleep). Trial-level lmer with block RE + uncorrelated random linear dose slope `(1|blockVec) + (0+stim_linpoly|blockVec)`. Permutation tests (primary). `trim_data = FALSE`, `log_data = FALSE` (log produces catastrophic non-normality for this subject). Amplitude filter 10-1000 uV, all stim levels.
 - **`DBS_EP_PairedPulse/R_code/length_conditioning_a23ed.R`** — Single-subject conditioning length (5 vs 15 min). Permutation tests with median statistic (primary) + effect sizes. `trim_data = FALSE`, `log_data = FALSE`.
 
@@ -33,6 +33,9 @@ CSV Export → R Statistical Analysis → Figures
 - `externalEPs/Z_ConstantsDBS_externalEPs.m` — External electrode subjects
 
 All constants files depend on environment variables `dbs_subject_dir` and `OUTPUT_DIR` (via `myGetenv`).
+
+### Environment Setup
+- **`DBS_EP_PairedPulse/setupEnvironment.m`** — Sets `dbs_subject_dir` and `OUTPUT_DIR` environment variables and adds required paths (`MATLAB_ECoG_code`, this repo). Run once per MATLAB session before any analysis scripts, or call at the top of a script.
 
 ### Analysis Functions (`analysisFunctions/`)
 - `peak_to_peak.m` — Core peak-to-peak amplitude algorithm
@@ -61,10 +64,12 @@ Output CSVs go to `DBS_EP_PairedPulse/R_data/` (~128 files). R analysis output (
 - **`DBS_EP_PairedPulse/intraoperative/`** — Real-time EP visualization during surgery
 - **`ica_train_dbs.m` / `ica_artifact_remove_train_dbs.m`** — FastICA-based artifact removal (root level)
 - **`DBS_EP_PairedPulse/vizualization/`** — MNI coordinate and response plots using FreeSurfer surfaces
+- **`DBS_EP_PairedPulse/visualize_EP_by_stimlevel.m`** — Mean EP waveforms by stim level for specified subjects (pooled across blocks, per-block, and with CI shading)
+- **`DBS_EP_PairedPulse/visualize_PP_extraction.m`** — Visualize peak-to-peak extraction pipeline (avg 5 → SG smooth → peak_to_peak) with peak/trough markers. Configurable subject list; includes switch with all 14 subjects' block/channel configs matching R analysis
 
 ## R Statistical Analysis Notes
 
-- **Primary model**: Cell-median aggregation (n>=3 per cell, no trimming) with crossed RE + channel dose slope on log-transformed EP amplitude. 13 subjects (9 PD, 4 MD; includes a23ed 15-min sessions), 250 cell medians, 17 channels. Data regenerated from committed MATLAB code (2026-04-07). See `R_code/code_review_dose_response.md` for full audit and `R_code/statistical_results_summary.md` for results.
+- **Primary model**: Cell-median aggregation (n>=3 per cell, no trimming) with crossed RE + channel dose slope on log-transformed EP amplitude. 13 subjects (9 PD, 4 MD; includes a23ed 15-min sessions), 262 cell medians, 17 channels. `mapStimLevel` is an ordered factor (1-4) for all subjects; previous special mapping for 41a73/68574 (`c(1,3,4,0)`) removed — all 4 stim levels now included with standard ordering. Data regenerated from committed MATLAB code (2026-04-07). See `R_code/code_review_dose_response.md` for full audit and `R_code/statistical_results_summary.md` for results.
 - **Robustness strategy**: `trim_data = FALSE`, median aggregation across all scripts. `log_data = TRUE` (main only, required for crossed RE convergence) / `FALSE` (3d413 and a23ed, single-subject raw scale). Amplitude filter 10-1000 uV applied in R (MATLAB pipeline does not filter by magnitude).
 - **MATLAB data pipeline**: waveform averaging (5 trials) → windowing (tBegin-tEnd) → Savitzky-Golay smoothing (order 3, frame 91) → peak-to-peak extraction. No baseline normalization on PPvec. R uses `PPvec` column. Data regenerated via `DBS_EP_PairedPulse/regenerate_avg5_data.m`.
 - **Key documentation files**:

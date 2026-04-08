@@ -103,11 +103,8 @@ for (avgMeas in avgMeasVec) {
       
       if (sid == "2e114"){
         mappingStimLevel =c(1,3,4)
-        
-      } else if (sid == "41a73" | sid == "68574"){
-        mappingStimLevel = c(1,3,4,0)
-      }
-      else {
+
+      } else {
         mappingStimLevel =c(1:length(uniqueStimLevel))
       }
       dataInt$mapStimLevel<- mapvalues(dataInt$stimLevelVec,

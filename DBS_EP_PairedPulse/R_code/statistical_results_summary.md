@@ -12,8 +12,8 @@
   - A/A 25 ms (same-polarity control, short ISI): 3 subjects, 6 blocks
   - A/B 200 ms (opposite-polarity, long ISI): 8 subjects, 16 blocks
   - A/B 25 ms (opposite-polarity, short ISI): 7 subjects, 14 blocks
-- **Observations**: 250 cell medians (5-trial sequential averages, no trimming, n>=3 per cell filter, regenerated data)
-- **Stimulation levels**: all available ordered levels included (min_stim_level=1, up to 4 per subject)
+- **Observations**: 262 cell medians (5-trial sequential averages, no trimming, n>=3 per cell filter, regenerated data)
+- **Stimulation levels**: all available ordered levels included (min_stim_level=1, 4 per subject; 41a73/68574 now mapped to 1-4 like all other subjects instead of previous c(1,3,4,0) which dropped the highest dose)
 - **Amplitude filter**: peak-to-peak values below 10 uV or above 1000 uV discarded
 - **Excluded**: A/B 100 ms (only 1 subject)
 - **41a73 block correction**: R config updated to match MATLAB block definitions (2 conditioning protocols instead of 4)
@@ -27,82 +27,82 @@ PPvec ~ mapStimLevel + chanInCond + overallBlockType * pre_post
         + (1 + stim_linpoly|subjectNum:chanVec) + (1|subjectNum) + (1|subjectNum:blockVec)
 ```
 
-Crossed random-effect structure: channels and blocks are crossed within subjects because multi-channel subjects had both channels recorded simultaneously during each block. Random linear dose-response slope per channel allows each electrode to have its own dose-response steepness, reflecting cortical position. `stim_linpoly` is the linear polynomial contrast extracted from `contr.poly()`. Model comparison: channel slope (AIC=158) beats block slope (AIC=210) and intercept-only (AIC=246). When both slopes are included (AIC=161), the block slope collapses to SD~0.04, confirming dose-response steepness is a channel property, not a session property. Log transformation is required for the crossed RE to converge (raw-scale model is singular: block RE variance = 0).
+Crossed random-effect structure: channels and blocks are crossed within subjects because multi-channel subjects had both channels recorded simultaneously during each block. Random linear dose-response slope per channel allows each electrode to have its own dose-response steepness, reflecting cortical position. `stim_linpoly` is the linear polynomial contrast extracted from `contr.poly()`. Model comparison: channel slope (AIC=207) beats block slope (AIC=277) and intercept-only (AIC=347). Log transformation is required for the crossed RE to converge (raw-scale model is singular: block RE variance = 0).
 
 ### Random Effects
 
 | Component | Variance | SD | Corr | Groups |
 |-----------|----------|-----|------|--------|
 | Subject:Block (intercept) | 0.047 | 0.217 | | 51 |
-| Subject:Channel (intercept) | 0.359 | 0.599 | | 17 |
-| Subject:Channel (slope) | 0.602 | 0.776 | -0.11 | |
-| Subject | 0.111 | 0.333 | | 13 |
-| Residual | 0.055 | 0.234 | | -- |
-| **Total** | **1.174** | **1.083** | | -- |
+| Subject:Channel (intercept) | 0.405 | 0.636 | | 17 |
+| Subject:Channel (slope) | 0.323 | 0.569 | -0.35 | |
+| Subject | 0.117 | 0.342 | | 13 |
+| Residual | 0.049 | 0.221 | | -- |
+| **Total** | **0.941** | **0.970** | | -- |
 
-Model is not singular. Shapiro-Wilk on residuals: W=0.993, p=0.259 (passes normality). Skewness=-0.22, excess kurtosis=0.24.
+Model is not singular. Shapiro-Wilk on residuals: W=0.991, p=0.091 (passes normality). Skewness=-0.18, excess kurtosis=0.34.
 
 ### Type III ANOVA (Satterthwaite df)
 
 | Effect | Sum Sq | Mean Sq | NumDF | DenDF | F | p |
 |--------|--------|---------|-------|-------|---|---|
-| Stimulation level | 2.931 | 0.977 | 3 | 35.5 | 17.8 | 3.2e-07 |
-| Channel in conditioning pair | 0.453 | 0.453 | 1 | 9.9 | 8.25 | 0.017 |
-| Conditioning protocol | 0.485 | 0.162 | 3 | 41.8 | 2.95 | 0.044 |
-| Pre/post | 0.069 | 0.069 | 1 | 35.0 | 1.27 | 0.268 |
-| Protocol x pre/post | 0.234 | 0.078 | 3 | 38.5 | 1.42 | 0.251 |
+| Stimulation level | 3.175 | 1.058 | 3 | 34.3 | 21.8 | 4.5e-08 |
+| Channel in conditioning pair | 0.362 | 0.362 | 1 | 9.8 | 7.45 | 0.022 |
+| Conditioning protocol | 0.441 | 0.147 | 3 | 41.0 | 3.02 | 0.041 |
+| Pre/post | 0.060 | 0.060 | 1 | 34.4 | 1.22 | 0.276 |
+| Protocol x pre/post | 0.208 | 0.069 | 3 | 37.8 | 1.42 | 0.251 |
 
 ### Fixed Effects
 
 | Predictor | Estimate | SE | df | t | p |
 |-----------|----------|-----|-----|---|---|
-| Intercept | 4.736 | 0.232 | 27.3 | 20.41 | < 1e-10 |
-| Stimulation level (linear) | 0.878 | 0.143 | 14.6 | 6.15 | 2.4 x 10^-05 |
-| Stimulation level (quadratic) | -0.067 | 0.031 | 187.9 | -2.17 | 0.031 |
-| Stimulation level (cubic) | 0.081 | 0.031 | 186.7 | 2.56 | 0.011 |
-| Channel not in pair | -1.130 | 0.393 | 9.9 | -2.87 | 0.017 |
-| A/A 25 (vs A/A 200) | -0.194 | 0.192 | 36.4 | -1.01 | 0.320 |
-| A/B 200 (vs A/A 200) | 0.072 | 0.139 | 37.1 | 0.52 | 0.609 |
-| A/B 25 (vs A/A 200) | -0.398 | 0.170 | 38.2 | -2.35 | 0.024 |
-| Pre (vs post) | 0.003 | 0.156 | 35.6 | 0.02 | 0.987 |
-| A/A 25 x pre | -0.206 | 0.242 | 41.0 | -0.85 | 0.401 |
-| A/B 200 x pre | -0.219 | 0.189 | 35.5 | -1.16 | 0.254 |
-| A/B 25 x pre | 0.076 | 0.196 | 37.4 | 0.39 | 0.701 |
+| Intercept | 4.818 | 0.230 | 23.2 | 20.92 | < 1e-10 |
+| Stimulation level (linear) | 0.954 | 0.143 | 13.9 | 6.66 | 1.1 x 10^-05 |
+| Stimulation level (quadratic) | -0.128 | 0.028 | 190.6 | -4.61 | 7.2 x 10^-06 |
+| Stimulation level (cubic) | -0.0001 | 0.027 | 189.2 | -0.004 | 0.997 |
+| Channel not in pair | -1.135 | 0.416 | 9.8 | -2.73 | 0.022 |
+| A/A 25 (vs A/A 200) | -0.138 | 0.196 | 34.4 | -0.70 | 0.487 |
+| A/B 200 (vs A/A 200) | 0.106 | 0.139 | 34.2 | 0.76 | 0.451 |
+| A/B 25 (vs A/A 200) | -0.352 | 0.169 | 36.5 | -2.08 | 0.044 |
+| Pre (vs post) | 0.011 | 0.152 | 33.9 | 0.07 | 0.945 |
+| A/A 25 x pre | -0.211 | 0.238 | 38.3 | -0.89 | 0.382 |
+| A/B 200 x pre | -0.224 | 0.186 | 33.5 | -1.20 | 0.237 |
+| A/B 25 x pre | 0.063 | 0.194 | 35.2 | 0.33 | 0.747 |
 
 ### Pre-Post Contrasts Within Each Condition (Satterthwaite df)
 
 | Condition | Estimate (post - pre) | SE | 95% CI | df | Cohen's d | d 95% CI |
 |-----------|----------------------|-----|---------|-----|-----------|----------|
-| A/A 200 | -0.003 | 0.156 | [-0.319, 0.314] | 35.6 | -0.002 | [-0.301, 0.297] |
-| A/A 25 | 0.203 | 0.186 | [-0.172, 0.577] | 41.8 | 0.19 | [-0.170, 0.545] |
-| A/B 200 | 0.217 | 0.109 | [-0.004, 0.438] | 33.6 | 0.20 | [-0.018, 0.418] |
-| A/B 25 | -0.078 | 0.121 | [-0.323, 0.167] | 37.7 | -0.07 | [-0.307, 0.163] |
+| A/A 200 | -0.011 | 0.152 | [-0.320, 0.299] | 33.9 | -0.011 | [-0.338, 0.316] |
+| A/A 25 | 0.200 | 0.183 | [-0.169, 0.569] | 41.9 | 0.206 | [-0.188, 0.600] |
+| A/B 200 | 0.213 | 0.107 | [-0.004, 0.431] | 32.8 | 0.220 | [-0.020, 0.460] |
+| A/B 25 | -0.074 | 0.119 | [-0.316, 0.168] | 37.5 | -0.076 | [-0.335, 0.183] |
 
-All estimates and effect sizes are on the log(uV) scale. Cohen's d uses total SD (1.083) as denominator for cross-study comparability. All CIs cross zero.
+All estimates and effect sizes are on the log(uV) scale. Cohen's d uses total SD (0.970) as denominator for cross-study comparability. All CIs cross zero.
 
 ### Conditioning Protocol Pairwise Comparisons (Tukey-adjusted)
 
 | Comparison | Estimate | SE | df | t | p |
 |------------|----------|-----|-----|---|---|
-| A/A 200 - A/A 25 | 0.241 | 0.149 | 40.3 | 1.62 | 0.381 |
-| A/A 200 - A/B 200 | 0.002 | 0.106 | 36.5 | 0.02 | 1.000 |
-| A/A 200 - A/B 25 | 0.316 | 0.138 | 39.8 | 2.29 | 0.119 |
-| A/A 25 - A/B 200 | -0.238 | 0.124 | 41.0 | -1.93 | 0.232 |
-| A/A 25 - A/B 25 | 0.076 | 0.111 | 55.2 | 0.69 | 0.902 |
-| A/B 200 - A/B 25 | 0.314 | 0.109 | 39.3 | 2.90 | 0.030 |
+| A/A 200 - A/A 25 | 0.243 | 0.146 | 39.5 | 1.66 | 0.358 |
+| A/A 200 - A/B 200 | 0.006 | 0.104 | 34.8 | 0.05 | 1.000 |
+| A/A 200 - A/B 25 | 0.320 | 0.136 | 38.7 | 2.35 | 0.105 |
+| A/A 25 - A/B 200 | -0.237 | 0.122 | 40.8 | -1.95 | 0.224 |
+| A/A 25 - A/B 25 | 0.077 | 0.108 | 55.4 | 0.71 | 0.893 |
+| A/B 200 - A/B 25 | 0.314 | 0.107 | 39.0 | 2.93 | 0.028 |
 
 ### Degrees of Freedom by Hierarchy Level
 
 | Level | Effect | Satterthwaite df | Rationale |
 |-------|--------|-----------------|-----------|
-| Within-block | Stimulation level (Q, C) | ~187 | 250 cell medians - 51 block groups - params |
-| Channel (stim slope) | Stimulation level (L) | ~15 | 17 channels with random slope for linear dose |
-| Block (within-subject) | Conditioning protocol, pre/post, interaction | ~35-42 | 51 unique sessions minus params |
+| Within-block | Stimulation level (Q, C) | ~190 | 262 cell medians - 51 block groups - params |
+| Channel (stim slope) | Stimulation level (L) | ~14 | 17 channels with random slope for linear dose |
+| Block (within-subject) | Conditioning protocol, pre/post, interaction | ~34-41 | 51 unique sessions minus params |
 | Channel (within-subject) | Channel in conditioning pair | ~10 | 17 channels |
 
 ### Secondary Model: halfBlock (Temporal Modulation Within Blocks)
 
-Tests whether the conditioning effect differs between the first and second half of trials within each block. Trials within each (block, stim level) cell are split at the midpoint; cell medians computed per half. Uses `dataListAggHalf` (500 obs from 250 cells × 2 halves).
+Tests whether the conditioning effect differs between the first and second half of trials within each block. Trials within each (block, stim level) cell are split at the midpoint; cell medians computed per half. Uses `dataListAggHalf` (524 obs from 262 cells × 2 halves).
 
 ```
 PPvec ~ mapStimLevel + chanInCond + overallBlockType * pre_post * halfBlock
@@ -111,10 +111,10 @@ PPvec ~ mapStimLevel + chanInCond + overallBlockType * pre_post * halfBlock
 
 | Effect | F | NumDF | DenDF | p |
 |--------|---|-------|-------|---|
-| halfBlock | 0.01 | 1 | 417 | 0.909 |
-| overallBlockType:halfBlock | 0.22 | 3 | 417 | 0.879 |
-| pre_post:halfBlock | 0.67 | 1 | 417 | 0.414 |
-| overallBlockType:pre_post:halfBlock | 1.14 | 3 | 417 | 0.334 |
+| halfBlock | 0.001 | 1 | 441 | 0.971 |
+| overallBlockType:halfBlock | 0.23 | 3 | 441 | 0.876 |
+| pre_post:halfBlock | 0.60 | 1 | 441 | 0.439 |
+| overallBlockType:pre_post:halfBlock | 1.19 | 3 | 441 | 0.315 |
 
 No significant effects involving halfBlock. EP amplitude is stable within blocks — no evidence of build-up or decay of conditioning effects over the course of a recording session.
 
@@ -272,13 +272,13 @@ All scripts use R defaults: `as.ordered()` → polynomial contrasts (contr.poly)
 
 | Finding | Minimum p across configurations |
 |---------|-------------------------------|
-| Stimulation level drives EP amplitude | < 10^-6 |
+| Stimulation level drives EP amplitude | < 10^-7 |
 | Channels in conditioning pair have larger EPs | ~ 0.02 |
-| A/B 200 vs A/B 25 overall amplitude differs | 0.030 (Tukey) |
+| A/B 200 vs A/B 25 overall amplitude differs | 0.028 (Tukey) |
 | 15-min conditioning increases EPs in subject a23ed | < 0.001 (stim levels 2-4) |
-| No individual conditioning protocol pre-post change reaches significance | > 0.05 (A/B 200 approaches: d=0.20, CI [-0.018, 0.418]) |
+| No individual conditioning protocol pre-post change reaches significance | > 0.05 (A/B 200 approaches: d=0.22, CI [-0.020, 0.460]) |
 | No significant conditioning x pre/post interaction | 0.251 |
-| No temporal modulation within blocks (halfBlock) | Three-way interaction p=0.334; halfBlock main p=0.909 |
+| No temporal modulation within blocks (halfBlock) | Three-way interaction p=0.315; halfBlock main p=0.971 |
 
 ### Findings Sensitive to Analytic Choices
 
@@ -295,7 +295,8 @@ All scripts use R defaults: `as.ordered()` → polynomial contrasts (contr.poly)
 | Cell median vs cell mean | Both | Minimal for main effects; marginal interaction shifts ~0.01 in p |
 | Trim vs no trim | Both | Adds/removes ~20% of cell medians due to n>=10 filter; minimal impact on conclusions |
 | Amplitude filter (10/1000 uV) | Both | Filter removes incorrectly extracted EPs; 30 uV threshold is too aggressive (drops 2 channels, causes singular subject RE); 10 uV threshold preserves all channels |
-| All stim levels vs min_stim=3 | Both | Including all levels increases obs (124→202) and adds cubic polynomial term; conclusions unchanged |
+| All stim levels vs min_stim=3 | Both | Including all levels increases obs and adds polynomial terms; conclusions unchanged |
+| 41a73/68574 stim level mapping | c(1,3,4,0) vs c(1,2,3,4) | Old mapping dropped highest dose and skipped level 2; corrected to standard 1-4 mapping (adds 12 cell medians). Quadratic dose-response strengthened (p=0.031→7.2e-06), cubic disappeared (p=0.011→0.997); all main conclusions unchanged |
 | 41a73 block correction | Before/after | R config corrected to match MATLAB; removes phantom A/B 25 and A/A 25 conditions for this subject |
 | Log vs raw scale (main) | Both | Raw model is singular (block RE = 0); log required for proper RE convergence |
 | Log vs raw scale (3d413) | Both | Log produces catastrophic non-normality (kurtosis=65); raw is correct for single-subject |
