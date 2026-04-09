@@ -203,6 +203,10 @@ n_stim_levels <- nlevels(dataList$mapStimLevel)
 poly_lin <- contr.poly(n_stim_levels)[, 1]
 dataList$stim_linpoly <- poly_lin[as.numeric(dataList$mapStimLevel)]
 
+# Sum-to-zero coding for blockType (used in interaction model fit.lmm2).
+# mapStimLevel is ordered (contr.poly, already centered).
+contrasts(dataList$blockType) <- contr.sum
+
 fit.lmm1 = lmerTest::lmer(PPvec ~ mapStimLevel + blockType + chanVec +
   (1|blockVec) + (0+stim_linpoly|blockVec), data=dataList)
 fit.lmm2 = lmerTest::lmer(PPvec ~ mapStimLevel * blockType + chanVec +

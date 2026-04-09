@@ -721,6 +721,15 @@ for (avgMeas in avgMeasVec) {
   dataListAgg$stim_linpoly <- poly_lin[as.numeric(dataListAgg$mapStimLevel)]
   dataList$stim_linpoly <- poly_lin[as.numeric(dataList$mapStimLevel)]
 
+  # Sum-to-zero coding for unordered factors in interaction terms so that
+  # Type III main effects test averaged over the other factor's levels.
+  dataListAgg$pre_post <- factor(dataListAgg$pre_post)
+  contrasts(dataListAgg$overallBlockType) <- contr.sum
+  contrasts(dataListAgg$pre_post) <- contr.sum
+  dataList$pre_post <- factor(dataList$pre_post)
+  contrasts(dataList$overallBlockType) <- contr.sum
+  contrasts(dataList$pre_post) <- contr.sum
+
   fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + chanInCond +
     overallBlockType*pre_post +
     (1 + stim_linpoly|subjectNum:chanVec) + (1|subjectNum) + (1|subjectNum:blockVec),
@@ -731,6 +740,10 @@ for (avgMeas in avgMeasVec) {
   # differs between the first and second half of trials within each block.
   # Uses dataListAggHalf (split by halfBlock) rather than dataListAgg.
   dataListAggHalf$stim_linpoly <- poly_lin[as.numeric(dataListAggHalf$mapStimLevel)]
+  dataListAggHalf$pre_post <- factor(dataListAggHalf$pre_post)
+  contrasts(dataListAggHalf$overallBlockType) <- contr.sum
+  contrasts(dataListAggHalf$pre_post) <- contr.sum
+  contrasts(dataListAggHalf$halfBlock) <- contr.sum
   cat("\n=== halfBlock model: three-way interaction ===\n")
   cat("Observations (split):", nrow(dataListAggHalf), "vs primary:", nrow(dataListAgg), "\n")
   fit.lmmPP.half = lmerTest::lmer(PPvec ~ mapStimLevel + chanInCond +
@@ -784,10 +797,9 @@ for (avgMeas in avgMeasVec) {
   # and effect sizes, use the median Satterthwaite df across block-level
   # fixed effects as a representative value.
   emm_options(lmer.df = "satterthwaite")
-  block_level_df <- summary(fit.lmmPP)$coefficients[
-    c("overallBlockTypeA/B 200","overallBlockTypeA/B 25",
-      "pre_postpre","overallBlockTypeA/B 200:pre_postpre",
-      "overallBlockTypeA/B 25:pre_postpre"), "df"]
+  coef_names <- rownames(summary(fit.lmmPP)$coefficients)
+  block_idx <- grep("overallBlockType|pre_post", coef_names)
+  block_level_df <- summary(fit.lmmPP)$coefficients[block_idx, "df"]
   edf_conservative <- median(block_level_df)
   t_crit <- qt(0.975, edf_conservative)
 

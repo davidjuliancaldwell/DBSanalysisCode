@@ -334,6 +334,9 @@ for (avgMeas in avgMeasVec) {
       # Tests whether 5-min vs 15-min conditioning differ in pre->post change.
       # NOTE: singular fit expected -- 4 fixed-effect combos saturate 4 blocks.
       # Included for completeness; effect size plots are primary for this comparison.
+      dataList$pre_post <- factor(dataList$pre_post)
+      contrasts(dataList$overallBlockType) <- contr.sum
+      contrasts(dataList$pre_post) <- contr.sum
       fit.lmmPP.full = lmerTest::lmer(PPvec ~ mapStimLevel + overallBlockType*pre_post + (1|blockVec), data=dataList)
       cat("\n=== Model 1: Full interaction (may be singular) ===\n")
       print(summary(fit.lmmPP.full))

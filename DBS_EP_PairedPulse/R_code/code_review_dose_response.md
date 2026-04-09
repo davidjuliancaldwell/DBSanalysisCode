@@ -449,28 +449,27 @@ Cohen's d (post vs baseline) computed per (stim_level, conditioning_length) on t
 
 ## Contrast Coding
 
-R's default contrast settings apply throughout (no scripts override `options(contrasts=...)`):
-- **Unordered factors** (`as.factor()`) → `contr.treatment` (dummy coding, compare each level to reference)
-- **Ordered factors** (`as.ordered()`) → `contr.poly` (orthogonal polynomial: .L linear, .Q quadratic, .C cubic, etc.)
+**Ordered factors** (`as.ordered()`) use `contr.poly` (orthogonal polynomial: .L linear, .Q quadratic, .C cubic). These are centered by construction (E[x]=0), which matters for the random slope variance calculation (see Effect Sizes section).
 
-Contrasts are per-variable properties in R — setting one variable as ordered does not affect other variables. No global reset is needed.
+**Unordered factors** in interaction terms use `contr.sum` (sum-to-zero coding), set explicitly per-variable before model fitting. This ensures Type III main effect F-tests evaluate each factor averaged over the other factor's levels. Factors that appear only in additive terms or random effects use R's default `contr.treatment`. No global contrast options are set (`options(contrasts=...)` is not called).
 
 | Variable | Script(s) | Type | Contrasts | Levels | Notes |
 |----------|-----------|------|-----------|--------|-------|
 | `mapStimLevel` | all three | `as.ordered()` | polynomial | up to 4 (all levels included, `min_stim_level = 1`) | Ordinal dose-response. .L tests linear trend, .Q tests curvature, .C tests cubic. Polynomial contrasts assume equally-spaced levels; mapped integers are equally spaced but underlying mA values differ per subject. |
-| `blockType` | 3d413, a23ed | `as.factor()` | treatment | 2 | awake/asleep or baseline/condition. With 2 levels, treatment and polynomial contrasts give identical F-tests (1 df). |
-| `chanVec` | 3d413 | `as.factor()` | treatment | 2 | Channels 4, 6. 1 df — contrast type irrelevant for F-test. |
-| `overallBlockType` | main, a23ed | `as.factor()` | treatment | 4 (main), 2 (a23ed) | Conditioning protocol. Treatment contrasts compare each to reference; doesn't affect Type III F-test (invariant to parameterization). Pairwise comparisons via `emmeans` are contrast-agnostic. |
-| `pre_post` | main, a23ed | character (auto-converted by lmer) | treatment | 2 | 1 df — contrast type irrelevant. |
-| `chanInCond` | main | `as.factor()` | treatment | 2 | Whether channel was in conditioning pair. 1 df. |
+| `overallBlockType` | main, a23ed | `as.factor()` | **sum-to-zero** | 4 (main), 3 (a23ed) | Conditioning protocol. `contr.sum` set explicitly before interaction models. |
+| `pre_post` | main, a23ed | factor | **sum-to-zero** | 2 | Explicitly factored and set to `contr.sum` before interaction models. |
+| `blockType` | 3d413 | `as.factor()` | **sum-to-zero** | 2 | awake/asleep. `contr.sum` set explicitly (used in interaction model fit.lmm2). With 2 levels, sum-to-zero and treatment give identical F-tests (1 df). |
+| `halfBlock` | main | `as.factor()` | **sum-to-zero** | 2 | first/second half of trials. Set to `contr.sum` for three-way interaction model. |
+| `chanVec` | 3d413 | `as.factor()` | treatment | 2 | Channels 4, 6. Additive term only — contrast type irrelevant. |
+| `chanInCond` | main | `as.factor()` | treatment | 2 | Whether channel was in conditioning pair. Additive term only. |
 | `subjectNum` | main | `as.factor()` | treatment | 9 | Only appears in RE terms `(1\|subjectNum/...)`, not as fixed effect — contrasts are unused. |
 | `blockVec` | all three | `as.factor()` | treatment | varies | Only appears in RE terms `(1\|blockVec)` — contrasts are unused. |
 
 **Key points:**
-1. **Type III ANOVA is invariant to contrast coding.** The F-test for each fixed effect tests whether *any* level means differ, regardless of parameterization. Contrast coding only affects individual coefficient estimates.
-2. **All 2-level factors are contrast-agnostic.** With 1 df, treatment, sum, and polynomial contrasts produce identical F-tests and p-values.
+1. **Sum-to-zero coding for interaction factors.** With Type III ANOVA and an interaction, `contr.sum` ensures the main effect F-test evaluates each factor averaged over the other factor's levels. With `contr.treatment`, the main effect would be tested at the reference level of the interacting factor — a valid but less standard interpretation.
+2. **All 2-level factors are contrast-agnostic.** With 1 df, treatment, sum, and polynomial contrasts produce identical F-tests and p-values. `contr.sum` is set on 2-level interaction factors for consistency.
 3. **`mapStimLevel` polynomial contrasts are scientifically appropriate** for an ordinal dose-response variable. The .L (linear) component captures the primary effect of interest (amplitude increases with stimulation intensity). The .Q (quadratic) component tests for diminishing returns or saturation.
-4. **No manual contrast manipulation.** No script calls `contrasts(var) <- ...`. All contrasts come from R's default behavior based on `as.factor()` vs `as.ordered()`.
+4. **ANOVA, emmeans, and effect sizes are unchanged.** Switching from `contr.treatment` to `contr.sum` produced no change in ANOVA F-values, emmeans contrasts, effect sizes, or variance components — confirmed by re-running all three scripts. This is expected: the cell-median design is balanced, so Type III tests converge regardless of coding. REML variance components and emmeans contrasts are invariant to full-rank reparameterizations. **Fixed effect coefficient tables do change**: the intercept becomes the grand mean (not the reference cell mean), and each coefficient becomes a deviation from the grand mean (not a difference from the reference level). The `tab_model` HTML and `.docx` tables reflect the `contr.sum` parameterization.
 
 ## Data Files
 

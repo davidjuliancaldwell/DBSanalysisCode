@@ -54,20 +54,24 @@ Model is not singular. Shapiro-Wilk on residuals: W=0.991, p=0.091 (passes norma
 
 ### Fixed Effects
 
+Sum-to-zero coding (`contr.sum`): intercept is the grand mean; each coefficient is the deviation of that level from the grand mean. The last level of each factor is implicit (negative sum of the others).
+
 | Predictor | Estimate | SE | df | t | p |
 |-----------|----------|-----|-----|---|---|
-| Intercept | 4.818 | 0.230 | 23.2 | 20.92 | < 1e-10 |
+| Intercept (grand mean) | 4.681 | 0.200 | 14.0 | 23.44 | < 1e-10 |
 | Stimulation level (linear) | 0.954 | 0.143 | 13.9 | 6.66 | 1.1 x 10^-05 |
 | Stimulation level (quadratic) | -0.128 | 0.028 | 190.6 | -4.61 | 7.2 x 10^-06 |
 | Stimulation level (cubic) | -0.0001 | 0.027 | 189.2 | -0.004 | 0.997 |
 | Channel not in pair | -1.135 | 0.416 | 9.8 | -2.73 | 0.022 |
-| A/A 25 (vs A/A 200) | -0.138 | 0.196 | 34.4 | -0.70 | 0.487 |
-| A/B 200 (vs A/A 200) | 0.106 | 0.139 | 34.2 | 0.76 | 0.451 |
-| A/B 25 (vs A/A 200) | -0.352 | 0.169 | 36.5 | -2.08 | 0.044 |
-| Pre (vs post) | 0.011 | 0.152 | 33.9 | 0.07 | 0.945 |
-| A/A 25 x pre | -0.211 | 0.238 | 38.3 | -0.89 | 0.382 |
-| A/B 200 x pre | -0.224 | 0.186 | 33.5 | -1.20 | 0.237 |
-| A/B 25 x pre | 0.063 | 0.194 | 35.2 | 0.33 | 0.747 |
+| A/A 200 (dev. from grand mean) | 0.142 | 0.085 | 36.4 | 1.68 | 0.101 |
+| A/A 25 (dev. from grand mean) | -0.101 | 0.080 | 45.6 | -1.26 | 0.215 |
+| A/B 200 (dev. from grand mean) | 0.137 | 0.061 | 35.5 | 2.24 | 0.032 |
+| Post (dev. from grand mean) | 0.041 | 0.037 | 34.4 | 1.11 | 0.276 |
+| A/A 200 x post | -0.046 | 0.065 | 34.1 | -0.71 | 0.483 |
+| A/A 25 x post | 0.059 | 0.072 | 43.8 | 0.82 | 0.418 |
+| A/B 200 x post | 0.066 | 0.053 | 33.6 | 1.24 | 0.225 |
+
+A/B 25 coefficients are implicit: condition deviation = -(0.142 + (-0.101) + 0.137) = -0.178; interaction = -((-0.046) + 0.059 + 0.066) = -0.079.
 
 ### Pre-Post Contrasts Within Each Condition (Satterthwaite df)
 
@@ -222,7 +226,7 @@ Trial-level data with block RE + uncorrelated random linear dose slope per block
 
 **Degrees of freedom:** Satterthwaite correctly assigns ~6.5 df for between-block effects (blockType, chanVec) and ~23 df for the overall mapStimLevel effect (with the random slope absorbing between-block dose-response variability). The .Q and .C polynomial terms get ~430 df (within-block, not absorbed by the linear slope).
 
-Awake vs asleep (blockType): estimate = 6.8 uV, SE = 8.2, df = 6.6, t = 0.83, p = 0.436. **Not significant.**
+Asleep deviation from grand mean (blockType, `contr.sum`): estimate = -3.4 uV, SE = 4.1, df = 6.6, t = -0.83, p = 0.436. Awake - asleep difference = 6.8 uV (from emmeans). **Not significant.**
 
 ### Permutation Tests (Trial-Level, Stratified by Stim Level)
 
@@ -258,11 +262,12 @@ Cohen's d (awake vs asleep) computed per (channel, stim level) on trial-level da
 
 ## Contrast Coding
 
-All scripts use R defaults: `as.ordered()` → polynomial contrasts (contr.poly), `as.factor()` → treatment contrasts (contr.treatment). No scripts override global contrast settings. Contrasts are per-variable in R — no resetting needed between variables.
-
-- **`mapStimLevel`** (`as.ordered`): polynomial contrasts (.L linear, .Q quadratic). Appropriate for ordinal dose-response. Type III F-test is contrast-invariant; only individual coefficient estimates (e.g., the linear trend) use polynomial decomposition.
-- **All other fixed-effect factors** (`as.factor`): treatment (dummy) contrasts. All 2-level factors (blockType, chanVec, pre_post, chanInCond) have 1 df — contrast type is irrelevant for the F-test.
+- **`mapStimLevel`** (`as.ordered`): polynomial contrasts (`contr.poly`). Centered by construction (E[x]=0). Appropriate for ordinal dose-response; .L tests linear trend, .Q tests curvature.
+- **Unordered factors in interactions** (`overallBlockType`, `pre_post`, `blockType`, `halfBlock`): sum-to-zero contrasts (`contr.sum`), set explicitly per-variable before model fitting. This ensures Type III main effect F-tests evaluate each factor averaged over the other factor's levels. No global contrast options are set.
+- **Additive-only factors** (`chanInCond`, `chanVec`): R default treatment contrasts. Contrast type does not affect Type III tests for additive terms.
 - **RE grouping factors** (subjectNum, blockVec): contrasts are unused — they only define grouping structure for random intercepts.
+
+Switching from `contr.treatment` to `contr.sum` produced numerically identical ANOVA F-values, emmeans contrasts, effect sizes, and variance components across all three scripts (balanced cell-median design). Fixed effect coefficient tables change: intercept becomes the grand mean and each coefficient becomes a deviation from the grand mean, rather than a difference from the reference level.
 
 ---
 
