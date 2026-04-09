@@ -354,7 +354,13 @@ for (avgMeas in avgMeasVec) {
 
       emm_pairwise <- emmeans(fit.lmmPP, ~pre_post, adjust="tukey")
       contrast(emm_pairwise, method="pairwise")
-      eff_size(emm_pairwise, sigma=sigma(fit.lmmPP), edf=df.residual(fit.lmmPP))
+      # Marginal total SD (RE + residual) for population-level Cohen's d,
+      # consistent with main dose-response analysis.
+      vc_a23ed <- VarCorr(fit.lmmPP)
+      re_var_a23ed <- sum(sapply(vc_a23ed, function(v) sum(diag(v))))
+      sigma_total_a23ed <- sqrt(re_var_a23ed + sigma(fit.lmmPP)^2)
+      cat("sigma_total (marginal):", round(sigma_total_a23ed, 4), "\n")
+      eff_size(emm_pairwise, sigma=sigma_total_a23ed, edf=df.residual(fit.lmmPP))
 
       emm_s.t <- emmeans(fit.lmmPP, pairwise ~ mapStimLevel)
 

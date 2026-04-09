@@ -803,11 +803,28 @@ for (avgMeas in avgMeasVec) {
   # are comparable to published Cohen's d benchmarks (small=0.2, medium=0.5, large=0.8).
   # Conservative df (block groups - fixed params) since df.residual returns
   # naive trial-level df (~6400).
-  # Extract total variance from all RE components. With correlated random
-  # slopes, VarCorr returns matrices, so sum diagonal (variances) not off-diagonal.
+  # Marginal variance from RE components. For correlated random intercept +
+  # slope (1+stim_linpoly|subjectNum:chanVec), the variance at a given x is
+  #   Var_int + 2*x*Cov(int,slope) + x^2*Var_slope
+  # Averaged over the data distribution of stim_linpoly (centered poly
+  # contrasts: E[x]=0, E[x^2]=mean(x^2)), only the intercept and weighted
+  # slope variance contribute. Intercept-only RE terms contribute diag as before.
   vc <- VarCorr(fit.lmmPP)
-  re_var <- sum(sapply(vc, function(v) sum(diag(v))))
+  ex2 <- mean(dataListAgg$stim_linpoly^2)  # E[x^2] for poly contrast (~0.25)
+  re_var <- 0
+  for (nm in names(vc)) {
+    v <- as.matrix(vc[[nm]])
+    if ("stim_linpoly" %in% rownames(v)) {
+      # Correlated intercept + slope: Var_int + E[x^2]*Var_slope
+      # (covariance term vanishes because E[x]=0 for centered contrasts)
+      re_var <- re_var + v["(Intercept)","(Intercept)"] + ex2 * v["stim_linpoly","stim_linpoly"]
+    } else {
+      re_var <- re_var + sum(diag(v))
+    }
+  }
   sigma_total <- sqrt(re_var + sigma(fit.lmmPP)^2)
+  cat("E[x^2] for stim_linpoly:", round(ex2, 4), "\n")
+  cat("sigma_total (marginal):", round(sigma_total, 4), "\n")
   emm_effsize <- eff_size(emm_pairwise,sigma=sigma_total,edf=edf_conservative)
 
   # --- Plot: Interaction (overallBlockType x pre_post) with CIs ---

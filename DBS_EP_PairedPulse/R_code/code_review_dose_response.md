@@ -129,7 +129,7 @@ The crossed RE structure ensures Satterthwaite assigns appropriate df at each le
 | A/B 200 | 0.217 | 0.109 | [-0.004, 0.438] | 33.6 | 0.20 | [-0.018, 0.418] |
 | A/B 25 | -0.078 | 0.121 | [-0.323, 0.167] | 37.7 | -0.07 | [-0.307, 0.163] |
 
-No significant pre-to-post changes in any individual condition. All effect size CIs cross zero. A/B 200 approaches significance (p=0.054 from CI). Directional trends: A/B 200 trending up (small d=0.20), A/B 25 trending slightly negative (d=-0.07), A/A conditions near zero. Total SD used for d: 1.083.
+No significant pre-to-post changes in any individual condition. All effect size CIs cross zero. A/B 200 approaches significance (p=0.054 from CI). Directional trends: A/B 200 trending up (small d=0.26), A/B 25 trending slightly negative (d=-0.09), A/A conditions near zero. Marginal total SD used for d: 0.835 (with proper E[x^2] weighting for random slope variance).
 
 ### emmeans and Confidence Intervals
 
@@ -141,16 +141,28 @@ No significant pre-to-post changes in any individual condition. All effect size 
 
 Effect sizes for pre-post contrasts are computed via `emmeans::eff_size()`.
 
-**Denominator choice: total SD.** The denominator is the total SD reconstructed from all model variance components:
+**Denominator choice: marginal total SD.** The denominator is the marginal SD reconstructed from all model variance components, with proper weighting for random slopes:
 
 ```r
-sigma_total <- sqrt(sum(as.numeric(VarCorr(fit.lmmPP))) + sigma(fit.lmmPP)^2)
-# = sqrt(subj_var + chan_var + block_var + resid_var)
+vc <- VarCorr(fit.lmmPP)
+ex2 <- mean(dataListAgg$stim_linpoly^2)  # E[x^2] for poly contrast (~0.25)
+re_var <- 0
+for (nm in names(vc)) {
+  v <- as.matrix(vc[[nm]])
+  if ("stim_linpoly" %in% rownames(v)) {
+    # Marginal variance: Var_int + E[x^2]*Var_slope
+    # Covariance term vanishes because E[x]=0 for centered poly contrasts
+    re_var <- re_var + v["(Intercept)","(Intercept)"] + ex2 * v["stim_linpoly","stim_linpoly"]
+  } else {
+    re_var <- re_var + sum(diag(v))
+  }
+}
+sigma_total <- sqrt(re_var + sigma(fit.lmmPP)^2)
 ```
 
-Note: `as.numeric(VarCorr(...))` returns **variances** (not SDs) in lme4 -- verified empirically.
+For the correlated random intercept + slope term `(1+stim_linpoly|subjectNum:chanVec)`, the marginal variance at a given `stim_linpoly = x` is `Var_int + 2*x*Cov(int,slope) + x^2*Var_slope`. Averaged over the data distribution of `stim_linpoly` (centered orthogonal polynomial contrasts from `contr.poly(4)`): `E[x]=0` so the covariance term vanishes, and `E[x^2] ≈ 0.25` weights the slope variance. Intercept-only RE terms contribute their diagonal variance as before. See emmeans vignette "Sophisticated models in emmeans" (CRAN) for background on random slopes and variance calculations.
 
-The total SD was chosen over the residual-only SD following the recommendation from the MRC Cognition and Brain Sciences Unit FAQ on effect sizes (imaging.mrc-cbu.cam.ac.uk/statswiki/FAQ/tdunpaired): classical Cohen's d using pooled/total SD is the only variant unaffected by experimental design, making it suitable for meta-analytic synthesis and the standard d benchmarks (small=0.2, medium=0.5, large=0.8).
+The total SD was chosen over the residual-only SD following the recommendation from the MRC Cognition and Brain Sciences Unit FAQ on effect sizes (imaging.mrc-cbu.cam.ac.uk/statswiki/FAQ/tdunpaired): classical Cohen's d using pooled/total SD is the only variant unaffected by experimental design, making it suitable for meta-analytic synthesis and the standard d benchmarks (small=0.2, medium=0.5, large=0.8). The a23ed single-subject analysis uses the same marginal total SD approach (RE + residual) for consistency.
 
 d values are on the **log-transformed** EP magnitude scale since `log_data = TRUE`.
 
@@ -416,7 +428,7 @@ Cohen's d (post vs baseline) computed per (stim_level, conditioning_length) on t
 | No permutation tests for 3d413 | Medium | **Fixed** -- trial-level stratified permutation tests per channel |
 | a23ed pooled permutation not stratified by stim level | Medium | **Fixed** -- stratified pooling (independent permutation within each stim level) |
 | Trimming + median redundancy | Medium | **Fixed** -- `trim_data = FALSE` with median |
-| Effect size using residual-only SD | Medium | **Fixed** -- total SD for comparability |
+| Effect size using residual-only SD | Medium | **Fixed** -- marginal total SD (proper random slope weighting) for comparability |
 | CIs using single approximate t_crit | Low-Med | **Fixed** -- emmeans-native CIs per contrast |
 | AR(1) degenerate/overparameterized | Medium | **Fixed** -- switched to lmer |
 | `emm_options` global side effect | Medium | **Fixed** -- scoped per model |

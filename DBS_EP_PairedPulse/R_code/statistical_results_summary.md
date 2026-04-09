@@ -73,12 +73,12 @@ Model is not singular. Shapiro-Wilk on residuals: W=0.991, p=0.091 (passes norma
 
 | Condition | Estimate (post - pre) | SE | 95% CI | df | Cohen's d | d 95% CI |
 |-----------|----------------------|-----|---------|-----|-----------|----------|
-| A/A 200 | -0.011 | 0.152 | [-0.320, 0.299] | 33.9 | -0.011 | [-0.338, 0.316] |
-| A/A 25 | 0.200 | 0.183 | [-0.169, 0.569] | 41.9 | 0.206 | [-0.188, 0.600] |
-| A/B 200 | 0.213 | 0.107 | [-0.004, 0.431] | 32.8 | 0.220 | [-0.020, 0.460] |
-| A/B 25 | -0.074 | 0.119 | [-0.316, 0.168] | 37.5 | -0.076 | [-0.335, 0.183] |
+| A/A 200 | -0.011 | 0.152 | [-0.320, 0.299] | 33.9 | -0.013 | [-0.392, 0.367] |
+| A/A 25 | 0.200 | 0.183 | [-0.169, 0.569] | 41.9 | 0.239 | [-0.218, 0.696] |
+| A/B 200 | 0.213 | 0.107 | [-0.004, 0.431] | 32.8 | 0.255 | [-0.024, 0.534] |
+| A/B 25 | -0.074 | 0.119 | [-0.316, 0.168] | 37.5 | -0.088 | [-0.389, 0.212] |
 
-All estimates and effect sizes are on the log(uV) scale. Cohen's d uses total SD (0.970) as denominator for cross-study comparability. All CIs cross zero.
+All estimates and effect sizes are on the log(uV) scale. Cohen's d uses marginal total SD (0.835) as denominator, with proper E[x^2] weighting for the random slope variance component. All CIs cross zero.
 
 ### Conditioning Protocol Pairwise Comparisons (Tukey-adjusted)
 
