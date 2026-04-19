@@ -147,30 +147,32 @@ No significant effects involving halfBlock. EP amplitude is stable within blocks
 
 **5-minute conditioning (post - baseline):**
 
-| Stim level | Observed diff (uV) | p |
-|------------|-------------------|---|
-| 1 | -28.9 | 0.166 |
-| 2 | 27.0 | 0.429 |
-| 3 | -28.1 | 0.322 |
-| 4 | 11.9 | 0.301 |
+| Stim level | Observed diff (uV) | p | p (BH-FDR) |
+|------------|-------------------|---|------------|
+| 1 | -28.9 | 0.166 | 0.429 |
+| 2 | 27.0 | 0.429 | 0.429 |
+| 3 | -28.1 | 0.322 | 0.429 |
+| 4 | 11.9 | 0.301 | 0.429 |
 
 **15-minute conditioning (post - baseline):**
 
-| Stim level | Observed diff (uV) | p |
-|------------|-------------------|---|
-| 1 | 4.4 | 0.541 |
-| 2 | 84.4 | < 0.001 |
-| 3 | 82.3 | < 0.001 |
-| 4 | 86.4 | 0.006 |
+| Stim level | Observed diff (uV) | p | p (BH-FDR) |
+|------------|-------------------|---|------------|
+| 1 | 4.4 | 0.541 | 0.541 |
+| 2 | 84.4 | < 0.001 | < 0.001 |
+| 3 | 82.3 | < 0.001 | < 0.001 |
+| 4 | 86.4 | 0.006 | 0.008 |
 
 **Per-stim-level interaction: (15-min effect) - (5-min effect):**
 
-| Stim level | Observed interaction (uV) | p |
-|------------|--------------------------|---|
-| 1 | 33.3 | 0.124 |
-| 2 | 57.5 | 0.228 |
-| 3 | 110.4 | 0.001 |
-| 4 | 74.5 | 0.042 |
+| Stim level | Observed interaction (uV) | p | p (BH-FDR) |
+|------------|--------------------------|---|------------|
+| 1 | 33.3 | 0.124 | 0.165 |
+| 2 | 57.5 | 0.228 | 0.228 |
+| 3 | 110.4 | 0.001 | 0.004 |
+| 4 | 74.5 | 0.042 | 0.084 |
+
+BH-FDR (Benjamini-Hochberg) applied within each family of 4 stim levels separately. At alpha = 0.05: 15-min stim levels 2-4 remain significant after adjustment; interaction at stim level 3 remains significant (p_BH = 0.004) while stim level 4 becomes marginal (p_BH = 0.084). The stratified pooled tests below serve as the primary omnibus inference within each family.
 
 **Stratified pooled tests:** These pool across stim levels while preserving stim-level balance. Within each permutation iteration, labels are shuffled independently within each stim level, per-stim-level median differences are computed, then averaged. This avoids the problem with naive pooling, where random stim-level imbalance widens the null distribution and makes the test conservative.
 
@@ -182,7 +184,7 @@ No significant effects involving halfBlock. EP amplitude is stable within blocks
 
 ### Interpretation
 
-15-minute conditioning produces a large, robust increase in EP amplitude (~82-86 uV at stim levels 2-4, p < 0.007). 5-minute conditioning produces **no significant effect** (stratified pooled = -4.5 uV, p = 0.719; per-stim-level effects are mixed in direction and all non-significant). The stratified pooled interaction confirms that 15-min conditioning produces a significantly larger effect than 5-min (68.9 uV, p = 0.0001).
+15-minute conditioning produces a large, robust increase in EP amplitude (~82-86 uV at stim levels 2-4, p < 0.007; all three survive BH-FDR within the family of 4 stim levels, p_BH <= 0.008). 5-minute conditioning produces **no significant effect** (stratified pooled = -4.5 uV, p = 0.719; per-stim-level effects are mixed in direction and all non-significant before and after BH-FDR). The stratified pooled interaction confirms that 15-min conditioning produces a significantly larger effect than 5-min (68.9 uV, p = 0.0001). At the per-stim-level, the interaction is robust at stim level 3 (p_BH = 0.004) and marginal at stim level 4 (raw p = 0.042, p_BH = 0.084); the stratified pooled test is the primary inference.
 
 **Note on data provenance:** The previous `_avg_5.csv` data files had unknown provenance (no traceable MATLAB code generated them). When regenerated from the current committed code (with proper bad trial exclusion and known Savitzky-Golay parameters), the 5-minute conditioning effect — previously reported as significant (p=0.004) — became non-significant (p=0.719). The 15-minute effect and interaction remained robust. This underscores the importance of reproducible data extraction pipelines.
 

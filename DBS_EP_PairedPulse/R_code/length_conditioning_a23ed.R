@@ -534,7 +534,12 @@ for (avgMeas in avgMeasVec) {
       }
     }
 
+    # BH-FDR adjust within each condition (family of 4 stim levels)
+    perm_results$perm_p_BH <- ave(perm_results$perm_p, perm_results$condition,
+                                   FUN = function(x) p.adjust(x, method = "BH"))
+
     cat("\n=== Permutation tests (median): post vs baseline (per condition, per stim level) ===\n")
+    cat("    perm_p_BH = BH-FDR within each condition across the 4 stim levels\n")
     print(perm_results)
 
     # --- Test 3: difference of differences (15-min effect - 5-min effect) ---
@@ -569,7 +574,11 @@ for (avgMeas in avgMeasVec) {
         data.frame(mapStimLevel=sl, obs_interaction=obs_int, perm_p=p_val))
     }
 
+    # BH-FDR adjust across the 4 stim levels
+    perm_interaction$perm_p_BH <- p.adjust(perm_interaction$perm_p, method = "BH")
+
     cat("\n=== Permutation test (median): 15-min effect minus 5-min effect ===\n")
+    cat("    perm_p_BH = BH-FDR across the 4 stim levels\n")
     print(perm_interaction)
 
     # --- Plot: permutation null distribution for the interaction (stratified) ---
@@ -768,8 +777,9 @@ if (requireNamespace("officer", quietly=TRUE) && requireNamespace("flextable", q
   doc <- body_add_par(doc, "Table: Permutation Tests - Per Condition Per Stim Level (a23ed)", style="heading 2")
   perm_results$obs_diff <- round(perm_results$obs_diff, 2)
   perm_results$perm_p <- sapply(perm_results$perm_p, fmt_p)
+  perm_results$perm_p_BH <- sapply(perm_results$perm_p_BH, fmt_p)
   ft <- flextable(perm_results) |> autofit() |>
-    set_caption("10,000 permutations, difference of medians, two-sided")
+    set_caption("10,000 permutations, difference of medians, two-sided. perm_p_BH = Benjamini-Hochberg FDR adjusted within each condition across the 4 stim levels.")
   doc <- body_add_flextable(doc, ft)
   doc <- body_add_par(doc, "")
 
@@ -777,8 +787,9 @@ if (requireNamespace("officer", quietly=TRUE) && requireNamespace("flextable", q
   doc <- body_add_par(doc, "Table: Permutation Tests - Interaction (15-min minus 5-min, a23ed)", style="heading 2")
   perm_interaction$obs_interaction <- round(perm_interaction$obs_interaction, 2)
   perm_interaction$perm_p <- sapply(perm_interaction$perm_p, fmt_p)
+  perm_interaction$perm_p_BH <- sapply(perm_interaction$perm_p_BH, fmt_p)
   ft <- flextable(perm_interaction) |> autofit() |>
-    set_caption("Per-stim-level interaction: (15-min effect) - (5-min effect)")
+    set_caption("Per-stim-level interaction: (15-min effect) - (5-min effect). perm_p_BH = Benjamini-Hochberg FDR adjusted across the 4 stim levels.")
   doc <- body_add_flextable(doc, ft)
   doc <- body_add_par(doc, "")
 

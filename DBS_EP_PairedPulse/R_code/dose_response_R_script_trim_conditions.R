@@ -601,7 +601,68 @@ for (avgMeas in avgMeasVec) {
     ggsave(plot=p_model_data, paste0("across_subj_median_log_difference_model_data.png"), units="in", width=emmFigSize, height=emmFigSize, dpi=600)
     ggsave(plot=p_model_data, paste0("across_subj_median_log_difference_model_data.eps"), units="in", width=emmFigSize, height=emmFigSize, device=cairo_ps, fallback_resolution=600)
   }
-  
+
+  # --- Per-subject, per-condition modulation tables ---
+  # model_pct_data has matched-baseline cell medians for the 4
+  # goodVecBlock_model conditions. When log_data = TRUE, PPvec / PPvec_baseline
+  # are log(uV); since log is monotonic, exp(median(log x)) = median(x), so
+  # exp() recovers the uV cell median exactly. Output is always in uV for
+  # interpretability, regardless of log_data.
+  modulation_all <- model_pct_data %>%
+    dplyr::select(subjectNum, sidVec, chanVec, overallBlockType, mapStimLevel,
+                  PPvec_baseline, PPvec) %>%
+    mutate(PPmed_baseline_uV = if (log_data) exp(PPvec_baseline) else PPvec_baseline,
+           PPmed_post_uV     = if (log_data) exp(PPvec)          else PPvec,
+           diff_uV  = PPmed_post_uV - PPmed_baseline_uV,
+           pct_diff = 100 * diff_uV / PPmed_baseline_uV,
+           direction = case_when(pct_diff > 0 ~ "augmentation",
+                                 pct_diff < 0 ~ "depression",
+                                 TRUE ~ "no_change")) %>%
+    dplyr::select(subjectNum, sidVec, chanVec, overallBlockType, mapStimLevel,
+                  PPmed_baseline_uV, PPmed_post_uV, diff_uV, pct_diff, direction) %>%
+    arrange(subjectNum, chanVec, overallBlockType, mapStimLevel) %>%
+    mutate(across(c(PPmed_baseline_uV, PPmed_post_uV, diff_uV, pct_diff), ~ round(.x, 1)))
+
+  depression_34 <- modulation_all %>%
+    filter(mapStimLevel %in% c(3, 4), direction == "depression") %>%
+    arrange(pct_diff)
+
+  augmentation_34 <- modulation_all %>%
+    filter(mapStimLevel %in% c(3, 4), direction == "augmentation") %>%
+    arrange(desc(pct_diff))
+
+  all_csv <- paste0(outputDir, "/modulation_all_per_subj_cond.csv")
+  dep_csv <- paste0(outputDir, "/modulation_depression_levels34.csv")
+  aug_csv <- paste0(outputDir, "/modulation_augmentation_levels34.csv")
+  write.csv(modulation_all, all_csv, row.names = FALSE)
+  write.csv(depression_34, dep_csv, row.names = FALSE)
+  write.csv(augmentation_34, aug_csv, row.names = FALSE)
+
+  cat(sprintf("\n=== Modulation tables (cell-median post vs matched baseline) ===\n"))
+  cat(sprintf("All modulation cells: %d -> %s\n", nrow(modulation_all), all_csv))
+  lvl34_total <- modulation_all %>% filter(mapStimLevel %in% c(3, 4)) %>% nrow()
+  cat(sprintf("Depression at stim 3-4: %d / %d (%.1f%%) -> %s\n",
+              nrow(depression_34), lvl34_total,
+              100 * nrow(depression_34) / lvl34_total, dep_csv))
+  cat(sprintf("Augmentation at stim 3-4: %d / %d (%.1f%%) -> %s\n",
+              nrow(augmentation_34), lvl34_total,
+              100 * nrow(augmentation_34) / lvl34_total, aug_csv))
+
+  cat("\nDepression at 3-4 by condition:\n")
+  print(depression_34 %>% group_by(overallBlockType) %>%
+    summarise(n = n(),
+              median_pct = round(median(pct_diff), 1),
+              median_uV  = round(median(diff_uV), 1),
+              worst_pct  = round(min(pct_diff), 1),
+              .groups = "drop"))
+  cat("\nAugmentation at 3-4 by condition:\n")
+  print(augmentation_34 %>% group_by(overallBlockType) %>%
+    summarise(n = n(),
+              median_pct = round(median(pct_diff), 1),
+              median_uV  = round(median(diff_uV), 1),
+              best_pct   = round(max(pct_diff), 1),
+              .groups = "drop"))
+
   dataBarInt = dataList%>% filter(blockType %in% goodVecBlock)
   groupedAll <- group_by(dataBarInt,blockType)
   dataListSummarizeBar <- summarise(groupedAll,meanPerc = mean(percentDiff),sdPerc = sd(percentDiff),

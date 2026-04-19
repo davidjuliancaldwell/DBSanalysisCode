@@ -21,6 +21,11 @@ end
 addpath(genpath(fileparts(pwd)));
 addpath(genpath('/Users/davidcaldwell/code/MATLAB_ECoG_code'));
 
+% Local helpers last so they take precedence over any same-named external
+% function (addpath prepends, so last-added is highest-priority). Ensures
+% our patched SaveFig beats MATLAB_ECoG_code/Visualization/SaveFig.m.
+addpath(fullfile(fileparts(pwd), 'helpers'));
+
 fprintf('Environment configured.\n');
 fprintf('  dbs_subject_dir = %s\n', getenv('dbs_subject_dir'));
 fprintf('  OUTPUT_DIR      = %s\n', getenv('OUTPUT_DIR'));

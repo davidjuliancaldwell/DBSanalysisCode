@@ -21,9 +21,9 @@ CSV Export → R Statistical Analysis → Figures
 
 - **`DBS_EP_PairedPulse/master_script_analyze_EP.m`** — Main paired pulse EP analysis. Set `sidVecIterate` to choose subjects, configure flags (`savePlot`, `saveData`, `screenBadChans`, `tryArtifact`), then run.
 - **`DBS_EP_PairedPulse/prepare_EP_blocks.m`** — Per-subject parameter config (large switch on `sid`). Defines `stimChans`, `tBegin/tEnd`, `badTrials`, `blockLabel` for each subject.
-- **`DBS_EP_PairedPulse/R_code/dose_response_R_script_trim_conditions.R`** — Main R statistical analysis across all subjects (N=13). Cell-median aggregation with crossed RE + random linear dose slope per channel `(1+stim_linpoly|subjectNum:chanVec) + (1|subjectNum) + (1|subjectNum:blockVec)` on log-transformed EP amplitude. 4 conditioning protocols (A/A 200, A/A 25, A/B 200, A/B 25). 262 cell medians, 17 channels. Amplitude filter: 10-1000 uV. All stim levels included (`min_stim_level=1`); all subjects mapped to ordered levels 1-4. See `R_code/code_review_dose_response.md` for full audit and `R_code/statistical_results_summary.md` for results with all numbers.
+- **`DBS_EP_PairedPulse/R_code/dose_response_R_script_trim_conditions.R`** — Main R statistical analysis across all subjects (N=13). Cell-median aggregation with crossed RE + random linear dose slope per channel `(1+stim_linpoly|subjectNum:chanVec) + (1|subjectNum) + (1|subjectNum:blockVec)` on log-transformed EP amplitude. 4 conditioning protocols (A/A 200, A/A 25, A/B 200, A/B 25). 262 cell medians, 17 channels. Amplitude filter: 10-1000 uV. All stim levels included (`min_stim_level=1`); all subjects mapped to ordered levels 1-4. Also writes per-subject, per-condition modulation CSVs (`modulation_all_per_subj_cond.csv`, `modulation_depression_levels34.csv`, `modulation_augmentation_levels34.csv`) to `R_output/`; values are on raw uV scale (cell medians exponentiated from log scale since `log_data = TRUE`). See `R_code/code_review_dose_response.md` for full audit and `R_code/statistical_results_summary.md` for results with all numbers.
 - **`DBS_EP_PairedPulse/R_code/baseline_variability_3d413.R`** — Single-subject anesthesia variability (awake vs asleep). Trial-level lmer with block RE + uncorrelated random linear dose slope `(1|blockVec) + (0+stim_linpoly|blockVec)`. Permutation tests (primary). `trim_data = FALSE`, `log_data = FALSE` (log produces catastrophic non-normality for this subject). Amplitude filter 10-1000 uV, all stim levels.
-- **`DBS_EP_PairedPulse/R_code/length_conditioning_a23ed.R`** — Single-subject conditioning length (5 vs 15 min). Permutation tests with median statistic (primary) + effect sizes. `trim_data = FALSE`, `log_data = FALSE`.
+- **`DBS_EP_PairedPulse/R_code/length_conditioning_a23ed.R`** — Single-subject conditioning length (5 vs 15 min). Permutation tests with median statistic (primary) + effect sizes. `trim_data = FALSE`, `log_data = FALSE`. Per-stim-level p values adjusted with Benjamini-Hochberg FDR within each of three families (5-min, 15-min, interaction; 4 stim levels each); `perm_p_BH` column appears alongside `perm_p` in the console output and the docx tables. Stratified pooled tests remain uncorrected (single omnibus test per family).
 
 ## Architecture
 
@@ -35,7 +35,10 @@ CSV Export → R Statistical Analysis → Figures
 All constants files depend on environment variables `dbs_subject_dir` and `OUTPUT_DIR` (via `myGetenv`).
 
 ### Environment Setup
-- **`DBS_EP_PairedPulse/setupEnvironment.m`** — Sets `dbs_subject_dir` and `OUTPUT_DIR` environment variables and adds required paths (`MATLAB_ECoG_code`, this repo). Run once per MATLAB session before any analysis scripts, or call at the top of a script.
+- **`DBS_EP_PairedPulse/setupEnvironment.m`** — Sets `dbs_subject_dir` and `OUTPUT_DIR` environment variables and adds required paths (`MATLAB_ECoG_code`, this repo, and `helpers/` last so local copies shadow same-named externals). Run once per MATLAB session before any analysis scripts, or call at the top of a script.
+- **`helpers/`** — Local copies of external functions patched for cross-platform use. Added to the MATLAB path last so they take precedence (`addpath` prepends).
+  - `SaveFig.m` — Patched to accept Unix absolute paths (and any Windows drive letter). Original in `MATLAB_ECoG_code/Visualization/SaveFig.m` only recognized `C:/` or `D:/` and silently wrote to `c:/Tim/research/script/generated_figs/<full_unix_path>/` on macOS, creating a literal `c:` directory in the cwd. External copy also patched.
+  - `TouchDir.m` — Local copy of the dependency used by `SaveFig`.
 
 ### Analysis Functions (`analysisFunctions/`)
 - `peak_to_peak.m` — Core peak-to-peak amplitude algorithm
@@ -66,6 +69,8 @@ Output CSVs go to `DBS_EP_PairedPulse/R_data/` (~128 files). R analysis output (
 - **`DBS_EP_PairedPulse/vizualization/`** — MNI coordinate and response plots using FreeSurfer surfaces
 - **`DBS_EP_PairedPulse/visualize_EP_by_stimlevel.m`** — Mean EP waveforms by stim level for specified subjects (pooled across blocks, per-block, and with CI shading)
 - **`DBS_EP_PairedPulse/visualize_PP_extraction.m`** — Visualize peak-to-peak extraction pipeline (avg 5 → SG smooth → peak_to_peak) with peak/trough markers. Configurable subject list; includes switch with all 14 subjects' block/channel configs matching R analysis
+- **`DBS_EP_PairedPulse/visualize_EP_pre_post_conditioning.m`** — Pre vs post conditioning EP waveforms at configurable stim levels. USER CONFIG block at top: `stimInterest` (default `[3 4]`), `cases` (default = top 4 depression cases from `modulation_depression_levels34.csv`: 9f852 chan 4 & 7 with A/B 25 ms, 68574 chan 7 with A/A 200 ms, 41a73 chan 5 with A/A 200 ms), `subjectBlocks`. Per case produces one figure with `2 × length(stimInterest)` tiled panels (row 1 = mean only, row 2 = mean + 95% CI; pre = grey, post = orange). Caches `prepare_EP_blocks` output per subject.
+- **`DBS_EP_PairedPulse/visualize_conditions_comparison.m`** — Standalone driver wrapping `prepare_EP_blocks` + `analyze_EP_compare_multiple_blocks` for any (subject, channel(s), blocks, legendText) combo. Overlays all configured blocks per stim level (levels 3-4 by `analyze_EP_compare_multiple_blocks.m`'s internal filter) producing mean-only and mean + 95% CI panels. Saves via `exportgraphics` (not `SaveFig`, to avoid path issues; kept even though `helpers/SaveFig.m` is patched). Defaults to 9f852 chan 7 across all 9 blocks.
 
 ## R Statistical Analysis Notes
 
@@ -80,6 +85,8 @@ Output CSVs go to `DBS_EP_PairedPulse/R_data/` (~128 files). R analysis output (
   - `R_output/descriptive_stats_baseline_diff.docx` — Raw uV and percent differences from baseline
   - `R_code/descriptive_stats_docx.R` — Script to regenerate descriptive stats
   - `R_output/main_analysis_workspace.RData` — Saved R workspace with all model objects for quick loading
+  - `R_output/modulation_all_per_subj_cond.csv` — Per-subject, per-condition, per-channel, per-stim-level cell-median pre/post with absolute and percent differences and direction label (`augmentation` / `depression` / `no_change`). Generated by `dose_response_R_script_trim_conditions.R`.
+  - `R_output/modulation_depression_levels34.csv` / `modulation_augmentation_levels34.csv` — Subsets of the above filtered to stim levels 3-4 with negative / positive modulation, sorted by magnitude.
 
 ## R Dependencies
 
@@ -95,4 +102,4 @@ Signal Processing Toolbox, Statistics Toolbox. FastICA (external) required only 
 
 - `.gitignore` excludes: `*.png *.mat *.asv *.zip *.fig *.svg *.eps *.pdf *.Rhistory *.RData`
 - FreeSurfer imaging data lives in `DBS_EP_PairedPulse/imaging/` (13 patients)
-- Third-party helpers: `cbrewer_helper/` (color palettes), `jbfill/` (confidence interval shading)
+- Third-party helpers: `cbrewer_helper/` (color palettes), `jbfill/` (confidence interval shading), `helpers/` (local patched copies of `SaveFig` + `TouchDir` for cross-platform path handling)
