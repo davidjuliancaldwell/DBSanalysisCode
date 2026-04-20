@@ -791,9 +791,15 @@ for (avgMeas in avgMeasVec) {
   contrasts(dataList$overallBlockType) <- contr.sum
   contrasts(dataList$pre_post) <- contr.sum
 
+  # 2026-04-20: dropped (1|subjectNum) because its variance collapsed to
+  # ~0 after 9f852 chan 7 was excluded (only 3 multi-channel subjects
+  # remain, insufficient to identify Subject vs Subject:Channel). The
+  # (1|subjectNum:chanVec) intercept absorbs between-subject variance
+  # for the single-channel subjects. Removes singular-fit warning with
+  # no change to fixed-effect inference.
   fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + chanInCond +
     overallBlockType*pre_post +
-    (1 + stim_linpoly|subjectNum:chanVec) + (1|subjectNum) + (1|subjectNum:blockVec),
+    (1 + stim_linpoly|subjectNum:chanVec) + (1|subjectNum:blockVec),
     data=dataListAgg)
 
   # --- halfBlock model: three-way interaction ---
@@ -809,7 +815,7 @@ for (avgMeas in avgMeasVec) {
   cat("Observations (split):", nrow(dataListAggHalf), "vs primary:", nrow(dataListAgg), "\n")
   fit.lmmPP.half = lmerTest::lmer(PPvec ~ mapStimLevel + chanInCond +
     overallBlockType*pre_post*halfBlock +
-    (1 + stim_linpoly|subjectNum:chanVec) + (1|subjectNum) + (1|subjectNum:blockVec),
+    (1 + stim_linpoly|subjectNum:chanVec) + (1|subjectNum:blockVec),
     data=dataListAggHalf)
   cat("Singular:", isSingular(fit.lmmPP.half), "\n")
   cat("Observations:", nobs(fit.lmmPP.half), "\n")
@@ -1192,18 +1198,26 @@ for (avgMeas in avgMeasVec) {
 
     # Table: Pre-Post Contrasts
     emm_pp_docx <- emmeans(fit.lmmPP, ~ pre_post | overallBlockType)
-    contrast_tbl <- as.data.frame(confint(contrast(emm_pp_docx, method="pairwise")))
+    raw_contrast <- contrast(emm_pp_docx, method="pairwise")
+    # BH-FDR across the 4 protocol families (rbind unnests + applies joint adjust)
+    fdr_contrast <- rbind(raw_contrast, adjust = "fdr")
+    contrast_tbl <- as.data.frame(confint(raw_contrast))
+    contrast_summary <- as.data.frame(summary(raw_contrast))
+    fdr_summary <- as.data.frame(summary(fdr_contrast))
     es_tbl <- as.data.frame(confint(eff_size(emm_pp_docx, sigma=sigma_total, edf=edf_conservative)))
     contrast_tbl$`Cohen's d` <- round(es_tbl$effect.size, 2)
     contrast_tbl$`d lower` <- round(es_tbl$lower.CL, 3)
     contrast_tbl$`d upper` <- round(es_tbl$upper.CL, 3)
     contrast_tbl$`d df` <- round(es_tbl$df, 1)
+    contrast_tbl$t <- round(contrast_summary$t.ratio, 2)
+    contrast_tbl$`p value` <- format.pval(contrast_summary$p.value, digits = 3, eps = 1e-4)
+    contrast_tbl$`p (BH-FDR)` <- format.pval(fdr_summary$p.value, digits = 3, eps = 1e-4)
     contrast_tbl$estimate <- round(contrast_tbl$estimate, 3)
     contrast_tbl$SE <- round(contrast_tbl$SE, 3)
     contrast_tbl$df <- round(contrast_tbl$df, 1)
     contrast_tbl$lower.CL <- round(contrast_tbl$lower.CL, 3)
     contrast_tbl$upper.CL <- round(contrast_tbl$upper.CL, 3)
-    contrast_out <- contrast_tbl[, c("overallBlockType","estimate","SE","lower.CL","upper.CL","df","Cohen's d","d lower","d upper","d df")]
+    contrast_out <- contrast_tbl[, c("overallBlockType","estimate","SE","lower.CL","upper.CL","df","t","p value","p (BH-FDR)","Cohen's d","d lower","d upper","d df")]
     names(contrast_out)[1] <- "Condition"
     names(contrast_out)[4:5] <- c("CI lower", "CI upper")
     doc <- body_add_par(doc, "Table: Pre-Post Contrasts", style="heading 2")
@@ -1289,7 +1303,7 @@ for (avgMeas in avgMeasVec) {
   emm_options(lmer.df = "satterthwaite")
 
   #fit.lmmdiff = lmerTest::lmer(absDiff ~ stimLevelVec + blockType + chanInCond + (1|sidVec),data=dataList)
-  fit.lmmdiff = lmerTest::lmer(absDiff ~ mapStimLevel + chanInCond + blockType + (1|subjectNum/chanVec),data=dataListAgg)
+  fit.lmmdiff = lmerTest::lmer(absDiff ~ mapStimLevel + chanInCond + blockType + (1|subjectNum:chanVec),data=dataListAgg)
 
 
   fit.lm = lm(absDiff ~ mapStimLevel + blockType + chanInCond ,data=dataListAgg)

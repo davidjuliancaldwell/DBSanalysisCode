@@ -333,10 +333,7 @@ for block = blocks
             
         case '9f852'
             tBegin = 3;
-            tEnd = 25;
-            
-            tBegin = 7;
-            tEnd = 70;
+            tEnd = 30;  % 2026-04-20: tightened from 70 to catch early peak, drop late rebound
             switch block
                 % baseline pre stim 1
                 case 1
@@ -706,12 +703,9 @@ for block = blocks
             end
             
         case 'a23ed'
-            
+
             tBegin = 3; % ms
-            tEnd = 30; % ms
-            
-            tBegin = 5;
-            tEnd = 50;
+            tEnd = 30; % ms  % 2026-04-20: reverted to 2019 values (tEnd=50 override removed; caught late rebound)
             switch block
                 % baseline pre stim 1
                 case 1
@@ -797,7 +791,7 @@ for block = blocks
     tEpoch = [-preSamps:postSamps-1]/ECoGfs*1e3;
     
     baselineNormalize = 1;
-    baselineWindow = [-200 -10];
+    baselineWindow = [-50 -5];  % ms; matches beta-osc paper convention
     
     if screenBadChans
         for chanInt = chanIntList
@@ -872,7 +866,8 @@ for block = blocks
     for ii = stimLevelUniq
         
         epochUnNormed = getEpochSignal(ECoG,stimLevelCell{count}-preSamps,stimLevelCell{count}+postSamps);
-        epochNormed =  epochUnNormed-repmat(mean(epochUnNormed(tEpoch<0,:,:),1), [size(epochUnNormed, 1), 1]);
+        blMask = (tEpoch >= baselineWindow(1)) & (tEpoch <= baselineWindow(2));
+        epochNormed = epochUnNormed - mean(epochUnNormed(blMask,:,:), 1);  % per-trial, per-channel baseline subtraction
         epochsEP{count} = epochNormed;
         if plotCondAvg
             smallMultiples_DBS(mean(epochsEP{count},3),tEpoch/1e3,'type2',stimChans);

@@ -27,7 +27,14 @@ All scripts use `_PairedPulseData_avg_5.csv` (peak-to-peak, 5-trial average) and
 
 250 cell medians after filtering to 4 conditions (A/A 200, A/A 25, A/B 200, A/B 25), applying 10/1000 uV amplitude filter, and per-stim-level n>=3 cell filter. 51 unique subject:block recording sessions; 17 unique subject:channel combinations; 13 subjects (includes a23ed with 15-min conditioning sessions only; MNI coordinates unavailable, baLabel set to "Unknown"). Previously 9 subjects with n>=10 filter; relaxed to n>=3 with per-stim-level dropping (failing stim levels dropped individually rather than excluding entire subjects).
 
-**Data regeneration (2026-04-07):** All `_PairedPulseData_avg_5.csv` files regenerated from committed MATLAB code (`regenerate_avg5_data.m`). Original files renamed to `_unknown_provenance`. Pipeline: waveform averaging (5 trials) -> windowing (tBegin-tEnd) -> Savitzky-Golay smoothing (order 3, frame 91) -> peak-to-peak extraction. No baseline normalization on PPvec. R uses the `PPvec` column (not `PPfromAvgVec`). Row counts differ from originals due to bad trial exclusions added in commit c55c8cc (April 2021).
+**Data regeneration (2026-04-07, updated 2026-04-20):** All `_PairedPulseData_avg_5.csv` files regenerated from committed MATLAB code (`regenerate_avg5_data.m`). Original files renamed to `_unknown_provenance`. Pipeline: per-trial per-channel pre-stim baseline subtraction ([-50 -5] ms window, `prepare_EP_blocks.m:875`) -> waveform averaging (5 trials) -> windowing (`[tBegin, tEnd]`) -> Savitzky-Golay smoothing (order 3, frame 91) -> peak-to-peak extraction. R uses the `PPvec` column (not `PPfromAvgVec`).
+
+Two 2026-04-20 pipeline adjustments:
+1. Baseline-subtraction window narrowed from `tEpoch<0` (full 500 ms pre-stim) to `[-50 -5]` ms (beta-osc paper convention). Peak-to-peak amplitude `|max_pos| + |max_neg|` over `[tBegin, tEnd]` is invariant to any constant per-trial DC offset, so this change affected the plotted waveforms (pre-stim traces converge at 0) but not `PPvec` or any downstream statistic.
+2. `[tBegin, tEnd]` windows narrowed for a23ed (5/50 → 3/30) and 9f852 (7/70 → 3/30). Unlike baseline subtraction, window narrowing DOES change `PPvec` — it restricts which extrema `findpeaks` can see. For these two subjects, the wider prior windows were catching a late-phase slow rebound as the "peak" instead of the genuine early EP peak. New windows recover the expected early pk/tr pair (e.g., a23ed chan 5 stim 4: pk 43.01 ms → 4.80 ms, matching the 2019 reference).
+3. **9f852 channel 7 excluded** from `subj_9f852.R` (`chanIntVec = c(4)`), `mni_DBS_electrodeLoc_plots.m`, and both viz scripts, due to atypical morphology (no clear early EP; peaks placed on late drift).
+
+Row counts differ from originals due to bad trial exclusions added in commit c55c8cc (April 2021) and the 2026-04-20 changes above.
 
 **Amplitude filter:** Peak-to-peak values below 10 uV or above 1000 uV are discarded before analysis to exclude incorrectly extracted evoked potentials. The MATLAB extraction pipeline does not apply magnitude cutoffs; filtering is done in R after loading CSVs.
 
@@ -56,9 +63,13 @@ EP amplitude (PPvec) is log-transformed before cell-median aggregation (`log_dat
 ```r
 fit.lmmPP = lmerTest::lmer(PPvec ~ mapStimLevel + chanInCond +
     overallBlockType*pre_post +
-    (1 + stim_linpoly|subjectNum:chanVec) + (1|subjectNum) + (1|subjectNum:blockVec),
+    (1 + stim_linpoly|subjectNum:chanVec) + (1|subjectNum:blockVec),
     data=dataListAgg)
 ```
+
+**2026-04-20:** `(1|subjectNum)` was dropped after 9f852 chan 7 removal reduced the design to 10 single-channel + 3 two-channel subjects. With only 3 multi-channel subjects, the between-subject variance cannot be reliably separated from the `(1|subjectNum:chanVec)` intercept — `lme4` pushed its variance to 0 (singular fit). The `Subject:Channel` intercept absorbs between-subject variance (for single-channel subjects it is trivially equivalent). Fixed-effect estimates, SEs, contrasts, and Tukey p-values differ only in the 4th decimal; `isSingular(fit.lmmPP)` is now `FALSE`.
+
+**Post-hoc pre-post contrasts (multiple-comparison adjustment):** Within-protocol pre-post contrasts are computed via `emmeans(fit.lmmPP, ~ pre_post | overallBlockType)` followed by `contrast(..., method="pairwise")`. Because each protocol-group has only 1 contrast (pre vs post), emmeans applies no within-group adjustment — but the 4 resulting p-values (one per protocol) are uncorrected across the 4-protocol family. The docx table adds a `p (BH-FDR)` column using `rbind(raw_contrast, adjust = "fdr")`, which unnests the grouped contrasts into one 4-member family and applies the Benjamini-Hochberg FDR procedure. Only A/B 200 survives BH-FDR at α = 0.05 (adjusted p = 0.047). Cohen's d confidence intervals remain per-contrast 95% intervals (unadjusted); the docx caption notes this.
 
 **Cell-median aggregation:** Trials within a cell (subject x channel x block x stim level) are not independent -- they are sequential recordings from the same neural state. Aggregating to cell medians (232 obs, 12 subjects) eliminates this pseudoreplication entirely. Per-stim-level filter requires >=3 trials per (stim level, block) cell; stim levels that fail are dropped individually rather than excluding the entire subject.
 
@@ -194,7 +205,7 @@ Tests whether the conditioning effect differs between the first and second half 
 ```r
 fit.lmmPP.half = lmerTest::lmer(PPvec ~ mapStimLevel + chanInCond +
     overallBlockType*pre_post*halfBlock +
-    (1 + stim_linpoly|subjectNum:chanVec) + (1|subjectNum) + (1|subjectNum:blockVec),
+    (1 + stim_linpoly|subjectNum:chanVec) + (1|subjectNum:blockVec),
     data=dataListAggHalf)
 ```
 

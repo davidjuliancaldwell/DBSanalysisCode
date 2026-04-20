@@ -1,14 +1,20 @@
-% Standalone driver for "comparison of conditions, average plot" figures.
-% Overlays all configured blocks at each stim level (3 and 4 by default)
-% for the given channel(s), producing mean-only and mean + 95% CI panels.
+% Reproduces the a23ed_chan_5_mean_measure.fig / confInt_measure.fig style
+% for any list of (subject, channel, blocks, legendText) cases.
 %
-% Wraps the existing prepare_EP_blocks + analyze_EP_compare_multiple_blocks
-% pipeline. Edit the USER CONFIG block for any (subject, channel, blocks)
-% combination; the defaults plot 9f852 channel 7 across all its paired
-% pulse blocks.
+% Per case, at each stim level in stimInterest, emits:
+%   {sid}_chan_{ch}_mean_measure_stim{s}.png   (and .fig)
+%   {sid}_chan_{ch}_confInt_measure_stim{s}.png (and .fig)
 %
-% Saves figures via exportgraphics (SaveFig has a macOS path-prefix bug
-% that writes to c:/Tim/... on Unix systems).
+% Each figure overlays the configured blocks (cbrewer Dark2) on a single
+% panel and marks the baseline peak / trough times with heavy dashed
+% vertical lines (vline + LW 2, like the reference .fig). Peak / trough
+% come from pkLocsBlock / trLocsBlock, which extract_PP_peak_to_peak
+% computes on the trial-averaged waveform, so exactly one peak line and
+% one trough line are drawn per panel.
+%
+% Plotting is inline (not via analyze_EP_compare_multiple_blocks) to use
+% the actual stim level being plotted for peak/trough lookup; that helper
+% hardcodes condInt = 4.
 
 close all; clear; clc
 Z_ConstantsDBS_PairedPulse;
@@ -17,7 +23,7 @@ experiment = 'EP_Measurement';
 
 % Analysis flags (match master_script_analyze_EP.m defaults)
 avgTrials      = 0;
-savePlot       = 0;   % keep 0 -- exportgraphics saves below
+savePlot       = 0;
 screenBadChans = 0;
 plotCondAvg    = 0;
 plotPkTr       = 0;
@@ -27,61 +33,151 @@ rerefMode      = 'none';
 numAvg         = 3;
 
 % --- USER CONFIG ------------------------------------------------------
-% Subject ID and channel(s) to plot
-sid         = '9f852';
-chanIntList = [7];
+% Stim levels (condInt indices into stimLevelUniq). Reference uses [4].
+stimInterest = [3 4];
 
-% Blocks to overlay and their legend labels (must be same length).
-% Default values taken from master_script_analyze_EP.m for 9f852.
-blocks = [2 3 4 5 6 7 10 11 12];
-legendText = {'baseline 2 (pre conditioning)', 'post A/B 25 ms', ...
-    'baseline 3 (post 25 ms)', 'post A/A 25 ms', ...
-    'baseline 4 (post 25 ms A/A)', 'post A/B 200 ms', ...
-    'baseline 5 - post A/B 200 ms 12 min later', ...
-    'post A/B 25 ms second time', 'baseline 6'};
+% Cases: sid | channel | blocks | legendText
+% Defaults: a23ed chan 5 (reference), 41a73 chan 5 + 68574 chan 7 (matching).
+cases = {
+    'a23ed', 5, [2 3 6 8], {'baseline 2', 'post A/B 200 ms (5 minutes)', ...
+                            'post A/B 200 ms (15 mins)', 'post A/A 200 ms (15 mins)'};
+    'a23ed', 5, [5 6],     {'baseline 4 (matched pre for 15-min A/B 200)', 'post A/B 200 ms (15 mins)'};
+    '41a73', 5, [5 6],     {'baseline 4 (pre A/A 200)', 'post A/A 200 ms'};
+    '68574', 7, [6 7],     {'baseline 4 (pre A/A 200)', 'post A/A 200 ms'};
+    '9f852', 4, [2 3],     {'baseline 2 (pre conditioning)', 'post A/B 25 ms'};
+    };
 
-% Where to write PNGs; defaults to the OUTPUT_DIR from Z_Constants.
+% Plot limits and vline style (match a23ed_chan_5_mean_measure.fig)
+xLimMs     = [-10 70];
+yLimUV     = [-300 300];
+xTicks     = [0 20 40 60];
+yTicks     = [-200 -100 0 100 200];
+
+% Per-subject overrides (smaller-amplitude subjects get tighter YLim/YTicks)
+yLimPerSid = containers.Map;
+yLimPerSid('68574') = [-140 140];
+yTicksPerSid = containers.Map;
+yTicksPerSid('68574') = [-100 0 100];
+axFontSize = 22;
+vlineLW    = 2;
+figPosIn   = [1 1 7 7];  % square figure; axes forced square via pbaspect
+
 saveDir = OUTPUT_DIR;
 % --- END USER CONFIG --------------------------------------------------
 
-assert(length(blocks) == length(legendText), ...
-    'blocks and legendText must be same length');
-
-fprintf('\n=== %s, chan %s, %d blocks ===\n', sid, mat2str(chanIntList), length(blocks));
-fprintf('Preparing EP blocks...\n');
-prepare_EP_blocks
-
-fprintf('Running analyze_EP_compare_multiple_blocks...\n');
-figsBefore = findall(groot, 'Type', 'figure');
-analyze_EP_compare_multiple_blocks
-figsAfter  = findall(groot, 'Type', 'figure');
-
-% --- Save new figures via exportgraphics ---
-newFigs = setdiff(figsAfter, figsBefore);
-[~, ord] = sort(arrayfun(@(f) f.Number, newFigs));
-newFigs = newFigs(ord);
-
 if ~exist(saveDir, 'dir'); mkdir(saveDir); end
-chanStr = strjoin(arrayfun(@num2str, chanIntList, 'UniformOutput', false), '_');
 
-fprintf('\nSaving %d figure(s) to %s\n', length(newFigs), saveDir);
-for k = 1:length(newFigs)
-    f  = newFigs(k);
-    ax = findobj(f, 'Type', 'axes');
-    ttlstr = '';
-    if ~isempty(ax)
-        t = get(ax(1), 'Title');
-        if ~isempty(t) && ~isempty(t.String)
-            rawTitle = t.String;
-            if iscell(rawTitle); rawTitle = strjoin(rawTitle, ' '); end
-            ttlstr = regexprep(rawTitle, '[^a-zA-Z0-9]+', '_');
-            ttlstr = regexprep(ttlstr, '^_+|_+$', '');
-        end
+dataCache = containers.Map;
+
+for c = 1:size(cases, 1)
+    sid         = cases{c, 1};
+    chanInt     = cases{c, 2};
+    blocks      = cases{c, 3};
+    legendText  = cases{c, 4};
+    chanIntList = chanInt;  % consumed by prepare_EP_blocks
+
+    assert(length(blocks) == length(legendText), ...
+        'Case %d (%s): blocks and legendText must match in length', c, sid);
+
+    cacheKey = sprintf('%s_%s', sid, strjoin(string(blocks), '_'));
+    if ~isKey(dataCache, cacheKey)
+        fprintf('\n=== Preparing %s (blocks: %s) ===\n', sid, num2str(blocks));
+        prepare_EP_blocks;
+        dataCache(cacheKey) = struct( ...
+            'epochsEPblock', {epochsEPblock}, ...
+            'tEpoch',        tEpoch, ...
+            'stimLevelUniq', stimLevelUniq, ...
+            'tBegin',        tBegin, ...
+            'tEnd',          tEnd, ...
+            'ECoGfs',        ECoGfs, ...
+            'pkLocsBlock',   {pkLocsBlock}, ...
+            'trLocsBlock',   {trLocsBlock});
     end
-    fname = sprintf('conditions_%s_chan%s_fig%02d_%s.png', ...
-        sid, chanStr, k, ttlstr);
-    exportgraphics(f, fullfile(saveDir, fname), 'Resolution', 600);
-    fprintf('  [%d/%d] %s\n', k, length(newFigs), fname);
+    d = dataCache(cacheKey);
+
+    cmap = cbrewer('qual', 'Dark2', max(3, length(blocks)));
+    cmap = cmap(1:length(blocks), :);
+    cmap(cmap > 1) = 1; cmap(cmap < 0) = 0;
+
+    tBeginSamp = d.ECoGfs * d.tBegin / 1e3;
+    tEndSamp   = d.ECoGfs * d.tEnd   / 1e3;
+    tPk        = (tBeginSamp:tEndSamp) / d.ECoGfs;
+
+    if isKey(yLimPerSid, sid)
+        currYLim   = yLimPerSid(sid);
+        currYTicks = yTicksPerSid(sid);
+    else
+        currYLim   = yLimUV;
+        currYTicks = yTicks;
+    end
+
+    for sIdx = 1:length(stimInterest)
+        condInt = stimInterest(sIdx);
+        if condInt > length(d.stimLevelUniq)
+            fprintf('  %s: stim level %d unavailable (max %d); skipping\n', ...
+                sid, condInt, length(d.stimLevelUniq));
+            continue
+        end
+        stimUA = d.stimLevelUniq(condInt);
+
+        % Peak / trough times from baseline block (first in blocks list),
+        % computed on the trial-averaged waveform by extract_PP_peak_to_peak.
+        pkIdx = d.pkLocsBlock{1}(chanInt, condInt);
+        trIdx = d.trLocsBlock{1}(chanInt, condInt);
+        pkMs  = 1e3 * tPk(pkIdx);
+        trMs  = 1e3 * tPk(trIdx);
+
+        % --- Mean figure ---
+        meanFig = figure('Units', 'inches', 'Position', figPosIn);
+        hold on
+        hBlocks = gobjects(1, length(blocks));
+        for i = 1:length(blocks)
+            trials = squeeze(d.epochsEPblock{i}{condInt}(:, chanInt, :));
+            hBlocks(i) = plot(d.tEpoch, 1e6 * mean(trials, 2), ...
+                'LineWidth', 2, 'Color', cmap(i, :));
+        end
+        xlim(xLimMs); ylim(currYLim);
+        xlabel('time (ms)'); ylabel('Voltage (\muV)');
+        title(sprintf('Channel %d, %d \\muA (mean)', chanInt, stimUA));
+        set(gca, 'FontSize', axFontSize, 'XTick', xTicks, 'YTick', currYTicks, ...
+            'TitleFontSizeMultiplier', 0.8, 'LabelFontSizeMultiplier', 1.0);
+        pbaspect([1 1 1]);  % force axes box to be square
+        legend(hBlocks, legendText);
+        pkLine = vline(pkMs, 'k--'); set(pkLine, 'LineWidth', vlineLW, 'Tag', 'vline');
+        trLine = vline(trMs, 'k--'); set(trLine, 'LineWidth', vlineLW, 'Tag', 'vline');
+
+        blockStr = strjoin(string(blocks), '_');
+        meanName = sprintf('%s_chan_%d_blocks_%s_mean_measure_stim%d', sid, chanInt, blockStr, condInt);
+        exportgraphics(meanFig, fullfile(saveDir, [meanName '.png']), 'Resolution', 600);
+        exportgraphics(meanFig, fullfile(saveDir, [meanName '.eps']), 'ContentType', 'vector');
+        savefig(meanFig, fullfile(saveDir, [meanName '.fig']));
+
+        % --- Confidence interval figure ---
+        confFig = figure('Units', 'inches', 'Position', figPosIn);
+        hold on
+        for i = 1:length(blocks)
+            trials = squeeze(d.epochsEPblock{i}{condInt}(:, chanInt, :));
+            plotBTLError(d.tEpoch(:)', 1e6 * trials, 'CI', cmap(i, :)');
+        end
+        xlim(xLimMs); ylim(currYLim);
+        xlabel('time (ms)'); ylabel('Voltage (\muV)');
+        title(sprintf('Channel %d, %d \\muA (95%% CI)', chanInt, stimUA));
+        set(gca, 'FontSize', axFontSize, 'XTick', xTicks, 'YTick', currYTicks, ...
+            'TitleFontSizeMultiplier', 0.8, 'LabelFontSizeMultiplier', 1.0);
+        pbaspect([1 1 1]);  % force axes box to be square
+        hAll = flipud(findobj(gca, 'Type', 'line'));
+        if length(hAll) >= length(blocks)
+            legend(hAll(1:length(blocks)), legendText);
+        end
+
+        confName = sprintf('%s_chan_%d_blocks_%s_confInt_measure_stim%d', sid, chanInt, blockStr, condInt);
+        exportgraphics(confFig, fullfile(saveDir, [confName '.png']), 'Resolution', 600);
+        exportgraphics(confFig, fullfile(saveDir, [confName '.eps']), 'ContentType', 'vector');
+        savefig(confFig, fullfile(saveDir, [confName '.fig']));
+
+        fprintf('  %s chan %d stim %d (%.1f mA): pk=%.2f ms tr=%.2f ms  [mean + confInt saved]\n', ...
+            sid, chanInt, condInt, stimUA/1e3, pkMs, trMs);
+    end
 end
 
-fprintf('\nDone.\n');
+fprintf('\nDone. %d case(s) plotted.\n', size(cases, 1));

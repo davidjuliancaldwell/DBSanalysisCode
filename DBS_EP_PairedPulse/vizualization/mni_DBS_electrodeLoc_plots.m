@@ -70,12 +70,12 @@ CT = distinguishable_colors(length(names_struct));
 
 electrodes_interest = struct();
 electrodes_interest.x01fee = [5,8];
-electrodes_interest.x9f852 = [4,7];
+electrodes_interest.x9f852 = [4];
 electrodes_interest.x2e114 = [4];
 electrodes_interest.x3d413 = [4,6];
 electrodes_interest.x8e907 = [4,5];
 electrodes_interest.x08b13 = [6];
-electrodes_interest.x9f852 = [4,7];
+electrodes_interest.x9f852 = [4];
 electrodes_interest.x41a73 = [5];
 electrodes_interest.x46c2a = [6];
 electrodes_interest.x68574 = [4,7];

@@ -35,7 +35,6 @@ stimInterest = [3 4];
 % modulation_depression_levels34.csv; replace with any pre/post comparison.
 cases = {
     '9f852', 2, 3, 'A/B 25 ms',  4;   % -78% at stim 3, -70% at stim 4
-    '9f852', 2, 3, 'A/B 25 ms',  7;   % -57% at stim 3, -61% at stim 4
     '68574', 6, 7, 'A/A 200 ms', 7;   % -27% at stim 3, -16% at stim 4
     '41a73', 5, 6, 'A/A 200 ms', 5;   %  mild depression at stim 4
     };

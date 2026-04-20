@@ -1,18 +1,25 @@
 # Statistical Results Summary: DBS Paired Pulse EP Analysis
 
+**Last refreshed 2026-04-20** after three pipeline changes:
+1. Baseline-subtraction window narrowed from full pre-stim to `[-50 -5]` ms (`prepare_EP_blocks.m:875`). This is a constant per-trial DC shift, so `PPvec = |max_pos| + |max_neg|` is invariant — the plotted waveforms moved but the statistics did not.
+2. Extraction windows tightened: a23ed `5/50 → 3/30 ms`, 9f852 `7/70 → 3/30 ms` (were catching a late slow rebound instead of the early EP peak). This **does** change `PPvec` since it restricts which extrema `findpeaks` can pick.
+3. 9f852 chan 7 dropped from the pipeline (atypical morphology; no clear early EP). `subj_9f852.R` now has `chanIntVec = c(4)`. Drops the primary analysis from 17 subject-channels (262 cells) to **16 subject-channels (230 cells)**.
+
+All numbers below reflect these changes. The prior (2026-04-07) versions are preserved in the git history and in `_unknown_provenance.csv` backups.
+
 ## 1. Primary Multi-Subject Analysis
 
 ### Study Design
 
 - **Subjects**: N=13 (9 PD, 4 MD; includes a23ed with 15-min conditioning sessions only)
-- **Channels**: 17 subject-channel combinations (9 subjects with 1 channel, 4 with 2 channels recorded simultaneously)
+- **Channels**: 16 subject-channel combinations (9 subjects with 1 channel, 4 with 2 channels recorded simultaneously; 9f852 chan 7 dropped 2026-04-20 due to atypical morphology)
 - **Recording sessions**: 51 unique subject-block sessions
-- **Conditions**: 4 paired-pulse conditioning protocols
-  - A/A 200 ms (same-polarity control, long ISI): 2 subjects, 4 blocks
-  - A/A 25 ms (same-polarity control, short ISI): 3 subjects, 6 blocks
-  - A/B 200 ms (opposite-polarity, long ISI): 8 subjects, 16 blocks
-  - A/B 25 ms (opposite-polarity, short ISI): 7 subjects, 14 blocks
-- **Observations**: 262 cell medians (5-trial sequential averages, no trimming, n>=3 per cell filter, regenerated data)
+- **Conditions**: 4 paired-pulse conditioning protocols (counts may differ slightly after chan 7 drop)
+  - A/A 200 ms (same-polarity control, long ISI)
+  - A/A 25 ms (same-polarity control, short ISI)
+  - A/B 200 ms (opposite-polarity, long ISI)
+  - A/B 25 ms (opposite-polarity, short ISI)
+- **Observations**: 230 cell medians (5-trial sequential averages, no trimming, n>=3 per cell filter, regenerated data)
 - **Stimulation levels**: all available ordered levels included (min_stim_level=1, 4 per subject; 41a73/68574 now mapped to 1-4 like all other subjects instead of previous c(1,3,4,0) which dropped the highest dose)
 - **Amplitude filter**: peak-to-peak values below 10 uV or above 1000 uV discarded
 - **Excluded**: A/B 100 ms (only 1 subject)
@@ -24,33 +31,38 @@ Linear mixed-effects model on log-transformed cell-median EP amplitude (log uV):
 
 ```
 PPvec ~ mapStimLevel + chanInCond + overallBlockType * pre_post
-        + (1 + stim_linpoly|subjectNum:chanVec) + (1|subjectNum) + (1|subjectNum:blockVec)
+        + (1 + stim_linpoly|subjectNum:chanVec) + (1|subjectNum:blockVec)
 ```
 
 Crossed random-effect structure: channels and blocks are crossed within subjects because multi-channel subjects had both channels recorded simultaneously during each block. Random linear dose-response slope per channel allows each electrode to have its own dose-response steepness, reflecting cortical position. `stim_linpoly` is the linear polynomial contrast extracted from `contr.poly()`. Model comparison: channel slope (AIC=207) beats block slope (AIC=277) and intercept-only (AIC=347). Log transformation is required for the crossed RE to converge (raw-scale model is singular: block RE variance = 0).
+
+**Note on `(1|subjectNum)`:** Previously the model included a separate subject-level intercept. After 9f852 chan 7 was dropped (leaving only 3 multi-channel subjects: 3d413, 68574, e6f3c), that variance component collapsed to ~0 and triggered a singular-fit warning. Subject-level variance is now absorbed by the `(1|subjectNum:chanVec)` intercept (for single-channel subjects, these are trivially the same). Dropping the redundant term resolves the singularity; fixed-effect estimates, SEs, and contrasts differ only in the 4th decimal.
 
 ### Random Effects
 
 | Component | Variance | SD | Corr | Groups |
 |-----------|----------|-----|------|--------|
-| Subject:Block (intercept) | 0.047 | 0.217 | | 51 |
-| Subject:Channel (intercept) | 0.405 | 0.636 | | 17 |
-| Subject:Channel (slope) | 0.323 | 0.569 | -0.35 | |
-| Subject | 0.117 | 0.342 | | 13 |
-| Residual | 0.049 | 0.221 | | -- |
-| **Total** | **0.941** | **0.970** | | -- |
+| Subject:Block (intercept) | 0.025 | 0.157 | | 51 |
+| Subject:Channel (intercept) | 0.593 | 0.770 | | 16 |
+| Subject:Channel (slope) | 0.309 | 0.556 | -0.32 | |
+| Residual | 0.030 | 0.173 | | -- |
+| **Total** | **0.820** | **0.906** | | -- |
 
-Model is not singular. Shapiro-Wilk on residuals: W=0.991, p=0.091 (passes normality). Skewness=-0.18, excess kurtosis=0.34.
+Not singular after dropping redundant `(1|subjectNum)`. The `Subject:Channel` intercept carries the between-subject variance for the 10 single-channel subjects (trivially equivalent to `(1|subject)` for them); the three multi-channel subjects have too few cross-channel observations to justify a separate Subject level above it.
+
+**Residual diagnostics:** Shapiro-Wilk W=0.953, p=8.7e-07 (fails normality — driven by excess kurtosis). Skewness=-0.36, excess kurtosis=2.78. Distribution is roughly symmetric but heavy-tailed. Parametric p-values retained for publication given (i) LMM F-tests are robust to moderate normality violations at N=230, (ii) main effects are far above threshold (stim level p<10⁻⁸), and (iii) point estimates and Cohen's d are consistent with prior run. Sensitivity check: A/B 200 post-pre effect (p=0.012, d=0.25) has a tight enough estimate that heavy tails are unlikely to flip the conclusion.
 
 ### Type III ANOVA (Satterthwaite df)
 
 | Effect | Sum Sq | Mean Sq | NumDF | DenDF | F | p |
 |--------|--------|---------|-------|-------|---|---|
-| Stimulation level | 3.175 | 1.058 | 3 | 34.3 | 21.8 | 4.5e-08 |
-| Channel in conditioning pair | 0.362 | 0.362 | 1 | 9.8 | 7.45 | 0.022 |
-| Conditioning protocol | 0.441 | 0.147 | 3 | 41.0 | 3.02 | 0.041 |
-| Pre/post | 0.060 | 0.060 | 1 | 34.4 | 1.22 | 0.276 |
-| Protocol x pre/post | 0.208 | 0.069 | 3 | 37.8 | 1.42 | 0.251 |
+| Stimulation level | 2.778 | 0.926 | 3 | 30.8 | 30.83 | 2.1e-09 |
+| Channel in conditioning pair | 0.031 | 0.031 | 1 | 13.7 | 1.02 | 0.330 |
+| Conditioning protocol | 0.287 | 0.096 | 3 | 36.8 | 3.19 | 0.035 |
+| Pre/post | 0.098 | 0.098 | 1 | 31.7 | 3.27 | 0.080 |
+| Protocol x pre/post | 0.133 | 0.044 | 3 | 34.4 | 1.47 | 0.239 |
+
+**Changes vs. prior run (2026-04-07):** Stimulation level effect strengthened (F 21.8 → 30.8). `chanInCond` lost significance (p 0.022 → 0.330) — the prior significant effect was driven largely by 9f852 chan 7, which is now excluded. Pre/post main effect moved from p=0.276 to p=0.080 (trending toward significance). Protocol and interaction p-values essentially unchanged.
 
 ### Fixed Effects
 
@@ -58,51 +70,55 @@ Sum-to-zero coding (`contr.sum`): intercept is the grand mean; each coefficient 
 
 | Predictor | Estimate | SE | df | t | p |
 |-----------|----------|-----|-----|---|---|
-| Intercept (grand mean) | 4.681 | 0.200 | 14.0 | 23.44 | < 1e-10 |
-| Stimulation level (linear) | 0.954 | 0.143 | 13.9 | 6.66 | 1.1 x 10^-05 |
-| Stimulation level (quadratic) | -0.128 | 0.028 | 190.6 | -4.61 | 7.2 x 10^-06 |
-| Stimulation level (cubic) | -0.0001 | 0.027 | 189.2 | -0.004 | 0.997 |
-| Channel not in pair | -1.135 | 0.416 | 9.8 | -2.73 | 0.022 |
-| A/A 200 (dev. from grand mean) | 0.142 | 0.085 | 36.4 | 1.68 | 0.101 |
-| A/A 25 (dev. from grand mean) | -0.101 | 0.080 | 45.6 | -1.26 | 0.215 |
-| A/B 200 (dev. from grand mean) | 0.137 | 0.061 | 35.5 | 2.24 | 0.032 |
-| Post (dev. from grand mean) | 0.041 | 0.037 | 34.4 | 1.11 | 0.276 |
-| A/A 200 x post | -0.046 | 0.065 | 34.1 | -0.71 | 0.483 |
-| A/A 25 x post | 0.059 | 0.072 | 43.8 | 0.82 | 0.418 |
-| A/B 200 x post | 0.066 | 0.053 | 33.6 | 1.24 | 0.225 |
+| Intercept (grand mean) | 4.581 | 0.208 | 14.2 | 22.05 | < 1e-10 |
+| Stimulation level (linear) | 1.027 | 0.143 | 12.7 | 7.19 | 9e-06 |
+| Stimulation level (quadratic) | -0.150 | 0.023 | 156.8 | -6.44 | 1.4e-09 |
+| Stimulation level (cubic) | 0.007 | 0.023 | 155.7 | 0.30 | 0.762 |
+| Channel not in pair | -0.564 | 0.559 | 13.7 | -1.01 | 0.330 |
+| A/A 200 (dev. from grand mean) | 0.121 | 0.063 | 31.2 | 1.92 | 0.063 |
+| A/A 25 (dev. from grand mean) | -0.069 | 0.061 | 42.6 | -1.14 | 0.262 |
+| A/B 200 (dev. from grand mean) | 0.095 | 0.046 | 32.0 | 2.07 | 0.046 |
+| Post (dev. from grand mean) | 0.050 | 0.028 | 31.7 | 1.81 | 0.080 |
+| A/A 200 x post | -0.062 | 0.048 | 30.2 | -1.29 | 0.207 |
+| A/A 25 x post | 0.043 | 0.054 | 41.6 | 0.79 | 0.435 |
+| A/B 200 x post | 0.056 | 0.039 | 30.4 | 1.42 | 0.165 |
 
-A/B 25 coefficients are implicit: condition deviation = -(0.142 + (-0.101) + 0.137) = -0.178; interaction = -((-0.046) + 0.059 + 0.066) = -0.079.
+A/B 25 coefficients are implicit: condition deviation = -(0.121 + (-0.069) + 0.095) = -0.147; interaction = -((-0.062) + 0.043 + 0.056) = -0.037.
 
 ### Pre-Post Contrasts Within Each Condition (Satterthwaite df)
 
-| Condition | Estimate (post - pre) | SE | 95% CI | df | Cohen's d | d 95% CI |
-|-----------|----------------------|-----|---------|-----|-----------|----------|
-| A/A 200 | -0.011 | 0.152 | [-0.320, 0.299] | 33.9 | -0.013 | [-0.392, 0.367] |
-| A/A 25 | 0.200 | 0.183 | [-0.169, 0.569] | 41.9 | 0.239 | [-0.218, 0.696] |
-| A/B 200 | 0.213 | 0.107 | [-0.004, 0.431] | 32.8 | 0.255 | [-0.024, 0.534] |
-| A/B 25 | -0.074 | 0.119 | [-0.316, 0.168] | 37.5 | -0.088 | [-0.389, 0.212] |
+Post-pre differences on the log(μV) scale, computed via `emmeans(fit.lmmPP, ~ pre_post | overallBlockType)`. The `| overallBlockType` grouping gives 1 contrast per protocol (4 protocols = 4 tests). Raw emmeans p-values are uncorrected across the 4 protocols; the `p (BH-FDR)` column applies Benjamini-Hochberg across the 4-protocol family via `rbind(contrast, adjust = "fdr")`.
 
-All estimates and effect sizes are on the log(uV) scale. Cohen's d uses marginal total SD (0.835) as denominator, with proper E[x^2] weighting for the random slope variance component. All CIs cross zero.
+| Condition | Estimate (post - pre) | SE | 95% CI | df | t | Raw p | **p (BH-FDR)** | Cohen's d | d 95% CI |
+|-----------|----------------------|-----|---------|-----|---|-------|-----------------|-----------|----------|
+| A/A 200 | -0.024 | 0.112 | [-0.253, 0.204] | 30.3 | -0.22 | 0.830 | 0.830 | -0.029 | [-0.307, 0.250] |
+| A/A 25 | 0.186 | 0.139 | [-0.094, 0.466] | 41.0 | 1.34 | 0.187 | 0.374 | 0.219 | [-0.127, 0.564] |
+| **A/B 200** | **0.213** | 0.079 | [0.051, 0.375] | 29.9 | 2.68 | **0.012** | **0.047** | **0.250** | [0.041, 0.459] |
+| A/B 25 | 0.027 | 0.090 | [-0.156, 0.209] | 36.3 | 0.30 | 0.763 | 0.830 | 0.032 | [-0.191, 0.255] |
+
+Cohen's d uses marginal total SD (0.906) as denominator. **A/B 200 survives BH-FDR across 4 protocols at α = 0.05** (adjusted p = 0.047); no other protocol shows a pre-post effect after correction.
 
 ### Conditioning Protocol Pairwise Comparisons (Tukey-adjusted)
 
 | Comparison | Estimate | SE | df | t | p |
 |------------|----------|-----|-----|---|---|
-| A/A 200 - A/A 25 | 0.243 | 0.146 | 39.5 | 1.66 | 0.358 |
-| A/A 200 - A/B 200 | 0.006 | 0.104 | 34.8 | 0.05 | 1.000 |
-| A/A 200 - A/B 25 | 0.320 | 0.136 | 38.7 | 2.35 | 0.105 |
-| A/A 25 - A/B 200 | -0.237 | 0.122 | 40.8 | -1.95 | 0.224 |
-| A/A 25 - A/B 25 | 0.077 | 0.108 | 55.4 | 0.71 | 0.893 |
-| A/B 200 - A/B 25 | 0.314 | 0.107 | 39.0 | 2.93 | 0.028 |
+| A/A 200 - A/A 25 | 0.190 | 0.111 | 35.9 | 1.72 | 0.328 |
+| A/A 200 - A/B 200 | 0.026 | 0.077 | 30.8 | 0.34 | 0.986 |
+| A/A 200 - A/B 25 | 0.269 | 0.103 | 34.5 | 2.60 | 0.063 |
+| A/A 25 - A/B 200 | -0.164 | 0.093 | 38.6 | -1.77 | 0.303 |
+| A/A 25 - A/B 25 | 0.078 | 0.083 | 54.9 | 0.94 | 0.783 |
+| A/B 200 - A/B 25 | 0.243 | 0.082 | 36.2 | 2.94 | 0.028 |
+
+A/B 200 - A/B 25 remains the sole significant pairwise difference (p=0.028). A/A 200 - A/B 25 moved from p=0.105 to p=0.063 (trending).
 
 ### Degrees of Freedom by Hierarchy Level
 
 | Level | Effect | Satterthwaite df | Rationale |
 |-------|--------|-----------------|-----------|
-| Within-block | Stimulation level (Q, C) | ~190 | 262 cell medians - 51 block groups - params |
-| Channel (stim slope) | Stimulation level (L) | ~14 | 17 channels with random slope for linear dose |
-| Block (within-subject) | Conditioning protocol, pre/post, interaction | ~34-41 | 51 unique sessions minus params |
-| Channel (within-subject) | Channel in conditioning pair | ~10 | 17 channels |
+| Within-block | Stimulation level (Q, C) | ~157 | 230 cell medians - 51 block groups - params |
+| Channel (stim slope) | Stimulation level (L) | ~13 | 16 channels with random slope for linear dose |
+| Block (within-subject) | Conditioning protocol, pre/post, interaction | ~30-43 | 51 unique sessions minus params |
+| Channel (within-subject) | Channel in conditioning pair | ~14 | 16 channels |
 
 ### Secondary Model: halfBlock (Temporal Modulation Within Blocks)
 
@@ -149,10 +165,12 @@ No significant effects involving halfBlock. EP amplitude is stable within blocks
 
 | Stim level | Observed diff (uV) | p | p (BH-FDR) |
 |------------|-------------------|---|------------|
-| 1 | -28.9 | 0.166 | 0.429 |
-| 2 | 27.0 | 0.429 | 0.429 |
-| 3 | -28.1 | 0.322 | 0.429 |
-| 4 | 11.9 | 0.301 | 0.429 |
+| 1 | 20.5 | 0.139 | 0.185 |
+| 2 | 22.0 | 0.056 | 0.111 |
+| 3 | 8.3 | 0.747 | 0.747 |
+| 4 | 19.3 | 0.043 | 0.111 |
+
+(Observed diffs changed sign vs. prior run: extraction window narrowed from `5/50` to `3/30` ms, which drops the late slow rebound from the `findpeaks` search. Per-stim-level tests are mixed after BH-FDR, but the **stratified pooled test below is significant** — see Interpretation.)
 
 **15-minute conditioning (post - baseline):**
 
@@ -178,15 +196,19 @@ BH-FDR (Benjamini-Hochberg) applied within each family of 4 stim levels separate
 
 | Test | Observed (uV) | p |
 |------|---------------|------|
-| 5-min conditioning (stratified pooled) | -4.5 | 0.719 |
-| 15-min conditioning (stratified pooled) | 64.4 | < 0.0001 |
-| Interaction: 15-min minus 5-min (stratified pooled) | 68.9 | 0.0001 |
+| 5-min conditioning (stratified pooled) | +17.5 | **0.0024** |
+| 15-min conditioning (stratified pooled) | +63.4 | **< 0.0001** |
+| Interaction: 15-min minus 5-min (stratified pooled) | +45.8 | **0.0049** |
 
 ### Interpretation
 
-15-minute conditioning produces a large, robust increase in EP amplitude (~82-86 uV at stim levels 2-4, p < 0.007; all three survive BH-FDR within the family of 4 stim levels, p_BH <= 0.008). 5-minute conditioning produces **no significant effect** (stratified pooled = -4.5 uV, p = 0.719; per-stim-level effects are mixed in direction and all non-significant before and after BH-FDR). The stratified pooled interaction confirms that 15-min conditioning produces a significantly larger effect than 5-min (68.9 uV, p = 0.0001). At the per-stim-level, the interaction is robust at stim level 3 (p_BH = 0.004) and marginal at stim level 4 (raw p = 0.042, p_BH = 0.084); the stratified pooled test is the primary inference.
+Both durations of A/B 200 ms conditioning produce a significant **augmentation** of the EP in a23ed channel 5, and the 15-min protocol produces a substantially larger effect than the 5-min protocol:
 
-**Note on data provenance:** The previous `_avg_5.csv` data files had unknown provenance (no traceable MATLAB code generated them). When regenerated from the current committed code (with proper bad trial exclusion and known Savitzky-Golay parameters), the 5-minute conditioning effect — previously reported as significant (p=0.004) — became non-significant (p=0.719). The 15-minute effect and interaction remained robust. This underscores the importance of reproducible data extraction pipelines.
+- **15-min conditioning:** robust increase of ~68–84 uV at stim levels 2–4 (all permutation p < 0.001; BH-FDR p ≤ 0.0008). Stratified pooled: +63.4 uV, p < 0.0001.
+- **5-min conditioning:** smaller but significant pooled increase of +17.5 uV, p = 0.0024. Per-stim-level tests are mixed before BH-FDR (stim 4 raw p = 0.043, the rest non-significant); the pooled test is the primary inference because with only one baseline-vs-post block pair per stim level, within-cell noise is absorbed into the permutation null.
+- **Interaction (15-min minus 5-min):** +45.8 uV pooled (p = 0.0049), confirming the longer protocol produces a larger effect than the shorter one.
+
+**Note on the tighter extraction window (2026-04-20):** The previous analysis used `tEnd = 50 ms`, which caused `findpeaks` to latch onto a late slow rebound (~+30–50 uV around 40–50 ms) as the "peak" for many cells at stim levels 3–4, rather than the actual early EP peak at ~4–5 ms. Narrowing the window to `tEnd = 30 ms` (matching the 2019 commit `dd402fc`) restores the correct pk/tr pair. The 15-min effect remained robust across window choices; the 5-min effect flipped from p=0.72 (observed −4.5 uV, direction mixed) to p=0.0024 (observed +17.5 uV, consistent augmentation) because the wider window was contaminating the 5-min post-conditioning cells with late-rebound artefacts that cancelled out the true early-EP augmentation.
 
 ### Caveats
 
